@@ -17,6 +17,39 @@ const int SWING_SPEED = 110;
 // Constants
 ///
 void default_constants() {
+  // Last season's (Push Back) tuned values, kept for reference.  They were
+  // tuned for the 600 rpm drive, so they are not a starting point for this
+  // robot - the live values below are what the 2026-27 robot has been running.
+  // // P, I, D, and Start I
+  // chassis.pid_drive_constants_forward_set(11.2,0,56);  //52
+  // chassis.pid_drive_constants_backward_set(5.7, 0.0, 9);
+  // chassis.pid_heading_constants_set(11,0,50.0);        // Holds the robot straight while going forward without odom. 11 40
+  // chassis.pid_turn_constants_set(3.2, 0, 25, 16.0);     // Turn in place constants
+  // chassis.pid_swing_constants_set(6.0, 0.0, 65.0);           // Swing constants
+  // chassis.pid_odom_angular_constants_set(6.5, 0.0, 60.5);    // Angular control for odom motions
+  // chassis.pid_odom_boomerang_constants_set(5.8, 0.0, 32.5);  // Angular control for boomerang motions
+  // // Exit conditions
+  // chassis.pid_turn_exit_condition_set(90_ms, 3_deg, 250_ms, 7_deg, 500_ms, 500_ms); // 90,3_deg,250_ms,7_deg,500_ms,500_ms
+  // chassis.pid_swing_exit_condition_set(90_ms, 3_deg, 250_ms, 7_deg, 500_ms, 500_ms);
+  // chassis.pid_drive_exit_condition_set(90_ms, 1_in, 250_ms, 3_in, 500_ms, 500_ms);
+  // chassis.pid_odom_turn_exit_condition_set(90_ms, 3_deg, 250_ms, 7_deg, 500_ms, 750_ms);
+  // chassis.pid_odom_drive_exit_condition_set(90_ms, 1_in, 250_ms, 5_in, 500_ms, 750_ms);
+  // chassis.pid_turn_chain_constant_set(3_deg);
+  // chassis.pid_swing_chain_constant_set(5_deg);
+  // chassis.pid_drive_chain_constant_set(3_in);
+  // // Slew constants
+  // chassis.slew_turn_constants_set(3_deg, 70);
+  // chassis.slew_drive_constants_forward_set(3.5_in, 40);
+  // chassis.slew_drive_constants_backward_set(0.5_in, 110);
+  // chassis.slew_swing_constants_set(3_in, 80);
+  // // The amount that turns are prioritized over driving in odom motions
+  // // - if you have tracking wheels, you can run this higher.  1.0 is the max
+  // chassis.odom_turn_bias_set(0.9);
+  // chassis.odom_look_ahead_set(7_in);           // This is how far ahead in the path the robot looks at
+  // chassis.odom_boomerang_distance_set(16_in);  // This sets the maximum distance away from target that the carrot point can be
+  // chassis.odom_boomerang_dlead_set(0.625);     // This handles how aggressive the end of boomerang motions are
+  // chassis.pid_angle_behavior_set(ez::shortest);  // Changes the default behavior for turning, this defaults it to the shortest path there
+
   // P, I, D, and Start I
   chassis.pid_drive_constants_set(20.0, 0.0, 100.0);         // Fwd/rev constants, used for odom and non odom motions
   chassis.pid_heading_constants_set(11.0, 0.0, 20.0);        // Holds the robot straight while going forward without odom
@@ -379,3 +412,335 @@ void measure_offsets() {
 // . . .
 // Make your own autonomous functions here!
 // . . .
+
+void solo_awp() {
+
+  intake.set(Intake::IntakeState::INTAKING, 127);
+
+  chassis.odom_xyt_set(45_in,-6_in,-90_deg);
+  // chassis.pid_odom_set({{ 22_in, -19_in,180_deg},fwd,80,{-18_in, -24_in}, fwd, 80}, true);
+  chassis.pid_odom_set({{22_in,-21_in,-160_deg}, fwd, 90},true);
+  chassis.pid_wait_quick_chain();
+  chassis.pid_odom_set({{{17_in, -26_in}, fwd, 60}}, true);
+  chassis.pid_wait_quick();
+
+  chassis.pid_swing_set(ez::LEFT_SWING,135,90,-23,true); //20
+  chassis.pid_wait_quick_chain();
+  chassis.pid_drive_set(-13_in,80,true);
+  chassis.pid_wait_quick_chain();
+  intake.set(Intake::IntakeState::LOWSCORING,127);
+  pros::delay(1400);
+  
+  intake.set(Intake::IntakeState::INTAKING,127);
+  chassis.pid_odom_set({{40_in, -44_in}, fwd, 110}, true);
+  chassis.pid_wait_quick_chain();
+  chassis.pid_swing_set(ez::RIGHT_SWING, 91_deg, 90, 0, true);
+  chassis.pid_wait_quick_chain();
+  pros::delay(50);
+  intakePiston.set_value(true);
+  chassis.pid_drive_set(7_in, 70, true);
+  chassis.pid_wait_quick_chain();
+  pros::delay(675);
+  chassis.pid_drive_set(-31_in,90,true);
+  chassis.pid_wait_quick_chain();
+  intakePiston.set_value(false);
+  intake.set(Intake::IntakeState::TOPSCORING,127);
+  pros::delay(2000);
+
+  
+  intake.set(Intake::IntakeState::ROLLERONLY, 90);
+  chassis.pid_swing_set(ez::RIGHT_SWING,0_deg,80,20,true);
+  chassis.pid_wait_quick_chain();
+  chassis.pid_odom_set({{19_in,25_in,-10_deg},fwd,100});
+  chassis.pid_wait_quick_chain();
+  intake.set(Intake::IntakeState::STOPPED);
+
+  chassis.pid_turn_set(-135_deg,100); //50
+  chassis.pid_wait_quick();
+
+  chassis.pid_drive_set(12_in,40,true);
+  pros::delay(300);
+  intake.set(Intake::IntakeState::OUTTAKE,100);
+  chassis.pid_wait_quick_chain();
+  
+  pros::delay(750);
+  intake.set(Intake::IntakeState::STOPPED);
+
+}
+
+
+void left_elims(){
+  
+  intake.set(Intake::IntakeState::INTAKING, 127);
+
+  chassis.odom_xyt_set(45_in,-6_in,-90_deg);
+  // chassis.pid_odom_set({{ 22_in, -19_in,180_deg},fwd,80,{-18_in, -24_in}, fwd, 80}, true);
+  chassis.pid_odom_set({{22_in,-21_in,-160_deg}, fwd, 90},true);
+  chassis.pid_wait_quick_chain();
+  chassis.pid_odom_set({{{17_in, -26_in}, fwd, 60}}, true);
+  chassis.pid_wait_quick();
+
+  chassis.pid_swing_set(ez::LEFT_SWING,135,90,-23,true); //20
+  chassis.pid_wait_quick_chain();
+  chassis.pid_drive_set(-13_in,80,true);
+  chassis.pid_wait_quick_chain();
+  intake.set(Intake::IntakeState::LOWSCORING,127);
+  pros::delay(1400);
+  
+  intake.set(Intake::IntakeState::INTAKING,127);
+  chassis.pid_odom_set({{40_in, -44_in}, fwd, 110}, true);
+  chassis.pid_wait_quick_chain();
+  chassis.pid_swing_set(ez::RIGHT_SWING, 91_deg, 90, 0, true);
+  chassis.pid_wait_quick_chain();
+  intakePiston.set_value(true);
+  pros::delay(50);
+  chassis.pid_drive_set(7_in, 70, true);
+  chassis.pid_wait_quick_chain();
+  pros::delay(675);
+  chassis.pid_drive_set(-31_in,90,true);
+  chassis.pid_wait_quick_chain();
+  intakePiston.set_value(false);
+  intake.set(Intake::IntakeState::TOPSCORING,127);
+  pros::delay(3000);
+  intake.set(Intake::IntakeState::STOPPED);
+  intakePiston.set_value(false);
+
+}
+void right_elims() {
+  intake.set(Intake::IntakeState::INTAKING, 127);
+
+  // Mirrored: 45_in,-6_in,-90_deg becomes 45_in,6_in,90_deg
+  chassis.odom_xyt_set(45_in, 6_in, -90_deg);
+  
+  // Mirrored: 22_in,-21_in,-160_deg becomes 22_in,21_in,160_deg
+  chassis.pid_odom_set({{22_in, 21_in, -20_deg}, fwd, 90}, true);
+  chassis.pid_wait_quick_chain();
+  
+  // Mirrored: 17_in,-26_in becomes 17_in,26_in
+  chassis.pid_odom_set({{{17_in, 26_in}, fwd, 60}}, true);
+  chassis.pid_wait_quick_chain();
+
+
+  chassis.pid_turn_set(75_deg, 70);
+  chassis.pid_wait_quick_chain();
+  chassis.pid_odom_set({{40_in, 44_in}, fwd, 110}, true);
+  chassis.pid_wait_quick_chain();
+  
+  // Mirrored: RIGHT_SWING,91_deg becomes LEFT_SWING,-91_deg
+  chassis.pid_swing_set(ez::LEFT_SWING, 89_deg, 90, 0, true);
+  chassis.pid_wait_quick_chain();
+  chassis.pid_drive_set(-20_in, 60, true);
+  chassis.pid_wait_quick_chain();
+  intake.set(Intake::IntakeState::TOPSCORING, 127);
+  pros::delay(2000);
+  
+  chassis.pid_drive_set(27.5_in, 55, true);
+  pros::delay(100);
+  intake.set(Intake::IntakeState::INTAKING, 127);
+  intakePiston.set_value(true);
+  chassis.pid_wait_quick_chain();
+  pros::delay(900);
+  chassis.pid_drive_set(-27.5_in, 60, true);
+  chassis.pid_wait_quick_chain();
+  intakePiston.set_value(false);
+  intake.set(Intake::IntakeState::TOPSCORING, 127);
+  pros::delay(3000);
+
+  
+  
+  intake.set(Intake::IntakeState::STOPPED);
+}
+
+
+void skills(){
+//   intake.set(Intake::IntakeState::INTAKING, 127);
+//   chassis.odom_xyt_set(-45_in,6_in,90_deg);
+//   chassis.pid_odom_set({{{-22_in,22_in,40_deg}, fwd, 80},},true);
+//   chassis.pid_wait_quick();
+//   // chassis.pid_turn_set({50_in,-45_in},fwd,90);
+//   chassis.pid_swing_set(ez::RIGHT_SWING, -45_deg, 100, true);//90,40
+//   chassis.pid_wait_quick();
+//   chassis.pid_odom_set({{-37,47}, fwd, 110}, true);
+//   chassis.pid_wait_quick();
+//   intake.set(Intake::IntakeState::STOPPED);
+//   chassis.pid_turn_set(-90_deg, 90);
+//   chassis.pid_wait_quick();
+
+
+  intake.set(Intake::IntakeState::INTAKING, 127);
+  chassis.odom_xyt_set(-53_in,16_in,0_deg);
+  chassis.pid_turn_set({-46,48},fwd,90);
+  chassis.pid_wait_quick_chain();
+  chassis.pid_odom_set({{-46_in,49_in},fwd,120},false);
+  chassis.pid_wait_quick();
+  chassis.pid_turn_set(-90,90);
+  chassis.pid_wait_quick();
+
+  intakePiston.set_value(true);
+  chassis.pid_drive_set(9,120,true); //8.7
+  chassis.pid_wait_quick_chain();
+  pros::delay(1500);
+  chassis.pid_drive_set(-27_in,50,true);
+  chassis.pid_wait_quick_chain();
+  intake.set(Intake::IntakeState::TOPSCORING);
+  pros::delay(500);
+  intakePiston.set_value(false);
+  pros::delay(1500);
+
+
+  chassis.pid_drive_set(2_in,100,false,false);
+  chassis.pid_wait_quick();
+  chassis.pid_swing_set(ez::LEFT_SWING,90_deg,90,true,clockwise);
+  chassis.pid_wait_quick();
+  intake.set(Intake::IntakeState::INTAKING, 127);
+  
+
+
+
+  //Robot has now turned to go to other side load bar
+
+  // chassis.pid_drive_set(50,110,true);//68
+  // chassis.pid_wait_quick_chain();
+  // intake.set(Intake::IntakeState::INTAKING,127);
+
+  chassis.pid_drive_set(60,90,true);
+  chassis.pid_wait_quick_chain();
+  // chassis.pid_turn_set(158_deg,90);
+  // chassis.pid_wait_quick_chain();
+  // // chassis.pid_drive_set(4,110,true);
+  // // chassis.pid_wait_quick_chain();
+  // // chassis.pid_turn_set(90,90);
+  // // chassis.pid_wait_quick_chain();
+  // chassis.pid_swing_set(ez::RIGHT_SWING,90_deg,90,30,true);
+  // chassis.pid_wait();
+  chassis.pid_odom_set({{48,49},fwd,90},true); //53,49
+  chassis.pid_wait(); 
+  
+  chassis.pid_turn_set(86,100);
+  chassis.pid_wait();
+  intakePiston.set_value(true);
+  pros::delay(500); //lower if necessary
+  chassis.pid_drive_set(7_in,50,true);
+  chassis.pid_wait_quick_chain();
+
+  pros::delay(1500);
+
+  chassis.pid_turn_set(90,90);
+  chassis.pid_wait();
+  chassis.pid_drive_set(-28_in,70,true,true);
+  chassis.pid_wait_quick_chain();
+  intake.set(Intake::IntakeState::TOPSCORING);
+  pros::delay(500);
+  intakePiston.set_value(false);
+  pros::delay(1500);
+
+  // chassis.odom_theta_set(90_deg); //DELETE THIS IS FOR TESTING ONLY
+  //Pushing balls into center
+  chassis.pid_drive_set(10_in,110,false);
+  chassis.pid_wait_quick();
+  chassis.pid_turn_set(50,110,true);
+  chassis.pid_wait_quick_chain();
+  chassis.pid_drive_set(-10_in,110,false);
+  chassis.pid_wait_quick_chain();
+  chassis.pid_swing_set(ez::RIGHT_SWING,90,110,true);
+  chassis.pid_wait_quick_chain();
+  chassis.pid_drive_set(-10_in,70,false);  //-9.8 -10 -12     <-110
+  chassis.pid_wait_quick();
+  
+  
+  
+  //going to fourball
+  chassis.pid_wait_quick();
+  chassis.pid_turn_set(110,90,true); //120.    <-90
+  chassis.pid_wait_quick();
+  intake.set(Intake::IntakeState::INTAKING,127);
+  chassis.pid_swing_set(ez::LEFT_SWING, -40_deg, 50,10, clockwise); //-135,60,20
+  chassis.pid_wait_quick_chain();
+  chassis.pid_drive_set(-2,80,true);
+  chassis.pid_wait_quick_chain();
+  chassis.pid_swing_set(ez::RIGHT_SWING,45_deg,90,true);
+  intake.set(Intake::IntakeState::LOWSCORING);
+  pros::delay(500);
+
+
+
+
+  //going to third loadbar
+  chassis.pid_swing_set(ez::LEFT_SWING,155,90,counterclockwise,true);
+  chassis.pid_wait_quick_chain();
+  chassis.pid_drive_set(40,110,true);  //in attempt to speed movement up
+  chassis.pid_drive_chain_constant_set(6_in);
+  chassis.pid_wait_quick_chain();
+  chassis.pid_drive_chain_constant_set(3_in);
+  chassis.pid_odom_set({{52,-45},fwd,110},true);
+  chassis.pid_wait_quick();
+  chassis.pid_turn_set(90,90);
+  chassis.pid_wait();
+
+  //include code to intake from load bar
+  intake.set(Intake::IntakeState::INTAKING, 127);
+  intakePiston.set_value(true);
+  pros::delay(500); //lower if necessary
+  chassis.pid_drive_set(9,50,true);
+  chassis.pid_wait_quick_chain();
+
+  pros::delay(2000); //remove once intake coded
+  intake.set(Intake::IntakeState::STOPPED);
+  chassis.pid_drive_set(-17_in,60,true);
+  chassis.pid_wait_quick_chain();
+  intake.set(Intake::IntakeState::TOPSCORING);
+
+  pros::delay(1500);
+  //scored third loadbar, going to other side load bar
+  chassis.pid_drive_set(5_in,100,false,false);
+  chassis.pid_wait_quick();
+  chassis.pid_swing_set(ez::LEFT_SWING,269_deg,90,true,clockwise);
+  chassis.pid_wait_quick();
+  intake.set(Intake::IntakeState::INTAKING, 127);
+  chassis.pid_drive_set(60,100,true);
+  chassis.pid_wait_quick_chain();
+  chassis.pid_odom_set({{-48,-46.5},fwd,110},true);
+  chassis.pid_wait_quick();
+
+  chassis.pid_turn_set(-90,90);
+  chassis.pid_wait_quick();
+  pros::delay(2000); //remove once intake coded
+
+  intake.set(Intake::IntakeState::STOPPED);
+  chassis.pid_turn_set(-91,90);
+  chassis.pid_wait();
+  chassis.pid_drive_set(-20_in,50,true);
+  chassis.pid_wait_quick_chain();
+  intake.set(Intake::IntakeState::TOPSCORING);
+  pros::delay(1500);
+
+  //Pushing balls into center
+  chassis.pid_drive_set(10_in,110,false);
+  chassis.pid_wait_quick();
+  chassis.pid_turn_set(-135,110,true);
+  chassis.pid_wait_quick_chain();
+  chassis.pid_drive_set(-9.6_in,110,false); //10
+  chassis.pid_wait_quick_chain();
+  chassis.pid_swing_set(ez::RIGHT_SWING,-90,110,true);
+  chassis.pid_wait_quick_chain();
+  chassis.pid_drive_set(-9.5_in,70,false);  //-9.8 -10 -12     <-110
+  chassis.pid_wait_quick();
+
+  //going to fourball
+  chassis.pid_turn_set(-50,90,true); //120.    <-90
+  chassis.pid_wait_quick();
+  intake.set(Intake::IntakeState::INTAKING,127);
+  chassis.pid_swing_set(ez::LEFT_SWING, 45_deg, 63,22, clockwise,true); //-135,60,20
+  chassis.pid_wait_quick_chain();
+  chassis.pid_drive_set(5,80,true);
+  chassis.pid_wait_quick();
+  intake.set(Intake::IntakeState::OUTTAKE);
+  pros::delay(1000);
+
+  chassis.pid_drive_set(-55,1000,false);
+  chassis.pid_wait_quick_chain();
+  intake.set(Intake::IntakeState::TOPSCORING);
+  chassis.pid_turn_set(0,90);
+  chassis.pid_wait();
+  
+}

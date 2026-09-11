@@ -15,6 +15,104 @@ void ez_screen_task();
 pros::Task* ezScreenTask = nullptr;
 pros::Task* liftTask = nullptr;
 
+// ===========================================================================
+// Last season (Push Back) helpers - reference only, nothing calls these.
+// They drive the PB_ devices in config.cpp, several of which sit on ports the
+// 2026-27 robot uses.  Check the ports before wiring any of it back up.
+// ===========================================================================
+
+// runtime variables
+double forwards;
+double turning;
+float up;
+float down;
+bool clamped = false;
+bool lifted = false;
+int autoSelector = 0;
+int separation_state = 0;
+
+void arcadeCurve(pros::controller_analog_e_t power, pros::controller_analog_e_t turn, pros::Controller mast, float f) {
+    up = mast.get_analog(power);
+    down = mast.get_analog(turn);
+    forwards = (exp(-f / 10) + exp((fabs(up) - 127) / 10) * (1 - exp(-f / 10))) * up;
+    turning = -1 * down;
+    
+    leftMotors.move(forwards * 0.95 - turning);
+    rightMotors.move(forwards * 0.95 + turning);
+}
+
+void init_separation(Intake::Ball ball) {
+  frontRoller.set_encoder_units(pros::E_MOTOR_ENCODER_DEGREES);
+  middleRoller.set_encoder_units(pros::E_MOTOR_ENCODER_DEGREES);
+  bottomRoller.set_encoder_units(pros::E_MOTOR_ENCODER_DEGREES);
+  indexerMotor.set_encoder_units(pros::E_MOTOR_ENCODER_DEGREES);
+  colorSort.set_led_pwm(100);
+  intake.ball = ball;
+  if (intake.ball == Intake::Ball::BLUE){
+    separation_state = 1;
+  }
+  else if (intake.ball == Intake::Ball::RED){
+    separation_state = 0;
+  }
+  else if(intake.ball == Intake::Ball::NONE){
+    separation_state = 2;
+  }
+}
+
+
+void printTelemetry() {
+  while (true) {
+    // DISABLED: Color sorting telemetry
+    // switch (intake.ball) {
+    //   case Intake::Ball::BLUE: controller.print(1, 1, "%s", "SEPARATING BLUE"); break;
+    //   case Intake::Ball::RED: controller.print(1, 1, "%s", "SEPARATING RED"); break;
+    //   case Intake::Ball::NONE: controller.print(1, 1, "%s", "SEPARATING NONE"); break;
+    //   default: break;
+    // }
+    pros::delay(100);
+  }
+}
+
+// DISABLED: Color sorting button control
+// void switchSeparation() {
+//     if (controller.get_digital(DIGITAL_UP)) {
+//         separation_state++;
+//         if (separation_state > 2) { separation_state = 0; }
+//         switch (separation_state) {
+//             case 0: intake.setSeparation(Intake::Ball::RED); break;
+//             case 1: intake.setSeparation(Intake::Ball::BLUE); break;
+//             case 2: intake.setSeparation(Intake::Ball::NONE); break;
+//         }
+//         pros::delay(500);
+//     }
+// }
+
+static bool piston_state = false;
+void intake_piston_toggle() {
+  while (true)  {
+    if (controller.get_digital(pros::E_CONTROLLER_DIGITAL_B)) {
+      piston_state = !piston_state;
+      intakePiston.set_value(piston_state);
+      pros::delay(300);
+    }
+}
+}
+
+static bool flapper_state = false;
+void flapper_piston_toggle() {
+  while (true) {
+    if (controller.get_digital(pros::E_CONTROLLER_DIGITAL_Y)) {
+      flapper_state = !flapper_state;
+      flapperPiston.set_value(flapper_state);
+      pros::delay(300);
+    }
+  }
+}
+
+// ===========================================================================
+// End of last season's helpers
+// ===========================================================================
+
 /**
  * Runs initialization code. This occurs as soon as the program is started.
  *
