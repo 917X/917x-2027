@@ -13,6 +13,7 @@ constexpr int INTAKE_SPEED = 127;
 
 void ez_screen_task();
 pros::Task* ezScreenTask = nullptr;
+pros::Task* liftTask = nullptr;
 
 /**
  * Runs initialization code. This occurs as soon as the program is started.
@@ -75,9 +76,10 @@ void initialize() {
   chassis.initialize();
   ez::as::initialize();
 
-  // Started here rather than at static init - the chassis lives in config.cpp now,
-  // and a file scope task could run before its constructor does.
+  // Started here rather than at static init - chassis and lift live in config.cpp
+  // now, and a file scope task could run before their constructors do.
   ezScreenTask = new pros::Task(ez_screen_task);
+  liftTask = new pros::Task([] { lift.liftControl(); });
 
   controller.rumble(chassis.drive_imu_calibrated() ? "." : "---");
 }
@@ -88,7 +90,9 @@ void initialize() {
  * the robot is enabled, this task will exit.
  */
 void disabled() {
-  // . . .
+  // Macros run on their own task now, so one that was mid-flight when the mode
+  // changed would keep going.  Drop it.
+  lift.cancel();
 }
 
 /**
@@ -270,7 +274,8 @@ void opcontrol() {
       intakeMotor.move(0);  // Stop
     }
 
-    // Manual lift control
+    // Manual lift control.  L1/L2 cancel a running macro and take over; the
+    // idle case is a no-op while a macro is running, so it can't stomp on it.
     if (controller.get_digital(DIGITAL_L1)) {
       lift.manual(Lift::MANUAL_UP_POWER);
     } else if (controller.get_digital(DIGITAL_L2)) {
@@ -286,7 +291,8 @@ void opcontrol() {
     if (controller.get_digital_new_press(DIGITAL_DOWN))
       lift.togglePivot();
 
-    // Macros - these block until they finish
+    // Macros - these return immediately, the lift task runs them.
+    // Pressing another one mid-macro replaces it.
     if (controller.get_digital_new_press(DIGITAL_A))
       lift.intake();
     else if (controller.get_digital_new_press(DIGITAL_B))
