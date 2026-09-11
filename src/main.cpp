@@ -37,14 +37,19 @@ void initialize() {
   // chassis.odom_tracker_left_set(&vert_tracker);
 
   // Configure your chassis controls
-  chassis.opcontrol_curve_buttons_toggle(true);   // Enables modifying the controller curve with buttons on the joysticks
+  // Curve buttons are OFF: EZ's defaults for them are LEFT/RIGHT and Y/A, and Y and A
+  // are the lower and intake macros.  With this enabled, those two macros also nudge the
+  // turn curve every time they're pressed.  Every button is bound to something, so there
+  // is nowhere to move the curve buttons to - tune the curve here instead and reflash.
+  chassis.opcontrol_curve_buttons_toggle(false);
   chassis.opcontrol_drive_activebrake_set(0.0);   // Sets the active brake kP. We recommend ~2.  0 will disable.
-  chassis.opcontrol_curve_default_set(0.0, 0.0);  // Defaults for curve. If using tank, only the first parameter is used. (Comment this line out if you have an SD card!)
+  chassis.opcontrol_curve_default_set(0.0, 0.0);  // Throttle curve, turn curve.  0.0 is linear. (Comment this line out if you have an SD card!)
 
   // Set the drive to your own constants from autons.cpp!
   default_constants();
 
-  // These are already defaulted to these buttons, but you can change the left/right curve buttons here!
+  // If you ever free up four buttons and want live curve tuning back, re-enable
+  // opcontrol_curve_buttons_toggle above and remap them onto the free buttons here:
   // chassis.opcontrol_curve_buttons_left_set(pros::E_CONTROLLER_DIGITAL_LEFT, pros::E_CONTROLLER_DIGITAL_RIGHT);  // If using tank, only the left side is used.
   // chassis.opcontrol_curve_buttons_right_set(pros::E_CONTROLLER_DIGITAL_Y, pros::E_CONTROLLER_DIGITAL_A);
 
