@@ -1,12 +1,25 @@
 #include "main.h"
 #include "autons.hpp"
 #include "config.hpp"
-#include "pros/misc.h"
-#include "subsystem/intake.hpp"
+#include "subsystem/lift.hpp"
+
 /////
 // For installation, upgrading, documentations, and tutorials, check out our website!
 // https://ez-robotics.github.io/EZ-Template/
 /////
+
+// Intake speed for the driver buttons
+constexpr int INTAKE_SPEED = 127;
+
+void ez_screen_task();
+pros::Task* ezScreenTask = nullptr;
+pros::Task* liftTask = nullptr;
+
+// ===========================================================================
+// Last season (Push Back) helpers - reference only, nothing calls these.
+// They drive the PB_ devices in config.cpp, several of which sit on ports the
+// 2026-27 robot uses.  Check the ports before wiring any of it back up.
+// ===========================================================================
 
 // runtime variables
 double forwards;
@@ -47,30 +60,6 @@ void init_separation(Intake::Ball ball) {
 }
 
 
-ez::Drive chassis(
-    // These are your drive motors, the first motor is used for sensing!
-    {15, -14, 13},     // Left Chassis Ports (negative port will reverse it!)
-    {-18, 19, -17},  // Right Chassis Ports (negative port will reverse it!)
-
-    21,      // IMU Port
-    2.75,  // Wheel Diameter (Remember, 4" wheels without screw holes are actually 4.125!)
-    600);  // Wheel RPM = cartridge * (motor gear / wheel gear)
-
-// Uncomment the trackers you're using here!
-// - `8` and `9` are smart ports (making these negative will reverse the sensor)
-//  - you should get positive values on the encoders going FORWARD and RIGHT
-// - `2.75` is the wheel diameter
-// - `4.0` is the distance from the center of the wheel to the center of the robot
-// ez::tracking_wheel horiz_tracker(8, 2.75, 4.0);  // This tracking wheel is perpendicular to the drive wheels
-// ez::tracking_wheel vert_tracker(9, 2.75, 4.0);   // This tracking wheel is parallel to the drive wheels
-
-/**
- * Runs initialization code. This occurs as soon as the program is started.
- *
- * All other competition modes are blocked by initialize; it is recommended
- * to keep execution time for this mode under a few seconds.
- */
-
 void printTelemetry() {
   while (true) {
     // DISABLED: Color sorting telemetry
@@ -84,24 +73,58 @@ void printTelemetry() {
   }
 }
 
+// DISABLED: Color sorting button control
+// void switchSeparation() {
+//     if (controller.get_digital(DIGITAL_UP)) {
+//         separation_state++;
+//         if (separation_state > 2) { separation_state = 0; }
+//         switch (separation_state) {
+//             case 0: intake.setSeparation(Intake::Ball::RED); break;
+//             case 1: intake.setSeparation(Intake::Ball::BLUE); break;
+//             case 2: intake.setSeparation(Intake::Ball::NONE); break;
+//         }
+//         pros::delay(500);
+//     }
+// }
 
+static bool piston_state = false;
+void intake_piston_toggle() {
+  while (true)  {
+    if (controller.get_digital(pros::E_CONTROLLER_DIGITAL_B)) {
+      piston_state = !piston_state;
+      intakePiston.set_value(piston_state);
+      pros::delay(300);
+    }
+}
+}
 
+static bool flapper_state = false;
+void flapper_piston_toggle() {
+  while (true) {
+    if (controller.get_digital(pros::E_CONTROLLER_DIGITAL_Y)) {
+      flapper_state = !flapper_state;
+      flapperPiston.set_value(flapper_state);
+      pros::delay(300);
+    }
+  }
+}
 
+// ===========================================================================
+// End of last season's helpers
+// ===========================================================================
+
+/**
+ * Runs initialization code. This occurs as soon as the program is started.
+ *
+ * All other competition modes are blocked by initialize; it is recommended
+ * to keep execution time for this mode under a few seconds.
+ */
 void initialize() {
   // Print our branding over your terminal :D
-  controller.clear();
-  init_separation(Intake::Ball::NONE);
-  pros::Task task {[=] { intake.intakeControl(); }};
-  pros::Task printOdomTask(printTelemetry);
-  pros::Task task2 {[=] { intake.intakeControl(); }};
-
-
   ez::ez_template_print();
-  indexerMotor.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
-  colorSort.set_led_pwm(100);
-  middleRoller.set_encoder_units(pros::E_MOTOR_ENCODER_DEGREES);
 
   pros::delay(500);  // Stop the user from doing anything while legacy ports configure
+  lift.initialize();
 
   // Look at your horizontal tracking wheel and decide if it's in front of the midline of your robot or behind it
   //  - change `back` to `front` if the tracking wheel is in front of the midline
@@ -113,14 +136,19 @@ void initialize() {
   // chassis.odom_tracker_left_set(&vert_tracker);
 
   // Configure your chassis controls
-  chassis.opcontrol_curve_buttons_toggle(true);   // Enables modifying the controller curve with buttons on the joysticks
+  // Curve buttons are OFF: EZ's defaults for them are LEFT/RIGHT and Y/A, and Y and A
+  // are the lower and intake macros.  With this enabled, those two macros also nudge the
+  // turn curve every time they're pressed.  Every button is bound to something, so there
+  // is nowhere to move the curve buttons to - tune the curve here instead and reflash.
+  chassis.opcontrol_curve_buttons_toggle(false);
   chassis.opcontrol_drive_activebrake_set(0.0);   // Sets the active brake kP. We recommend ~2.  0 will disable.
-  chassis.opcontrol_curve_default_set(0.0, 0.0);  // Defaults for curve. If using tank, only the first parameter is used. (Comment this line out if you have an SD card!)
+  chassis.opcontrol_curve_default_set(0.0, 0.0);  // Throttle curve, turn curve.  0.0 is linear. (Comment this line out if you have an SD card!)
 
   // Set the drive to your own constants from autons.cpp!
   default_constants();
 
-  // These are already defaulted to these buttons, but you can change the left/right curve buttons here!
+  // If you ever free up four buttons and want live curve tuning back, re-enable
+  // opcontrol_curve_buttons_toggle above and remap them onto the free buttons here:
   // chassis.opcontrol_curve_buttons_left_set(pros::E_CONTROLLER_DIGITAL_LEFT, pros::E_CONTROLLER_DIGITAL_RIGHT);  // If using tank, only the left side is used.
   // chassis.opcontrol_curve_buttons_right_set(pros::E_CONTROLLER_DIGITAL_Y, pros::E_CONTROLLER_DIGITAL_A);
 
@@ -142,11 +170,16 @@ void initialize() {
       {"Measure Offsets\n\nThis will turn the robot a bunch of times and calculate your offsets for your tracking wheels.", measure_offsets},
   });
 
-
   // Initialize chassis and auton selector
   chassis.initialize();
   ez::as::initialize();
-  master.rumble(chassis.drive_imu_calibrated() ? "." : "---");
+
+  // Started here rather than at static init - chassis and lift live in config.cpp
+  // now, and a file scope task could run before their constructors do.
+  ezScreenTask = new pros::Task(ez_screen_task);
+  liftTask = new pros::Task([] { lift.liftControl(); });
+
+  controller.rumble(chassis.drive_imu_calibrated() ? "." : "---");
 }
 
 /**
@@ -155,7 +188,9 @@ void initialize() {
  * the robot is enabled, this task will exit.
  */
 void disabled() {
-  chassis.drive_brake_set(pros::E_MOTOR_BRAKE_COAST);
+  // Macros run on their own task now, so one that was mid-flight when the mode
+  // changed would keep going.  Drop it.
+  lift.cancel();
 }
 
 /**
@@ -183,26 +218,11 @@ void competition_initialize() {
  * from where it left off.
  */
 void autonomous() {
-
-  // intake.set(Intake::IntakeState::ROLLERONLY, 127);
-  // while(true) ;
-  chassis.pid_targets_reset();                // Resets PID targets to 0
-  chassis.drive_imu_reset();                  // Reset gyro position to 0
-  chassis.drive_sensor_reset();               // Reset drive sensors to 0
-  // chassis.odom_xyt_set(138_in, -37_in, -90_deg);    // Set the current position, you can start at a specific position with this
-  chassis.drive_brake_set(pros::E_MOTOR_BRAKE_HOLD);
-  //skills(); 
-  //solo_awp();
-  //right_elims();
-  left_elims();
-  // chassis.pid_turn_set(45_deg, 100);
-  // chassis.pid_wait();
-  // chassis.pid_turn_set(-45_deg, 100);
-  // chassis.pid_wait();
-  // chassis.pid_turn_set(135_deg, 100);
-  // chassis.pid_wait();
-  // chassis.pid_turn_set(0_deg,100);
-  // chassis.pid_wait();
+  chassis.pid_targets_reset();                            // Resets PID targets to 0
+  chassis.drive_imu_reset();                              // Reset gyro position to 0
+  chassis.drive_sensor_reset();                           // Reset drive sensors to 0
+  chassis.odom_xyt_set(0_in, 0_in, 0_deg);                // Set the current position, you can start at a specific position with this
+  chassis.drive_brake_set(pros::E_MOTOR_BRAKE_HOLD);      // Set motors to hold.  This helps autonomous consistency
 
   /*
   Odometry and Pure Pursuit are not magic
@@ -217,13 +237,13 @@ void autonomous() {
   to be consistent
   */
 
-  // ez::as::auton_selector.selected_auton_call();  // Calls selected auton from autonomous selector
+  ez::as::auton_selector.selected_auton_call();  // Calls selected auton from autonomous selector
 }
 
 /**
  * Simplifies printing tracker values to the brain screen
  */
-void screen_print_tracker(ez::tracking_wheel *tracker, std::string name, int line) {
+void screen_print_tracker(ez::tracking_wheel* tracker, std::string name, int line) {
   std::string tracker_value = "", tracker_width = "";
   // Check if the tracker exists
   if (tracker != nullptr) {
@@ -270,7 +290,6 @@ void ez_screen_task() {
     pros::delay(ez::util::DELAY_TIME);
   }
 }
-pros::Task ezScreenTask(ez_screen_task);
 
 /**
  * Gives you some extras to run in your opcontrol:
@@ -289,11 +308,11 @@ void ez_template_extras() {
     //  When enabled:
     //  * use A and Y to increment / decrement the constants
     //  * use the arrow keys to navigate the constants
-    if (master.get_digital_new_press(DIGITAL_X))
+    if (controller.get_digital_new_press(DIGITAL_X))
       chassis.pid_tuner_toggle();
 
     // Trigger the selected autonomous routine
-    if (master.get_digital(DIGITAL_B) && master.get_digital(DIGITAL_DOWN)) {
+    if (controller.get_digital(DIGITAL_B) && controller.get_digital(DIGITAL_DOWN)) {
       pros::motor_brake_mode_e_t preference = chassis.drive_brake_get();
       autonomous();
       chassis.drive_brake_set(preference);
@@ -322,114 +341,64 @@ void ez_template_extras() {
  * If the robot is disabled or communications is lost, the
  * operator control task will be stopped. Re-enabling the robot will restart the
  * task, not resume it from where it left off.
+ *
+ * Driver layout:
+ *   R1 / R2       intake in / out
+ *   L1 / L2       lift up / down (manual)
+ *   UP            toggle claw
+ *   DOWN          toggle claw pivot
+ *   A             macro: intake position
+ *   B             macro: matchload position
+ *   X             macro: raise
+ *   Y             macro: lower
  */
-
-
-
-// DISABLED: Color sorting button control
-// void switchSeparation() {
-//     if (controller.get_digital(DIGITAL_UP)) {
-//         separation_state++;
-//         if (separation_state > 2) { separation_state = 0; }
-//         switch (separation_state) {
-//             case 0: intake.setSeparation(Intake::Ball::RED); break;
-//             case 1: intake.setSeparation(Intake::Ball::BLUE); break;
-//             case 2: intake.setSeparation(Intake::Ball::NONE); break;
-//         }
-//         pros::delay(500);
-//     }
-// }
-
-static bool piston_state = false;
-void intake_piston_toggle() {
-  while (true)  {
-    if (controller.get_digital(pros::E_CONTROLLER_DIGITAL_B)) {
-      piston_state = !piston_state;
-      intakePiston.set_value(piston_state);
-      pros::delay(300);
-    }
-}
-}
-
-static bool flapper_state = false;
-void flapper_piston_toggle() {
-  while (true) {
-    if (controller.get_digital(pros::E_CONTROLLER_DIGITAL_Y)) {
-      flapper_state = !flapper_state;
-      flapperPiston.set_value(flapper_state);
-      pros::delay(300);
-    }
-  }
-}
-
 void opcontrol() {
   // This is preference to what you like to drive on
   chassis.drive_brake_set(pros::E_MOTOR_BRAKE_COAST);
-  pros::Task asyncIntake(intake_piston_toggle);
-  pros::Task asyncFlapper(flapper_piston_toggle);
 
   while (true) {
+    // Gives you some extras to make EZ-Template ezier
+    // ez_template_extras();
 
-    // DISABLED: Color sorting control
-    // switchSeparation();
+    // chassis.opcontrol_tank();  // Tank control
+    chassis.opcontrol_arcade_standard(ez::SPLIT);  // Standard split arcade
 
-    if(!intake.sort) {
-      if(controller.get_digital(pros::E_CONTROLLER_DIGITAL_R2)){
-        intake.set(Intake::IntakeState::TOPSCORING, 127);
-      } else if(controller.get_digital(pros::E_CONTROLLER_DIGITAL_R1)){
-        intake.set(Intake::IntakeState::LOWSCORING, 127);
-      } else if(controller.get_digital(pros::E_CONTROLLER_DIGITAL_L2)){
-        intake.set(Intake::IntakeState::INTAKING, 127);
-      } else if(controller.get_digital(pros::E_CONTROLLER_DIGITAL_L1)){
-        intake.set(Intake::IntakeState::OUTTAKE, 127);
-      } else {
-        intake.set(Intake::IntakeState::STOPPED);
-      }
+    // Intake controls
+    if (controller.get_digital(DIGITAL_R1)) {
+      intakeMotor.move(INTAKE_SPEED);  // Spin forward
+    } else if (controller.get_digital(DIGITAL_R2)) {
+      intakeMotor.move(-INTAKE_SPEED);  // Spin backward
+    } else {
+      intakeMotor.move(0);  // Stop
     }
 
-    
-    // Gives you some extras to make EZ-Template ezier
-    //ez_template_extras();
-    arcadeCurve(pros::E_CONTROLLER_ANALOG_LEFT_Y, pros::E_CONTROLLER_ANALOG_RIGHT_X, master, 5);  // Curved arcade  
-    // if (controller.get_digital(pros::E_CONTROLLER_DIGITAL_R2)) {
-    //   indexerMotor.move(127); //scoring upper
-    //   topRoller.move(127);
-    //   middleRoller.move(127);
-    //   frontRoller.move(127);
-    // } else if (controller.get_digital(pros::E_CONTROLLER_DIGITAL_R1)) {
-    //   indexerMotor.move(-127);  //scoring lower
-    //   topRoller.move(127);
-    //   middleRoller.move(127);
-    //   frontRoller.move(127);
-    // } else {
-    //   indexerMotor.move(0);
-    //   topRoller.move(0);
-    //   middleRoller.move(0);
-    //   frontRoller.move(0);
-    // }
+    // Manual lift control.  L1/L2 cancel a running macro and take over; the
+    // idle case is a no-op while a macro is running, so it can't stomp on it.
+    if (controller.get_digital(DIGITAL_L1)) {
+      lift.manual(Lift::MANUAL_UP_POWER);
+    } else if (controller.get_digital(DIGITAL_L2)) {
+      lift.manual(Lift::MANUAL_DOWN_POWER);
+    } else {
+      lift.manual(0);
+    }
 
-    // if (controller.get_digital(pros::E_CONTROLLER_DIGITAL_L2)) { 
-    //   topRoller.move(127);
-    //   middleRoller.move(127);
-    //   frontRoller.move(127);
-    // }
-    // if (controller.get_digital(pros::E_CONTROLLER_DIGITAL_L1)) { 
-    //   topRoller.move(-127);
-    //   middleRoller.move(-127);
-    //   frontRoller.move(-127);
-    //   indexerMotor.move(127);
-    // }
+    // Pneumatics
+    if (controller.get_digital_new_press(DIGITAL_UP))
+      lift.toggleClaw();
 
+    if (controller.get_digital_new_press(DIGITAL_DOWN))
+      lift.togglePivot();
 
-
-    // chassis.opcontrol_arcade_standard(ez::SPLIT);   // Standard split arcade
-    // chassis.opcontrol_arcade_standard(ez::SINGLE);  // Standard single arcade
-    // chassis.opcontrol_arcade_flipped(ez::SPLIT);    // Flipped split arcade
-    // chassis.opcontrol_arcade_flipped(ez::SINGLE);   // Flipped single arcade
-
-    // . . .
-    // Put more user control code here!
-    // . . .
+    // Macros - these return immediately, the lift task runs them.
+    // Pressing another one mid-macro replaces it.
+    if (controller.get_digital_new_press(DIGITAL_A))
+      lift.intake();
+    else if (controller.get_digital_new_press(DIGITAL_B))
+      lift.matchload();
+    else if (controller.get_digital_new_press(DIGITAL_X))
+      lift.raise();
+    else if (controller.get_digital_new_press(DIGITAL_Y))
+      lift.lower();
 
     pros::delay(ez::util::DELAY_TIME);  // This is used for timer calculations!  Keep this ez::util::DELAY_TIME
   }
