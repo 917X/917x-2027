@@ -54,7 +54,7 @@ pros::Motor bottomRoller(PB_BOTTOM_ROLLER);
 pros::Motor middleRoller(PB_MIDDLE_ROLLER);
 pros::Motor frontRoller(PB_FRONT_ROLLER);
 
-Intake intake(indexerMotor, colorSort, frontRoller, middleRoller, bottomRoller);
+Intake intake(indexerMotor, colorSort, frontRoller, middleRoller, bottomRoller, clawIntake);
 
 pros::Imu imu(PB_IMU);
 pros::Distance distance(PB_DISTANCE);
@@ -79,6 +79,7 @@ constexpr int RIGHT_B = 14;
 constexpr int IMU = 7;
 
 constexpr int INTAKE = -1;
+constexpr int CLAW_INTAKE = 10;
 
 constexpr int LIFT_L = -5;
 constexpr int LIFT_R = 20;
@@ -92,6 +93,7 @@ constexpr double WHEEL_RPM = 450;        // cartridge * (motor gear / wheel gear
 
 // intake
 pros::Motor intakeMotor(INTAKE);
+pros::Motor clawIntake(CLAW_INTAKE);
 
 // lift + claw
 pros::MotorGroup liftMotors({LIFT_L, LIFT_R});

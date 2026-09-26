@@ -30,7 +30,7 @@ extern pros::Controller controller;
 extern ez::Drive chassis;
 
 extern pros::Motor intakeMotor;
-
+extern pros::Motor clawIntake;
 extern pros::MotorGroup liftMotors;
 extern ez::Piston claw;
 extern ez::Piston clawPivot;

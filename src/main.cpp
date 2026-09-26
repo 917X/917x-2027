@@ -374,12 +374,32 @@ void opcontrol() {
 
     // Manual lift control.  L1/L2 cancel a running macro and take over; the
     // idle case is a no-op while a macro is running, so it can't stomp on it.
+    /*
     if (controller.get_digital(DIGITAL_L1)) {
       lift.manual(Lift::MANUAL_UP_POWER);
     } else if (controller.get_digital(DIGITAL_L2)) {
       lift.manual(Lift::MANUAL_DOWN_POWER);
     } else {
       lift.manual(0);
+    }
+    */
+
+    // Lift state control. L1 to toggle between states, 
+    // idle case is a no-op while a macro is running, so it can't stomp on it.
+    if (controller.get_digital(DIGITAL_L1)) {
+      lift.manual(Lift::MANUAL_UP_POWER);
+    } else if (controller.get_digital(DIGITAL_L2)) {
+      lift.manual(Lift::MANUAL_DOWN_POWER);
+    } else {
+      lift.manual(0);
+    }
+
+    if (controller.get_digital(DIGITAL_R1)) {
+      clawIntake.move(INTAKE_SPEED);  // Spin forward
+    } else if (controller.get_digital(DIGITAL_R2)) {
+      clawIntake.move(-INTAKE_SPEED);  // Spin backward
+    } else {
+      clawIntake.move(0);  // Stop
     }
 
     // Pneumatics

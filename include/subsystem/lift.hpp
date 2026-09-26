@@ -31,9 +31,9 @@ class Lift {
     static constexpr int PNEUMATIC_DELAY_MS = 250;  // let a piston finish before moving on
     static constexpr int HOLD_POWER = 20;
     static constexpr int RAISE_POWER = 127;
-    static constexpr int LOWER_POWER = -63;  // was -63.5, truncated to int by MotorGroup::move()
+    static constexpr int LOWER_POWER = -127;  // was -63.5, truncated to int by MotorGroup::move()
     static constexpr int MANUAL_UP_POWER = 127;
-    static constexpr int MANUAL_DOWN_POWER = -30;
+    static constexpr int MANUAL_DOWN_POWER = -127;
 
     static constexpr int UPDATE_DELAY_MS = 10;      // how often liftControl() advances a script
     static constexpr int DEFAULT_TIMEOUT_MS = 5000; // waitUntilDone() gives up after this

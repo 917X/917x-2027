@@ -4,8 +4,8 @@
 #include "pros/motors.hpp"
 #include "pros/optical.hpp"
 
-Intake::Intake(pros::Motor& indexerMotor, pros::Optical& colorSort, pros::Motor& topRoller, pros::Motor& middleRoller, pros::Motor& bottomRoller)
-    : indexerMotor(indexerMotor), colorSort(colorSort), frontRoller(topRoller), middleRoller(middleRoller), bottomRoller(bottomRoller) {
+Intake::Intake(pros::Motor& indexerMotor, pros::Optical& colorSort, pros::Motor& topRoller, pros::Motor& middleRoller, pros::Motor& bottomRoller, pros::Motor& clawIntake)
+    : indexerMotor(indexerMotor), colorSort(colorSort), frontRoller(topRoller), middleRoller(middleRoller), bottomRoller(bottomRoller), clawIntake(clawIntake) {
     this->state = IntakeState::STOPPED;
     this->ball = Ball::NONE;
     this->speed = 100;
