@@ -756,6 +756,28 @@ class Drive {
   double odom_turn_bias_get();
 
   /**
+   * Sets the minimum speed threshold and multiplier for odometry motions.
+   * When drive output is below threshold and the robot is far from the target,
+   * the output is multiplied by the scaling factor.  A threshold of 0 disables this.
+   *
+   * \param threshold
+   *        minimum speed threshold (0-127)
+   * \param multiplier
+   *        scaling factor to apply when below threshold (e.g., 1.5)
+   */
+  void odom_drive_boost_set(double threshold, double multiplier);
+
+  /**
+   * Returns the minimum speed threshold for odometry drive boost.
+   */
+  double odom_drive_boost_threshold_get();
+
+  /**
+   * Returns the multiplier for odometry drive boost.
+   */
+  double odom_drive_boost_multiplier_get();
+
+  /**
    * Sets the spacing between points when points get injected into the path.
    *
    * \param spacing
@@ -963,8 +985,10 @@ class Drive {
    *
    * \param stick_type
    *        ez::SINGLE or ez::SPLIT control
+   * \param speed_clutch
+   *        optional cap on the motor output, 0 to 127.  0 disables the clutch
    */
-  void opcontrol_arcade_standard(e_type stick_type);
+  void opcontrol_arcade_standard(e_type stick_type, int speed_clutch = 0);
 
   /**
    * Sets the chassis to controller joysticks using flipped arcade control, where right stick is fwd/rev.
@@ -1114,8 +1138,10 @@ class Drive {
    *        input for left joystick
    * \param r_stick
    *        input for right joystick
+   * \param speed_clutch
+   *        optional cap on the motor output, 0 to 127.  0 disables the clutch
    */
-  void opcontrol_joystick_threshold_iterate(int l_stick, int r_stick);
+  void opcontrol_joystick_threshold_iterate(int l_stick, int r_stick, int speed_clutch = 0);
 
   /////
   //
@@ -1491,8 +1517,12 @@ class Drive {
    *        {{x, y, t}, fwd/rev, 1-127}  an odom movement
    * \param slew_on
    *        ramp up from a lower speed to your target speed
+   * \param slowdown_radius
+   *        optional distance to the target in inches.  once inside it, max speed is capped to slowdown_speed.  -1 disables
+   * \param slowdown_speed
+   *        optional max speed used inside slowdown_radius, 0 to 127.  -1 disables
    */
-  void pid_odom_ptp_set(odom imovement, bool slew_on);
+  void pid_odom_ptp_set(odom imovement, bool slew_on, double slowdown_radius = -1, int slowdown_speed = -1);
 
   /**
    * Takes in an odom movement to go to a single point using boomerang.  If an angle is set, this will run boomerang.  Uses slew if globally enabled.
@@ -1717,8 +1747,54 @@ class Drive {
    *        target okapi unit
    * \param speed
    *        0 to 127, max speed during motion
+   * \param min_speed
+   *        0 to 127, min speed during motion
    */
-  void pid_drive_set(okapi::QLength p_target, int speed);
+  void pid_drive_set(okapi::QLength p_target, int speed, int min_speed = 0);
+
+  /**
+   * Sets the robot to move forward using PID with okapi units, using slew if enabled for this motion.
+   *
+   * \param p_target
+   *        target okapi unit
+   * \param speed
+   *        0 to 127, max speed during motion
+   * \param min_speed
+   *        0 to 127, min speed during motion
+   * \param slew_on
+   *        ramp up from a lower speed to your target speed
+   */
+  void pid_drive_set(okapi::QLength p_target, int speed, int min_speed, bool slew_on);
+
+  /**
+   * Sets the robot to move forward using PID with okapi units, using slew if enabled for this motion.
+   *
+   * \param p_target
+   *        target okapi unit
+   * \param speed
+   *        0 to 127, max speed during motion
+   * \param min_speed
+   *        0 to 127, min speed during motion
+   * \param slew_on
+   *        ramp up from a lower speed to your target speed
+   * \param toggle_heading
+   *        toggle for heading correction.  true enables, false disables
+   * \param heading_target
+   *        optional manual override for heading correction target in degrees (uses current heading if not provided)
+   */
+  void pid_drive_set(okapi::QLength p_target, int speed, int min_speed, bool slew_on, bool toggle_heading, double heading_target = INFINITY);
+
+  /**
+   * Sets the robot to move forward using PID with okapi units, using slew if enabled for this motion.
+   *
+   * \param p_target
+   *        target okapi unit
+   * \param speed
+   *        0 to 127, max speed during motion
+   * \param slew_on
+   *        ramp up from a lower speed to your target speed
+   */
+  void pid_drive_set(okapi::QLength p_target, int speed, bool slew_on);
 
   /**
    * Sets the robot to move forward using PID with okapi units, using slew if enabled for this motion.
@@ -1731,8 +1807,10 @@ class Drive {
    *        ramp up from a lower speed to your target speed
    * \param toggle_heading
    *        toggle for heading correction.  true enables, false disables
+   * \param heading_target
+   *        optional manual override for heading correction target in degrees (uses current heading if not provided)
    */
-  void pid_drive_set(okapi::QLength p_target, int speed, bool slew_on, bool toggle_heading = true);
+  void pid_drive_set(okapi::QLength p_target, int speed, bool slew_on, bool toggle_heading, double heading_target = INFINITY);
 
   /**
    * Sets the robot to move forward using PID without okapi units, only using slew if globally enabled.
@@ -1741,8 +1819,54 @@ class Drive {
    *        target value in inches
    * \param speed
    *        0 to 127, max speed during motion
+   * \param min_speed
+   *        0 to 127, min speed during motion
    */
-  void pid_drive_set(double target, int speed);
+  void pid_drive_set(double target, int speed, int min_speed = 0);
+
+  /**
+   * Sets the robot to move forward using PID without okapi units, using slew if enabled for this motion.
+   *
+   * \param target
+   *        target value in inches
+   * \param speed
+   *        0 to 127, max speed during motion
+   * \param min_speed
+   *        0 to 127, min speed during motion
+   * \param slew_on
+   *        ramp up from a lower speed to your target speed
+   */
+  void pid_drive_set(double target, int speed, int min_speed, bool slew_on);
+
+  /**
+   * Sets the robot to move forward using PID without okapi units, using slew if enabled for this motion.
+   *
+   * \param target
+   *        target value in inches
+   * \param speed
+   *        0 to 127, max speed during motion
+   * \param min_speed
+   *        0 to 127, min speed during motion
+   * \param slew_on
+   *        ramp up from a lower speed to your target speed
+   * \param toggle_heading
+   *        toggle for heading correction.  true enables, false disables
+   * \param heading_target
+   *        optional manual override for heading correction target in degrees (uses current heading if not provided)
+   */
+  void pid_drive_set(double target, int speed, int min_speed, bool slew_on, bool toggle_heading, double heading_target = INFINITY);
+
+  /**
+   * Sets the robot to move forward using PID without okapi units, using slew if enabled for this motion.
+   *
+   * \param target
+   *        target value in inches
+   * \param speed
+   *        0 to 127, max speed during motion
+   * \param slew_on
+   *        ramp up from a lower speed to your target speed
+   */
+  void pid_drive_set(double target, int speed, bool slew_on);
 
   /**
    * Sets the robot to move forward using PID without okapi units, using slew if enabled for this motion.
@@ -1755,8 +1879,10 @@ class Drive {
    *        ramp up from a lower speed to your target speed
    * \param toggle_heading
    *        toggle for heading correction.  true enables, false disables
+   * \param heading_target
+   *        optional manual override for heading correction target in degrees (uses current heading if not provided)
    */
-  void pid_drive_set(double target, int speed, bool slew_on, bool toggle_heading = true);
+  void pid_drive_set(double target, int speed, bool slew_on, bool toggle_heading, double heading_target = INFINITY);
 
   /**
    * Sets the robot to turn face a point using PID and odometry.
@@ -2508,6 +2634,36 @@ class Drive {
   void drive_angle_set(double angle);
 
   /**
+   * Lock the code in a while loop until the robot is within a range of the target, then sets the max speed.
+   *
+   * \param range
+   *        range in inches or degrees
+   * \param speed
+   *        new max speed
+   */
+  void pid_slowdown(double range, int speed);
+
+  /**
+   * Lock the code in a while loop until the robot is within a range of the target, then sets the max speed.
+   *
+   * \param range
+   *        range in okapi::QLength
+   * \param speed
+   *        new max speed
+   */
+  void pid_slowdown(okapi::QLength range, int speed);
+
+  /**
+   * Lock the code in a while loop until the robot is within a range of the target, then sets the max speed.
+   *
+   * \param range
+   *        range in okapi::QAngle
+   * \param speed
+   *        new max speed
+   */
+  void pid_slowdown(okapi::QAngle range, int speed);
+
+  /**
    * Lock the code in a while loop until the robot has settled.
    */
   void pid_wait();
@@ -2549,8 +2705,11 @@ class Drive {
    * This also adds distance to target, and then exits with pid_wait_quick.
    *
    * This will exit the motion while carrying momentum into the next motion.
+   *
+   * \param motion_chain_constant_override
+   *        optional chain distance (inches or degrees, matching the motion) used instead of the global chain constant.  0 uses the global constant
    */
-  void pid_wait_quick_chain();
+  void pid_wait_quick_chain(double motion_chain_constant_override = 0.0);
 
   /**
    * Lock the code in a while loop until this point has been passed.
@@ -3410,6 +3569,20 @@ class Drive {
    */
   bool opcontrol_arcade_scaling_enabled();
 
+  /**
+   * Sets the turn bias for arcade control.  Values > 1.0 prioritize turning over driving.
+   * Recommended range: 1.0-2.0.  Default is 1.0 (no bias).
+   *
+   * \param bias
+   *        turn bias multiplier
+   */
+  void opcontrol_arcade_turn_bias_set(double bias);
+
+  /**
+   * Returns the current turn bias for arcade control.
+   */
+  double opcontrol_arcade_turn_bias_get();
+
  private:
   void opcontrol_drive_activebrake_targets_set();
   double odom_smooth_weight_smooth = 0.0;
@@ -3422,6 +3595,9 @@ class Drive {
   bool is_full_pid_tuner_enabled = false;
   std::vector<const_and_name>* used_pid_tuner_pids;
   double opcontrol_speed_max = 127.0;
+  int drive_min_speed = 0;
+  int odom_min_speed = 0;
+  double arcade_turn_bias = 1.0;
   bool arcade_vector_scaling = false;
   // odom privates
   std::vector<odom> pp_movements;
@@ -3432,7 +3608,7 @@ class Drive {
   void raw_pid_odom_pp_set(std::vector<odom> imovements, bool slew_on);
   bool ptf1_running = false;
   std::vector<pose> find_point_to_face(pose current, pose target, drive_directions dir, bool set_global);
-  void raw_pid_odom_ptp_set(odom imovement, bool slew_on);
+  void raw_pid_odom_ptp_set(odom imovement, bool slew_on, double slowdown_radius = -1, int slowdown_speed = -1);
   std::vector<odom> inject_points(std::vector<odom> imovements);
   std::vector<pose> point_to_face = {{0, 0, 0}, {0, 0, 0}};
   double turn_is_toleranced(double target, double current, double input, double longest, double shortest);
@@ -3470,6 +3646,10 @@ class Drive {
   double dlead = 0.5;
   double max_boomerang_distance = 12.0;
   double odom_turn_bias_amount = 1.375;
+  double odom_drive_boost_threshold = 0.0;
+  double odom_drive_boost_multiplier = 1.0;
+  double odom_slowdown_radius = -1.0;
+  int odom_slowdown_speed = -1;
   drive_directions current_drive_direction = fwd;
   double h_last = 0.0, t_last = 0.0, l_last = 0.0, r_last = 0.0;
   pose l_pose{0.0, 0.0, 0.0};
