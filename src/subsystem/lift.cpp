@@ -3,11 +3,11 @@
 #include "pros/motors.h"
 #include "pros/rtos.hpp"
 
-Lift::Lift(pros::MotorGroup& liftMotors, pros::Rotation& liftRotation, ez::Piston& scoringPiston)
-    : liftMotors(liftMotors), liftRotation(liftRotation), scoringPiston(scoringPiston) {}
+Lift::Lift(pros::Motor& liftMotor, pros::Rotation& liftRotation, ez::Piston& scoringPiston)
+    : liftMotor(liftMotor), liftRotation(liftRotation), scoringPiston(scoringPiston) {}
 
 void Lift::liftControl() {
-    liftMotors.set_brake_mode_all(pros::E_MOTOR_BRAKE_HOLD);
+    liftMotor.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
     liftRotation.reset_position();  // the lift starts sitting at LOADING
 
     while (true) {
@@ -58,7 +58,7 @@ void Lift::liftControl() {
         if (position >= MAX_POSITION && power > 0) power = 0;
         if (position <= MIN_POSITION && power < 0) power = 0;
 
-        liftMotors.move(power);
+        liftMotor.move(power);
     }
 }
 

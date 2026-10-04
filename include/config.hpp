@@ -32,7 +32,7 @@ extern ez::Drive chassis;
 extern pros::Motor intakeMotor;
 extern Intake intake;
 extern pros::Motor clawIntake;
-extern pros::MotorGroup liftMotors;
+extern pros::Motor liftMotor;
 extern pros::Rotation liftRotation;
 extern ez::Piston scoringPiston;
 extern ez::Piston claw;

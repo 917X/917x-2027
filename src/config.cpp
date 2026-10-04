@@ -22,8 +22,7 @@ constexpr int IMU = 7;
 constexpr int INTAKE = -1;
 constexpr int CLAW_INTAKE = 10;
 
-constexpr int LIFT_L = -5;
-constexpr int LIFT_R = 20;
+constexpr int LIFT = -5;  // was LIFT_L when the lift had two motors - check this is the one left
 constexpr int LIFT_ROTATION = 3;  // PLACEHOLDER - set to the real port (negative reverses it)
 
 constexpr char CLAW = 'B';
@@ -40,11 +39,11 @@ Intake intake(intakeMotor);
 pros::Motor clawIntake(CLAW_INTAKE);
 
 // lift + scoring piston
-pros::MotorGroup liftMotors({LIFT_L, LIFT_R});
+pros::Motor liftMotor(LIFT);
 pros::Rotation liftRotation(LIFT_ROTATION);
 ez::Piston scoringPiston(SCORING_PISTON);
 
-Lift lift(liftMotors, liftRotation, scoringPiston);
+Lift lift(liftMotor, liftRotation, scoringPiston);
 
 // claw - not part of the Lift, opcontrol toggles these directly
 ez::Piston claw(CLAW);

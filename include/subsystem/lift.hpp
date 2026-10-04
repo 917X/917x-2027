@@ -1,7 +1,7 @@
 #pragma once
 #include <cstdint>
 #include "EZ-Template/piston.hpp"
-#include "pros/motor_group.hpp"
+#include "pros/motors.hpp"
 #include "pros/rotation.hpp"
 
 // Lift state machine, same idea as Intake.  lift.set(Lift::LEVEL_3) moves to and holds
@@ -9,7 +9,7 @@
 class Lift {
     public:
 
-        Lift(pros::MotorGroup& liftMotors, pros::Rotation& liftRotation, ez::Piston& scoringPiston);
+        Lift(pros::Motor& liftMotor, pros::Rotation& liftRotation, ez::Piston& scoringPiston);
         enum LiftState{ LOADING, LEVEL_1, LEVEL_2, LEVEL_3, LEVEL_4, LEVEL_5, RAW_UP, RAW_DOWN, RAW_HOLD };
 
         void liftControl();
@@ -17,7 +17,7 @@ class Lift {
         void levelUp();
         void levelDown();
 
-        pros::MotorGroup& liftMotors;
+        pros::Motor& liftMotor;
         pros::Rotation& liftRotation;
         ez::Piston& scoringPiston;
         LiftState state = LOADING;
