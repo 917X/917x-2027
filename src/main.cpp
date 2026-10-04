@@ -14,6 +14,7 @@ constexpr int INTAKE_SPEED = 127;
 void ez_screen_task();
 pros::Task* ezScreenTask = nullptr;
 pros::Task* liftTask = nullptr;
+pros::Task* intakeTask = nullptr;
 
 // ===========================================================================
 // Last season (Push Back) helpers - reference only, nothing calls these.
@@ -40,25 +41,6 @@ void arcadeCurve(pros::controller_analog_e_t power, pros::controller_analog_e_t 
     leftMotors.move(forwards * 0.95 - turning);
     rightMotors.move(forwards * 0.95 + turning);
 }
-
-void init_separation(Intake::Ball ball) {
-  frontRoller.set_encoder_units(pros::E_MOTOR_ENCODER_DEGREES);
-  middleRoller.set_encoder_units(pros::E_MOTOR_ENCODER_DEGREES);
-  bottomRoller.set_encoder_units(pros::E_MOTOR_ENCODER_DEGREES);
-  indexerMotor.set_encoder_units(pros::E_MOTOR_ENCODER_DEGREES);
-  colorSort.set_led_pwm(100);
-  intake.ball = ball;
-  if (intake.ball == Intake::Ball::BLUE){
-    separation_state = 1;
-  }
-  else if (intake.ball == Intake::Ball::RED){
-    separation_state = 0;
-  }
-  else if(intake.ball == Intake::Ball::NONE){
-    separation_state = 2;
-  }
-}
-
 
 void printTelemetry() {
   while (true) {
@@ -124,7 +106,6 @@ void initialize() {
   ez::ez_template_print();
 
   pros::delay(500);  // Stop the user from doing anything while legacy ports configure
-  lift.initialize();
 
   // Look at your horizontal tracking wheel and decide if it's in front of the midline of your robot or behind it
   //  - change `back` to `front` if the tracking wheel is in front of the midline
@@ -136,10 +117,9 @@ void initialize() {
   // chassis.odom_tracker_left_set(&vert_tracker);
 
   // Configure your chassis controls
-  // Curve buttons are OFF: EZ's defaults for them are LEFT/RIGHT and Y/A, and Y and A
-  // are the lower and intake macros.  With this enabled, those two macros also nudge the
-  // turn curve every time they're pressed.  Every button is bound to something, so there
-  // is nowhere to move the curve buttons to - tune the curve here instead and reflash.
+  // Curve buttons are OFF: EZ's defaults for them are LEFT/RIGHT and Y/A, and A sends
+  // the lift to LOADING.  With this enabled, every press of A would also nudge the turn
+  // curve.  Tune the curve here instead and reflash.
   chassis.opcontrol_curve_buttons_toggle(false);
   chassis.opcontrol_drive_activebrake_set(0.0);   // Sets the active brake kP. We recommend ~2.  0 will disable.
   chassis.opcontrol_curve_default_set(0.0, 0.0);  // Throttle curve, turn curve.  0.0 is linear. (Comment this line out if you have an SD card!)
@@ -174,10 +154,11 @@ void initialize() {
   chassis.initialize();
   ez::as::initialize();
 
-  // Started here rather than at static init - chassis and lift live in config.cpp
-  // now, and a file scope task could run before their constructors do.
+  // Started here rather than at static init - chassis, lift and intake live in
+  // config.cpp now, and a file scope task could run before their constructors do.
   ezScreenTask = new pros::Task(ez_screen_task);
   liftTask = new pros::Task([] { lift.liftControl(); });
+  intakeTask = new pros::Task([] { intake.intakeControl(); });
 
   controller.rumble(chassis.drive_imu_calibrated() ? "." : "---");
 }
@@ -188,9 +169,7 @@ void initialize() {
  * the robot is enabled, this task will exit.
  */
 void disabled() {
-  // Macros run on their own task now, so one that was mid-flight when the mode
-  // changed would keep going.  Drop it.
-  lift.cancel();
+  // . . .
 }
 
 /**
@@ -344,13 +323,11 @@ void ez_template_extras() {
  *
  * Driver layout:
  *   R1 / R2       intake in / out
- *   L1 / L2       lift up / down (manual)
+ *   L1 / L2       lift up / down a level
+ *   A             lift to LOADING
+ *   X / B         raw lift up / down (hold)
  *   UP            toggle claw
  *   DOWN          toggle claw pivot
- *   A             macro: intake position
- *   B             macro: matchload position
- *   X             macro: raise
- *   Y             macro: lower
  */
 void opcontrol() {
   // This is preference to what you like to drive on
@@ -363,35 +340,13 @@ void opcontrol() {
     // chassis.opcontrol_tank();  // Tank control
     chassis.opcontrol_arcade_standard(ez::SPLIT);  // Standard split arcade
 
-    // Intake controls
+    // Intake - the intake task does the motor writes
     if (controller.get_digital(DIGITAL_R1)) {
-      intakeMotor.move(INTAKE_SPEED);  // Spin forward
+      intake.set(Intake::INTAKE, INTAKE_SPEED);
     } else if (controller.get_digital(DIGITAL_R2)) {
-      intakeMotor.move(-INTAKE_SPEED);  // Spin backward
+      intake.set(Intake::OUTTAKE, INTAKE_SPEED);
     } else {
-      intakeMotor.move(0);  // Stop
-    }
-
-    // Manual lift control.  L1/L2 cancel a running macro and take over; the
-    // idle case is a no-op while a macro is running, so it can't stomp on it.
-    /*
-    if (controller.get_digital(DIGITAL_L1)) {
-      lift.manual(Lift::MANUAL_UP_POWER);
-    } else if (controller.get_digital(DIGITAL_L2)) {
-      lift.manual(Lift::MANUAL_DOWN_POWER);
-    } else {
-      lift.manual(0);
-    }
-    */
-
-    // Lift state control. L1 to toggle between states, 
-    // idle case is a no-op while a macro is running, so it can't stomp on it.
-    if (controller.get_digital(DIGITAL_L1)) {
-      lift.manual(Lift::MANUAL_UP_POWER);
-    } else if (controller.get_digital(DIGITAL_L2)) {
-      lift.manual(Lift::MANUAL_DOWN_POWER);
-    } else {
-      lift.manual(0);
+      intake.set(Intake::STOP);
     }
 
     if (controller.get_digital(DIGITAL_R1)) {
@@ -402,23 +357,29 @@ void opcontrol() {
       clawIntake.move(0);  // Stop
     }
 
+    // Lift levels - L1 / L2 step up / down a level, A drops straight to LOADING
+    if (controller.get_digital_new_press(DIGITAL_L1))
+      lift.levelUp();
+    if (controller.get_digital_new_press(DIGITAL_L2))
+      lift.levelDown();
+    if (controller.get_digital_new_press(DIGITAL_A))
+      lift.set(Lift::LOADING);
+
+    // Raw lift - hold X / B to move it freely, let go and it holds right there
+    if (controller.get_digital(DIGITAL_X)) {
+      lift.set(Lift::RAW_UP);
+    } else if (controller.get_digital(DIGITAL_B)) {
+      lift.set(Lift::RAW_DOWN);
+    } else if (lift.state == Lift::RAW_UP || lift.state == Lift::RAW_DOWN) {
+      lift.set(Lift::RAW_HOLD);
+    }
+
     // Pneumatics
     if (controller.get_digital_new_press(DIGITAL_UP))
-      lift.toggleClaw();
+      claw.set(!claw.get());
 
     if (controller.get_digital_new_press(DIGITAL_DOWN))
-      lift.togglePivot();
-
-    // Macros - these return immediately, the lift task runs them.
-    // Pressing another one mid-macro replaces it.
-    if (controller.get_digital_new_press(DIGITAL_A))
-      lift.intake();
-    else if (controller.get_digital_new_press(DIGITAL_B))
-      lift.matchload();
-    else if (controller.get_digital_new_press(DIGITAL_X))
-      lift.raise();
-    else if (controller.get_digital_new_press(DIGITAL_Y))
-      lift.lower();
+      clawPivot.set(!clawPivot.get());
 
     pros::delay(ez::util::DELAY_TIME);  // This is used for timer calculations!  Keep this ez::util::DELAY_TIME
   }

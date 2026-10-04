@@ -5,8 +5,8 @@
 #include "pros/misc.hpp"
 #include "pros/motor_group.hpp"
 #include "pros/motors.hpp"
-#include "pros/optical.hpp"
 #include "pros/imu.hpp"
+#include "pros/rotation.hpp"
 #include "subsystem/intake.hpp"
 #include "subsystem/lift.hpp"
 
@@ -30,8 +30,11 @@ extern pros::Controller controller;
 extern ez::Drive chassis;
 
 extern pros::Motor intakeMotor;
+extern Intake intake;
 extern pros::Motor clawIntake;
 extern pros::MotorGroup liftMotors;
+extern pros::Rotation liftRotation;
+extern ez::Piston scoringPiston;
 extern ez::Piston claw;
 extern ez::Piston clawPivot;
 extern Lift lift;
@@ -41,15 +44,9 @@ extern Lift lift;
 // ---------------------------------------------------------------------------
 
 extern pros::adi::DigitalOut intakePiston;
-extern pros::Motor indexerMotor;
-extern pros::Motor frontRoller;
-extern pros::Motor middleRoller;
-extern pros::Motor bottomRoller;
-extern Intake intake;
 
 extern pros::adi::DigitalOut flapperPiston;
 
-extern pros::Optical colorSort;
 extern pros::Imu imu;
 extern pros::MotorGroup rightMotors;
 extern pros::MotorGroup leftMotors;
