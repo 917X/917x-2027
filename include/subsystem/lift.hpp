@@ -1,5 +1,4 @@
 #pragma once
-#include <cstdint>
 #include "EZ-Template/piston.hpp"
 #include "pros/motors.hpp"
 #include "pros/rotation.hpp"
@@ -39,9 +38,10 @@ class Lift {
         double MIN_POSITION = 0;
         double MAX_POSITION = 550;
 
-        std::uint32_t SCORING_PISTON_DELAY = 500;  // ms after leaving LOADING before scoringPiston fires
-        bool pistonPending = false;
-        std::uint32_t pistonStart = 0;
+        // scoringPiston turns on once the lift rises above PISTON_ON_POSITION and off once it
+        // drops below PISTON_OFF_POSITION.  PLACEHOLDERS - keep ON above OFF so it can't flicker
+        double PISTON_ON_POSITION = 50;
+        double PISTON_OFF_POSITION = 25;
 
         double rawTarget = 0;  // where RAW_HOLD holds - the position when the raw button was let go
 };

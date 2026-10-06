@@ -15,15 +15,13 @@ void Lift::liftControl() {
 
         double position = liftRotation.get_position() / 100.0;  // centidegrees -> degrees
 
-        if (pistonPending && pros::millis() - pistonStart >= SCORING_PISTON_DELAY) {
-            scoringPiston.set(true);
-            pistonPending = false;
-        }
+        // On once we're up and away from loading, off once we're back down near it
+        if (position > PISTON_ON_POSITION) scoringPiston.set(true);
+        if (position < PISTON_OFF_POSITION) scoringPiston.set(false);
 
         double target = position;  // raw states get no P power
         switch (state) {
             case LOADING:
-                scoringPiston.set(false);
                 target = LOADING_HEIGHT;
                 break;
             case LEVEL_1:
@@ -63,15 +61,6 @@ void Lift::liftControl() {
 }
 
 void Lift::set(LiftState state) {
-    // The scoring piston fires on the first move up out of LOADING.  Only LOADING
-    // retracts it, so "still retracted" means we're coming up from loading - even
-    // if the driver tapped raw down at the bottom first.
-    bool goingUp = (state >= LEVEL_1 && state <= LEVEL_5) || state == RAW_UP;
-    if (goingUp && !scoringPiston.get() && !pistonPending) {
-        pistonStart = pros::millis();  // set before pistonPending so liftControl never sees a stale start
-        pistonPending = true;
-    }
-    if (state == LOADING) pistonPending = false;
     if (state <= LEVEL_5) level = state;
     this->state = state;
 }
