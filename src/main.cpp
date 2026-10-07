@@ -1,4 +1,5 @@
 #include "main.h"
+
 #include "autons.hpp"
 #include "config.hpp"
 #include "subsystem/lift.hpp"
@@ -33,13 +34,13 @@ int autoSelector = 0;
 int separation_state = 0;
 
 void arcadeCurve(pros::controller_analog_e_t power, pros::controller_analog_e_t turn, pros::Controller mast, float f) {
-    up = mast.get_analog(power);
-    down = mast.get_analog(turn);
-    forwards = (exp(-f / 10) + exp((fabs(up) - 127) / 10) * (1 - exp(-f / 10))) * up;
-    turning = -1 * down;
-    
-    leftMotors.move(forwards * 0.95 - turning);
-    rightMotors.move(forwards * 0.95 + turning);
+  up = mast.get_analog(power);
+  down = mast.get_analog(turn);
+  forwards = (exp(-f / 10) + exp((fabs(up) - 127) / 10) * (1 - exp(-f / 10))) * up;
+  turning = -1 * down;
+
+  leftMotors.move(forwards * 0.95 - turning);
+  rightMotors.move(forwards * 0.95 + turning);
 }
 
 void printTelemetry() {
@@ -71,13 +72,13 @@ void printTelemetry() {
 
 static bool piston_state = false;
 void intake_piston_toggle() {
-  while (true)  {
+  while (true) {
     if (controller.get_digital(pros::E_CONTROLLER_DIGITAL_B)) {
       piston_state = !piston_state;
       intakePiston.set_value(piston_state);
       pros::delay(300);
     }
-}
+  }
 }
 
 static bool flapper_state = false;
@@ -157,7 +158,7 @@ void initialize() {
   // Started here rather than at static init - chassis, lift and intake live in
   // config.cpp now, and a file scope task could run before their constructors do.
   ezScreenTask = new pros::Task(ez_screen_task);
-  liftTask = new pros::Task([] { lift.liftControl(); });
+  // liftTask = new pros::Task([] { lift.liftControl(); });
   intakeTask = new pros::Task([] { intake.intakeControl(); });
 
   controller.rumble(chassis.drive_imu_calibrated() ? "." : "---");
@@ -197,11 +198,11 @@ void competition_initialize() {
  * from where it left off.
  */
 void autonomous() {
-  chassis.pid_targets_reset();                            // Resets PID targets to 0
-  chassis.drive_imu_reset();                              // Reset gyro position to 0
-  chassis.drive_sensor_reset();                           // Reset drive sensors to 0
-  chassis.odom_xyt_set(0_in, 0_in, 0_deg);                // Set the current position, you can start at a specific position with this
-  chassis.drive_brake_set(pros::E_MOTOR_BRAKE_HOLD);      // Set motors to hold.  This helps autonomous consistency
+  chassis.pid_targets_reset();                        // Resets PID targets to 0
+  chassis.drive_imu_reset();                          // Reset gyro position to 0
+  chassis.drive_sensor_reset();                       // Reset drive sensors to 0
+  chassis.odom_xyt_set(0_in, 0_in, 0_deg);            // Set the current position, you can start at a specific position with this
+  chassis.drive_brake_set(pros::E_MOTOR_BRAKE_HOLD);  // Set motors to hold.  This helps autonomous consistency
 
   /*
   Odometry and Pure Pursuit are not magic
@@ -340,39 +341,41 @@ void opcontrol() {
     // chassis.opcontrol_tank();  // Tank control
     chassis.opcontrol_arcade_standard(ez::SPLIT);  // Standard split arcade
 
-    // Intake - the intake task does the motor writes
     if (controller.get_digital(DIGITAL_R1)) {
-      intake.set(Intake::INTAKE, INTAKE_SPEED);
+      clawIntake.move(-INTAKE_SPEED);  // Spin forward
+      intake.set(Intake::INTAKE);
     } else if (controller.get_digital(DIGITAL_R2)) {
-      intake.set(Intake::OUTTAKE, INTAKE_SPEED);
+      clawIntake.move(INTAKE_SPEED);  // Spin backward
+      intake.set(Intake::OUTTAKE);
     } else {
+      clawIntake.move(0);  // Stop
       intake.set(Intake::STOP);
     }
 
-    if (controller.get_digital(DIGITAL_R1)) {
-      clawIntake.move(INTAKE_SPEED);  // Spin forward
-    } else if (controller.get_digital(DIGITAL_R2)) {
-      clawIntake.move(-INTAKE_SPEED);  // Spin backward
-    } else {
-      clawIntake.move(0);  // Stop
-    }
-
-    // Lift levels - L1 / L2 step up / down a level, A drops straight to LOADING
-    if (controller.get_digital_new_press(DIGITAL_L1))
-      lift.levelUp();
-    if (controller.get_digital_new_press(DIGITAL_L2))
-      lift.levelDown();
-    if (controller.get_digital_new_press(DIGITAL_A))
-      lift.set(Lift::LOADING);
-
-    // Raw lift - hold X / B to move it freely, let go and it holds right there
     if (controller.get_digital(DIGITAL_X)) {
-      lift.set(Lift::RAW_UP);
+      liftMotor.move(127);
     } else if (controller.get_digital(DIGITAL_B)) {
-      lift.set(Lift::RAW_DOWN);
-    } else if (lift.state == Lift::RAW_UP || lift.state == Lift::RAW_DOWN) {
-      lift.set(Lift::RAW_HOLD);
+      liftMotor.move(-127);
+    } else {
+      liftMotor.move(0);
     }
+
+    // // Lift levels - L1 / L2 step up / down a level, A drops straight to LOADING
+    // if (controller.get_digital_new_press(DIGITAL_L1))
+    //   lift.levelUp();
+    // if (controller.get_digital_new_press(DIGITAL_L2))
+    //   lift.levelDown();
+    // if (controller.get_digital_new_press(DIGITAL_A))
+    //   lift.set(Lift::LOADING);
+
+    // // Raw lift - hold X / B to move it freely, let go and it holds right there
+    // if (controller.get_digital(DIGITAL_X)) {
+    //   lift.set(Lift::RAW_UP);
+    // } else if (controller.get_digital(DIGITAL_B)) {
+    //   lift.set(Lift::RAW_DOWN);
+    // } else if (lift.state == Lift::RAW_UP || lift.state == Lift::RAW_DOWN) {
+    //   lift.set(Lift::RAW_HOLD);
+    // }
 
     // Pneumatics
     if (controller.get_digital_new_press(DIGITAL_UP))

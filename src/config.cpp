@@ -1,4 +1,5 @@
 #include "config.hpp"
+
 #include "pros/adi.h"
 #include "pros/misc.hpp"
 #include "pros/motor_group.hpp"
@@ -22,8 +23,8 @@ constexpr int IMU = 7;
 constexpr int INTAKE = -1;
 constexpr int CLAW_INTAKE = 10;
 
-constexpr int LIFT = -5;  // was LIFT_L when the lift had two motors - check this is the one left
-constexpr int LIFT_ROTATION = 3;  // PLACEHOLDER - set to the real port (negative reverses it)
+constexpr int LIFT = 20;           // was LIFT_L when the lift had two motors - check this is the one left
+constexpr int LIFT_ROTATION = 18;  // PLACEHOLDER - set to the real port (negative reverses it)
 
 constexpr char CLAW = 'B';
 constexpr char CLAW_PIVOT = 'A';
