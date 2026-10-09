@@ -36,7 +36,7 @@ class Lift {
 
   // Heights in rotation sensor degrees.  PLACEHOLDERS - tune on the robot
   double LOADING_HEIGHT = 750;
-  double ROLLERS_HEIGHT = 3500;
+  double ROLLERS_HEIGHT = 3000;
   double LEVEL_1_HEIGHT = 2750;
   double LEVEL_2_HEIGHT = 4750;
   double LEVEL_3_HEIGHT = 6750;

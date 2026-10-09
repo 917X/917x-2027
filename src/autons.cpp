@@ -411,11 +411,11 @@ void measure_offsets() {
 
 void driver_side_three_pin() {
   // hump the wall to flip rollers
-  chassis.pid_drive_set(5, 90);
-  chassis.pid_wait_quick();
-  chassis.pid_drive_set(-5, 90);
-  chassis.pid_wait_quick();
-  chassis.pid_drive_set(2, 90);
+  // chassis.pid_drive_set(5, 90);
+  // chassis.pid_wait_quick();
+  // chassis.pid_drive_set(-5, 90);
+  // chassis.pid_wait_quick();
+  // chassis.pid_drive_set(2, 90);
 
   // drop off the first pin
   chassis.odom_xyt_set(-61, 0, 90);

@@ -217,7 +217,8 @@ void autonomous() {
   to be consistent
   */
 
-  ez::as::auton_selector.selected_auton_call();  // Calls selected auton from autonomous selector
+  // ez::as::auton_selector.selected_auton_call();  // Calls selected auton from autonomous selector
+  driver_side_three_pin();
 }
 
 /**
@@ -324,8 +325,8 @@ void ez_template_extras() {
  *
  * Driver layout:
  *   R1 / R2       intake in / out
- *   L1 / L2       lift level up / down (ROLLERS not reachable; only via A)
- *   A             lift to ROLLERS
+ *   L1 / L2       lift up / down a level
+ *   A             lift to LOADING
  *   X / B         raw lift up / down (hold)
  *   UP            toggle claw
  *   A             toggle claw pivot
@@ -360,13 +361,13 @@ void opcontrol() {
     //   liftMotor.move(0);
     // }
 
-    // Lift levels - L1 / L2 step up / down a level, A goes to ROLLERS
+    // Lift levels - L1 / L2 step up / down a level, A drops straight to LOADING
     if (controller.get_digital_new_press(DIGITAL_L1))
       lift.levelUp();
     if (controller.get_digital_new_press(DIGITAL_L2))
       lift.levelDown();
     if (controller.get_digital_new_press(DIGITAL_A))
-      lift.set(Lift::ROLLERS);
+      lift.set(Lift::LOADING);
 
     // Raw lift - hold X / B to move it freely, let go and it holds right there
     if (controller.get_digital(DIGITAL_X)) {
@@ -379,7 +380,7 @@ void opcontrol() {
 
     // Pneumatics
     if (controller.get_digital_new_press(DIGITAL_UP))
-      claw.set(!claw.get());
+      lift.set(Lift::ROLLERS);
 
     if (controller.get_digital_new_press(DIGITAL_Y))
       clawPivot.set(!clawPivot.get());

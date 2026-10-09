@@ -18,7 +18,7 @@ constexpr int RIGHT_F = -11;
 constexpr int RIGHT_M = -12;
 constexpr int RIGHT_B = 14;
 
-constexpr int IMU = 7;
+constexpr int IMU = 2;
 
 constexpr int INTAKE = -1;
 constexpr int CLAW_INTAKE = 10;

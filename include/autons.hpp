@@ -21,3 +21,4 @@ void solo_awp();
 void right_elims();
 void left_elims();
 void skills();
+void driver_side_three_pin();
