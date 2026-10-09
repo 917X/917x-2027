@@ -26,6 +26,9 @@ void Lift::liftControl() {
       case LOADING:
         target = LOADING_HEIGHT;
         break;
+      case ROLLERS:
+        target = ROLLERS_HEIGHT;
+        break;
       case LEVEL_1:
         target = LEVEL_1_HEIGHT;
         break;
@@ -70,9 +73,13 @@ void Lift::set(LiftState state) {
 }
 
 void Lift::levelUp() {
-  if (level < LEVEL_5) set(static_cast<LiftState>(level + 1));
+  LiftState next = static_cast<LiftState>(level + 1);
+  if (next == ROLLERS) next = static_cast<LiftState>(next + 1);  // ROLLERS only via A
+  if (next <= LEVEL_5) set(next);
 }
 
 void Lift::levelDown() {
-  if (level > LEVEL_1) set(static_cast<LiftState>(level - 1));
+  LiftState next = static_cast<LiftState>(level - 1);
+  if (next == ROLLERS) next = static_cast<LiftState>(next - 1);  // ROLLERS only via A
+  if (next >= LOADING) set(next);
 }

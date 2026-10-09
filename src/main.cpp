@@ -158,7 +158,7 @@ void initialize() {
   // Started here rather than at static init - chassis, lift and intake live in
   // config.cpp now, and a file scope task could run before their constructors do.
   ezScreenTask = new pros::Task(ez_screen_task);
-  // liftTask = new pros::Task([] { lift.liftControl(); });
+  liftTask = new pros::Task([] { lift.liftControl(); });
   intakeTask = new pros::Task([] { intake.intakeControl(); });
 
   controller.rumble(chassis.drive_imu_calibrated() ? "." : "---");
@@ -324,11 +324,11 @@ void ez_template_extras() {
  *
  * Driver layout:
  *   R1 / R2       intake in / out
- *   L1 / L2       lift up / down a level
- *   A             lift to LOADING
+ *   L1 / L2       lift level up / down (ROLLERS not reachable; only via A)
+ *   A             lift to ROLLERS
  *   X / B         raw lift up / down (hold)
  *   UP            toggle claw
- *   DOWN          toggle claw pivot
+ *   A             toggle claw pivot
  */
 void opcontrol() {
   // This is preference to what you like to drive on
@@ -352,36 +352,36 @@ void opcontrol() {
       intake.set(Intake::STOP);
     }
 
-    if (controller.get_digital(DIGITAL_X)) {
-      liftMotor.move(127);
-    } else if (controller.get_digital(DIGITAL_B)) {
-      liftMotor.move(-127);
-    } else {
-      liftMotor.move(0);
-    }
-
-    // // Lift levels - L1 / L2 step up / down a level, A drops straight to LOADING
-    // if (controller.get_digital_new_press(DIGITAL_L1))
-    //   lift.levelUp();
-    // if (controller.get_digital_new_press(DIGITAL_L2))
-    //   lift.levelDown();
-    // if (controller.get_digital_new_press(DIGITAL_A))
-    //   lift.set(Lift::LOADING);
-
-    // // Raw lift - hold X / B to move it freely, let go and it holds right there
     // if (controller.get_digital(DIGITAL_X)) {
-    //   lift.set(Lift::RAW_UP);
+    //   liftMotor.move(127);
     // } else if (controller.get_digital(DIGITAL_B)) {
-    //   lift.set(Lift::RAW_DOWN);
-    // } else if (lift.state == Lift::RAW_UP || lift.state == Lift::RAW_DOWN) {
-    //   lift.set(Lift::RAW_HOLD);
+    //   liftMotor.move(-127);
+    // } else {
+    //   liftMotor.move(0);
     // }
+
+    // Lift levels - L1 / L2 step up / down a level, A goes to ROLLERS
+    if (controller.get_digital_new_press(DIGITAL_L1))
+      lift.levelUp();
+    if (controller.get_digital_new_press(DIGITAL_L2))
+      lift.levelDown();
+    if (controller.get_digital_new_press(DIGITAL_A))
+      lift.set(Lift::ROLLERS);
+
+    // Raw lift - hold X / B to move it freely, let go and it holds right there
+    if (controller.get_digital(DIGITAL_X)) {
+      lift.set(Lift::RAW_UP);
+    } else if (controller.get_digital(DIGITAL_B)) {
+      lift.set(Lift::RAW_DOWN);
+    } else if (lift.state == Lift::RAW_UP || lift.state == Lift::RAW_DOWN) {
+      lift.set(Lift::RAW_HOLD);
+    }
 
     // Pneumatics
     if (controller.get_digital_new_press(DIGITAL_UP))
       claw.set(!claw.get());
 
-    if (controller.get_digital_new_press(DIGITAL_DOWN))
+    if (controller.get_digital_new_press(DIGITAL_Y))
       clawPivot.set(!clawPivot.get());
 
     pros::delay(ez::util::DELAY_TIME);  // This is used for timer calculations!  Keep this ez::util::DELAY_TIME
