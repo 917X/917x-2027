@@ -42,19 +42,15 @@ void Lift::liftControl() {
         target = LEVEL_5_HEIGHT;
         break;
       case RAW_UP:
-        rawTarget = position;
-        break;
       case RAW_DOWN:
-        rawTarget = position;  // RAW_HOLD holds wherever the button was let go
-        break;
       case RAW_HOLD:
-        target = rawTarget;
         break;
     }
 
     int power = std::clamp(static_cast<int>(kP * (target - position)), -speed, speed);
     if (state == RAW_UP) power = rawSpeed;
     if (state == RAW_DOWN) power = -rawSpeed;
+    if (state == RAW_HOLD) power = 0;  // let go - the HOLD brake keeps it where it stopped
 
     // Never drive past the ends of travel
     if (position >= MAX_POSITION && power > 0) power = 0;

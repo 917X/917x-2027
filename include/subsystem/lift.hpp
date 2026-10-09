@@ -49,6 +49,4 @@ class Lift {
   // drops below PISTON_OFF_POSITION.  PLACEHOLDERS - keep ON above OFF so it can't flicker
   double PISTON_ON_POSITION = 50;
   double PISTON_OFF_POSITION = 25;
-
-  double rawTarget = 0;  // where RAW_HOLD holds - the position when the raw button was let go
 };
