@@ -79,3 +79,28 @@ void Lift::levelDown() {
   if (next == ROLLERS) next = static_cast<LiftState>(next - 1);  // ROLLERS only via A
   if (next >= LOADING) set(next);
 }
+
+
+void Lift::home() {
+    liftMotor.move(-35);
+
+    int stationaryTime = 0;
+    double lastPosition = liftMotor.get_position();
+
+    while (stationaryTime < 300) {
+        pros::delay(10);
+
+        double currentPosition = liftMotor.get_position();
+
+        if (fabs(currentPosition - lastPosition) < 1) {
+            stationaryTime += 10;
+        } else {
+            stationaryTime = 0;
+        }
+
+        lastPosition = currentPosition;
+    }
+
+    liftMotor.move(0);
+    liftMotor.tare_position();
+}

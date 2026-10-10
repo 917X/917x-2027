@@ -23,6 +23,7 @@ class Lift {
   void set(LiftState state);
   void levelUp();
   void levelDown();
+  void home();
 
   pros::Motor& liftMotor;
   pros::Rotation& liftRotation;
@@ -35,14 +36,22 @@ class Lift {
   double kP = 1.0;     // power per degree of error  (PLACEHOLDER)
 
   // Heights in rotation sensor degrees.  PLACEHOLDERS - tune on the robot
+  /*
   double LOADING_HEIGHT = 750;
-  double ROLLERS_HEIGHT = 2400;
+  double ROLLERS_HEIGHT = 2350;
   double LEVEL_1_HEIGHT = 2500;
   double LEVEL_2_HEIGHT = 4750;
   double LEVEL_3_HEIGHT = 6750;
   double LEVEL_4_HEIGHT = 8750;
   double LEVEL_5_HEIGHT = 10750;
-
+  */
+  double LOADING_HEIGHT = 900;
+  double ROLLERS_HEIGHT = 2500;
+  double LEVEL_1_HEIGHT = 2650;
+  double LEVEL_2_HEIGHT = 4900;
+  double LEVEL_3_HEIGHT = 6900;
+  double LEVEL_4_HEIGHT = 8900;
+  double LEVEL_5_HEIGHT = 10900;
   // The lift never drives past these  (PLACEHOLDERS - tune on the robot)
   double MIN_POSITION = 0;
   double MAX_POSITION = 100000;  // was 1005000 (typo); set ~2× max level height as hard safety stop

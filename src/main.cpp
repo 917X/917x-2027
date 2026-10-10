@@ -155,6 +155,7 @@ void initialize() {
   chassis.initialize();
   ez::as::initialize();
 
+  lift.home();
   // Started here rather than at static init - chassis, lift and intake live in
   // config.cpp now, and a file scope task could run before their constructors do.
   ezScreenTask = new pros::Task(ez_screen_task);

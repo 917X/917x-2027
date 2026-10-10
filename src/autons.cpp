@@ -416,7 +416,6 @@ void driver_side_three_pin() {
   // chassis.pid_drive_set(-5, 90);
   // chassis.pid_wait_quick();
   // chassis.pid_drive_set(2, 90);
-
   // drop off the first pin
   chassis.odom_xyt_set(-61, 0, 90);
   chassis.pid_odom_set({{-51, 0}, fwd, 90}, false);
@@ -428,21 +427,22 @@ void driver_side_three_pin() {
   clawPivot.set(true);
   chassis.pid_wait_quick();
   pros::delay(200);
-  chassis.pid_odom_set({{-46, 0}, fwd, 90}, false);
+  chassis.pid_odom_set({{-44, 0}, fwd, 90}, false);
   pros::delay(200);
   lift.set(Lift::LOADING);
-  pros::delay(500);
+  pros::delay(600);
   intake.set(Intake::INTAKE);
+  pros::delay(300); 
   clawIntake.move(127);
   clawPivot.set(false);
   chassis.pid_wait_quick();
   chassis.pid_turn_set(0, 0);
   chassis.pid_wait_quick();
-  chassis.pid_odom_set({{-35, -23}, rev, 90}, false);
-  lift.set(Lift::LEVEL_2);
-  pros::delay(300);
+  chassis.pid_odom_set({{-35, -24}, rev, 60}, false);
+  lift.set(Lift::LEVEL_1);
   clawPivot.set(true);
   chassis.pid_wait_quick();
+  chassis.pid_odom_set({{-36, -20}, fwd, 40}, false);
   // chassis.pid_drive_set(-13, 90);
   // chassis.pid_wait_quick();
   clawIntake.move(-127);
