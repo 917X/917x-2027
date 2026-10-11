@@ -45,15 +45,15 @@ class Lift {
   double LEVEL_4_HEIGHT = 8750;
   double LEVEL_5_HEIGHT = 10750;
   */
-  double LOADING_HEIGHT = 900;
-  double ROLLERS_HEIGHT = 2500;
-  double LEVEL_1_HEIGHT = 2650;
-  double LEVEL_2_HEIGHT = 4900;
-  double LEVEL_3_HEIGHT = 6900;
-  double LEVEL_4_HEIGHT = 8900;
-  double LEVEL_5_HEIGHT = 10900;
+  double LOADING_HEIGHT = 1200;
+  double ROLLERS_HEIGHT = 2800;
+  double LEVEL_1_HEIGHT = 2850;
+  double LEVEL_2_HEIGHT = 5100;
+  double LEVEL_3_HEIGHT = 7100;
+  double LEVEL_4_HEIGHT = 9100;
+  double LEVEL_5_HEIGHT = 12900;
   // The lift never drives past these  (PLACEHOLDERS - tune on the robot)
-  double MIN_POSITION = 0;
+  double MIN_POSITION = -1000000;
   double MAX_POSITION = 100000;  // was 1005000 (typo); set ~2× max level height as hard safety stop
 
   // scoringPiston turns on once the lift rises above PISTON_ON_POSITION and off once it
@@ -61,3 +61,5 @@ class Lift {
   double PISTON_ON_POSITION = 50;
   double PISTON_OFF_POSITION = 25;
 };
+
+//miguel phonk

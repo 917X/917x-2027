@@ -82,17 +82,17 @@ void Lift::levelDown() {
 
 
 void Lift::home() {
-    liftMotor.move(-35);
+    liftMotor.move(-45);
 
     int stationaryTime = 0;
     double lastPosition = liftMotor.get_position();
 
-    while (stationaryTime < 300) {
-        pros::delay(10);
+    while (stationaryTime < 30) {
+        pros::delay(20);
 
         double currentPosition = liftMotor.get_position();
 
-        if (fabs(currentPosition - lastPosition) < 1) {
+        if (fabs(currentPosition - lastPosition) < 22.5 ) {
             stationaryTime += 10;
         } else {
             stationaryTime = 0;
@@ -103,4 +103,5 @@ void Lift::home() {
 
     liftMotor.move(0);
     liftMotor.tare_position();
+    
 }

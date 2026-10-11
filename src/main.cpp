@@ -347,7 +347,7 @@ void opcontrol() {
       clawIntake.move(-INTAKE_SPEED);  // Spin forward
       intake.set(Intake::INTAKE);
     } else if (controller.get_digital(DIGITAL_R2)) {
-      clawIntake.move(INTAKE_SPEED);  // Spin backward
+      clawIntake.move(50);  // Spin backward
       intake.set(Intake::OUTTAKE);
     } else {
       clawIntake.move(0);  // Stop
