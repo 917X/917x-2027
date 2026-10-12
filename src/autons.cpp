@@ -19,15 +19,15 @@ const int SWING_SPEED = 110;
 void default_constants() {
   chassis.drive_width_set(10.5);
   // P, I, D, and Start I
-  chassis.pid_drive_constants_forward_set(11.2,0,56);  //52
+  chassis.pid_drive_constants_forward_set(11.2, 0, 56);  // 52
   chassis.pid_drive_constants_backward_set(5.7, 0.0, 9);
-  chassis.pid_heading_constants_set(11,0,50.0);        // Holds the robot straight while going forward without odom. 11 40
-  chassis.pid_turn_constants_set(3.2, 0, 25, 16.0);     // Turn in place constants
+  chassis.pid_heading_constants_set(11, 0, 50.0);            // Holds the robot straight while going forward without odom. 11 40
+  chassis.pid_turn_constants_set(3.2, 0, 25, 16.0);          // Turn in place constants
   chassis.pid_swing_constants_set(6.0, 0.0, 65.0);           // Swing constants
   chassis.pid_odom_angular_constants_set(6.5, 0.0, 60.5);    // Angular control for odom motions
   chassis.pid_odom_boomerang_constants_set(5.8, 0.0, 32.5);  // Angular control for boomerang motions
   // Exit conditions
-  chassis.pid_turn_exit_condition_set(90_ms, 3_deg, 250_ms, 7_deg, 500_ms, 500_ms); // 90,3_deg,250_ms,7_deg,500_ms,500_ms
+  chassis.pid_turn_exit_condition_set(90_ms, 3_deg, 250_ms, 7_deg, 500_ms, 500_ms);  // 90,3_deg,250_ms,7_deg,500_ms,500_ms
   chassis.pid_swing_exit_condition_set(90_ms, 3_deg, 250_ms, 7_deg, 500_ms, 500_ms);
   chassis.pid_drive_exit_condition_set(90_ms, 1_in, 250_ms, 3_in, 500_ms, 500_ms);
   chassis.pid_odom_turn_exit_condition_set(90_ms, 3_deg, 250_ms, 7_deg, 500_ms, 750_ms);
@@ -43,9 +43,9 @@ void default_constants() {
   // The amount that turns are prioritized over driving in odom motions
   // - if you have tracking wheels, you can run this higher.  1.0 is the max
   chassis.odom_turn_bias_set(0.9);
-  chassis.odom_look_ahead_set(7_in);           // This is how far ahead in the path the robot looks at
-  chassis.odom_boomerang_distance_set(16_in);  // This sets the maximum distance away from target that the carrot point can be
-  chassis.odom_boomerang_dlead_set(0.625);     // This handles how aggressive the end of boomerang motions are
+  chassis.odom_look_ahead_set(7_in);             // This is how far ahead in the path the robot looks at
+  chassis.odom_boomerang_distance_set(16_in);    // This sets the maximum distance away from target that the carrot point can be
+  chassis.odom_boomerang_dlead_set(0.625);       // This handles how aggressive the end of boomerang motions are
   chassis.pid_angle_behavior_set(ez::shortest);  // Changes the default behavior for turning, this defaults it to the shortest path there
 }
 
@@ -375,53 +375,75 @@ void measure_offsets() {
 }
 
 void driver_side_three_pin() {
-  // hump the wall to flip rollers
-  // chassis.pid_drive_set(5, 90);
-  // chassis.pid_wait_quick();
-  // chassis.pid_drive_set(-5, 90);
-  // chassis.pid_wait_quick();
-  // chassis.pid_drive_set(2, 90);
-  // drop off the first pin
   chassis.odom_xyt_set(-61, 0, 90);
   chassis.pid_odom_set({{-51, 0}, fwd, 90}, false);
   lift.set(Lift::ROLLERS);
-  clawIntake.move(-127);
   chassis.pid_wait_quick();
-  pros::delay(300);
-  chassis.pid_odom_set({{-63, 0}, rev, 40}, false);
+  pros::delay(1500);
+  chassis.pid_odom_set({{-65, 0}, rev, 60}, false);
+  clawIntake.move(127);
   clawPivot.set(true);
   chassis.pid_wait_quick();
+  chassis.pid_odom_set({{-53, 0}, fwd, 90}, false);
+  lift.set(Lift::RAW_DOWN);
+  pros::delay(10);
+  lift.set(Lift::RAW_HOLD);
+  chassis.pid_wait_quick();
+  chassis.pid_odom_set({{-65, 0}, rev, 60}, false);
+  chassis.pid_wait_quick();
   pros::delay(200);
-  chassis.pid_odom_set({{-44, 0}, fwd, 90}, false);
-  pros::delay(200);
-  lift.set(Lift::LOADING);
-  pros::delay(600);
-  intake.set(Intake::INTAKE);
-  pros::delay(300); 
-  clawIntake.move(127);
+  clawIntake.move(0);
+  chassis.pid_odom_set({{-42, 0}, fwd, 90}, false);
+  pros::delay(75);
   clawPivot.set(false);
+  lift.set(Lift::LOADING);
+  pros::delay(750);
+  intake.set(Intake::INTAKE);
+  clawIntake.move(-127);
   chassis.pid_wait_quick();
   chassis.pid_turn_set(0, 0);
   chassis.pid_wait_quick();
-  chassis.pid_odom_set({{-35, -24}, rev, 60}, false);
-  lift.set(Lift::LEVEL_1);
+  chassis.pid_odom_set({{-42, -19}, rev, 90}, false);
+  pros::delay(300);
   clawPivot.set(true);
+  pros::delay(200);
+  lift.set(Lift::ZERO);
   chassis.pid_wait_quick();
-  chassis.pid_odom_set({{-36, -20}, fwd, 40}, false);
-  // chassis.pid_drive_set(-13, 90);
-  // chassis.pid_wait_quick();
-  clawIntake.move(-127);
-  pros::delay(30000);
+  pros::delay(200);
+  clawIntake.move(50);
+  pros::delay(300);
+  lift.set(Lift::LOADING);
+  pros::delay(100);
 
   // pick up second pin
-  chassis.pid_odom_set({{-41, 0}, fwd, 90}, false);
+  chassis.pid_odom_set({{-41, 2}, fwd, 90}, false);
+  lift.set(Lift::LEVEL_1);
   chassis.pid_wait_quick();
   chassis.pid_turn_set(-90, 90);
   chassis.pid_wait_quick();
-  chassis.pid_odom_set({{-32, 0}, rev, 40}, false);
-  clawIntake.move(127);
+  chassis.pid_odom_set({{-21, 2}, rev, 40}, false);
+  clawPivot.set(true);
+  clawIntake.move(20);
   chassis.pid_wait();
+  lift.set(Lift::ZERO);
+  double target = lift.ZERO_HEIGHT;
+  double tolerance = 25.0;  // degrees
+
+  while (std::abs((lift.liftRotation.get_position() / 100.0) - target) > tolerance) {
+    pros::delay(10);
+  }
+
+  clawIntake.move(127);
+  pros::delay(150);
+  chassis.pid_odom_set({{-41, 2}, fwd, 90}, false);
   lift.set(Lift::LEVEL_1);
+  chassis.pid_wait_quick();
+  chassis.pid_turn_set(0, 90);
+  chassis.pid_wait_quick();
+  chassis.pid_odom_set({{-42, -19}, rev, 90}, false);
+  chassis.pid_wait_quick();
+  clawIntake.move(50);
+  pros::delay(30000);
 
   // score second pin
   clawIntake.move(0);

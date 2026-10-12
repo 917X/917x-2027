@@ -23,7 +23,8 @@ class Lift {
                    RAW_HOLD,
                    HOMING,
                    SCORE };
-  enum ScorePhase { DROPPING, RAISING };
+  enum ScorePhase { DROPPING,
+                    RAISING };
 
   void liftControl();
   void set(LiftState state);
@@ -35,7 +36,7 @@ class Lift {
   pros::Motor& liftMotor;
   pros::Rotation& liftRotation;
   ez::Piston& scoringPiston;
-  Intake& intake;           // SCORE runs these to outtake - opcontrol leaves them alone while it does
+  Intake& intake;  // SCORE runs these to outtake - opcontrol leaves them alone while it does
   pros::Motor& clawIntake;
   LiftState state = ZERO;
   LiftState level = ZERO;  // last LOADING/ROLLERS..LEVEL_5 picked, so levelUp/levelDown still work after raw
@@ -63,8 +64,8 @@ class Lift {
   int homeLoadedCurrent = 160;  // mA
   int homeLoadedTime = 50;      // ms
   int homeIgnoreTime = 100;     // ms - only delays when it starts looking, it's not a timeout
-  int homeTime = 0;        // ms since homing started
-  bool homeLoose = false;  // has the string gone loose yet
+  int homeTime = 0;             // ms since homing started
+  bool homeLoose = false;       // has the string gone loose yet
   int loadedTime = 0;
   int homePrintCounter = 0;
 
@@ -92,8 +93,8 @@ class Lift {
   double LEVEL_4_HEIGHT = 8750;
   double LEVEL_5_HEIGHT = 10750;
   */
-  double LOADING_HEIGHT = 1700;
-  double ROLLERS_HEIGHT = 2550;
+  double LOADING_HEIGHT = 1650;
+  double ROLLERS_HEIGHT = 2770;
   double ZERO_HEIGHT = 0;
   double LEVEL_1_HEIGHT = 2950;
   double LEVEL_2_HEIGHT = 5200;
@@ -105,4 +106,4 @@ class Lift {
   double MAX_POSITION = 100000;  // was 1005000 (typo); set ~2× max level height as hard safety stop
 };
 
-//miguel phonk
+// miguel phonk
