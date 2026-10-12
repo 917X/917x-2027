@@ -49,6 +49,9 @@ void Lift::liftControl() {
       case SCORE:
         target = scorePhase == RAISING ? scoreStart : scoreStart - scoreDrop;
         break;
+      case MATCHLOADING:
+        target = MATCHLOADING_HEIGHT;
+        break;
       case RAW_UP:
       case RAW_DOWN:
       case RAW_HOLD:

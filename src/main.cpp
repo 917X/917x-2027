@@ -329,6 +329,7 @@ void ez_template_extras() {
  *   R1 / R2       intake in / out
  *   L1 / L2       lift up / down a level
  *   A             lift to LOADING
+ *   RIGHT         lift to MATCHLOADING and open claw
  *   X / B         raw lift up / down (hold)
  *   LEFT          score - drop 200, then back up outtaking for 500 ms
  *   UP            toggle claw
@@ -384,6 +385,10 @@ void opcontrol() {
       lift.levelDown();
     if (controller.get_digital_new_press(DIGITAL_A))
       lift.set(Lift::LOADING);
+    if (controller.get_digital_new_press(DIGITAL_RIGHT)) {
+      lift.set(Lift::MATCHLOADING);
+      clawPivot.set(true);
+    }
 
     // Raw lift - hold X / B to move it freely, let go and it holds right there
     if (controller.get_digital(DIGITAL_X)) {

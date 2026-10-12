@@ -22,7 +22,8 @@ class Lift {
                    RAW_DOWN,
                    RAW_HOLD,
                    HOMING,
-                   SCORE };
+                   SCORE,
+                   MATCHLOADING };
   enum ScorePhase { DROPPING,
                     RAISING };
 
@@ -101,6 +102,7 @@ class Lift {
   double LEVEL_3_HEIGHT = 7200;
   double LEVEL_4_HEIGHT = 9200;
   double LEVEL_5_HEIGHT = 13000;
+  double MATCHLOADING_HEIGHT = 1870;
   // The lift never drives past these  (PLACEHOLDERS - tune on the robot)
   double MIN_POSITION = -1000000;
   double MAX_POSITION = 100000;  // was 1005000 (typo); set ~2× max level height as hard safety stop
