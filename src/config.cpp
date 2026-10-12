@@ -44,11 +44,11 @@ pros::Motor liftMotor(LIFT);
 pros::Rotation liftRotation(LIFT_ROTATION);
 ez::Piston scoringPiston(SCORING_PISTON);
 
-Lift lift(liftMotor, liftRotation, scoringPiston);
-
-// claw - not part of the Lift, opcontrol toggles these directly
+// claw - opcontrol toggles these directly, and the lift also flips clawPivot going in and out of LOADING
 ez::Piston claw(CLAW);
 ez::Piston clawPivot(CLAW_PIVOT);
+
+Lift lift(liftMotor, liftRotation, clawPivot, intake, clawIntake);
 
 // drivetrain
 //  - the first motor in each side is the one used for sensing
@@ -59,7 +59,6 @@ ez::Drive chassis(
     IMU,
     WHEEL_DIAMETER,
     WHEEL_RPM);
-
 // Uncomment the trackers you're using here!
 // - `8` and `9` are smart ports (making these negative will reverse the sensor)
 //  - you should get positive values on the encoders going FORWARD and RIGHT

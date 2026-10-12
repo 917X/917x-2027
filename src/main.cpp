@@ -155,7 +155,8 @@ void initialize() {
   chassis.initialize();
   ez::as::initialize();
 
-  lift.home();
+  liftMotor.tare_position();
+  lift.state = Lift::ZERO;
   // Started here rather than at static init - chassis, lift and intake live in
   // config.cpp now, and a file scope task could run before their constructors do.
   ezScreenTask = new pros::Task(ez_screen_task);
@@ -329,8 +330,9 @@ void ez_template_extras() {
  *   L1 / L2       lift up / down a level
  *   A             lift to LOADING
  *   X / B         raw lift up / down (hold)
+ *   LEFT          score - drop 200, then back up outtaking for 500 ms
  *   UP            toggle claw
- *   A             toggle claw pivot
+ *   Y             toggle claw pivot (also auto off going to LOADING, on leaving it)
  */
 void opcontrol() {
   // This is preference to what you like to drive on
@@ -342,16 +344,29 @@ void opcontrol() {
 
     // chassis.opcontrol_tank();  // Tank control
     chassis.opcontrol_arcade_standard(ez::SPLIT);  // Standard split arcade
+    
+    // Homing - pressing DOWN + LEFT starts it once; the lift task finishes it on its own.
+    // Only on a new press, so holding the combo doesn't start it again after it's done.
+    // bool homeDown = controller.get_digital_new_press(DIGITAL_DOWN);
+    // bool homeLeft = controller.get_digital_new_press(DIGITAL_LEFT);
+    // if ((homeDown || homeLeft) && controller.get_digital(DIGITAL_DOWN) && controller.get_digital(DIGITAL_LEFT))
+    //   lift.home();
+    // Score - LEFT on its own drops the lift a bit, outtakes, and goes back up
+    if (controller.get_digital(DIGITAL_LEFT))
+      lift.score();
 
-    if (controller.get_digital(DIGITAL_R1)) {
-      clawIntake.move(-INTAKE_SPEED);  // Spin forward
-      intake.set(Intake::INTAKE);
-    } else if (controller.get_digital(DIGITAL_R2)) {
-      clawIntake.move(50);  // Spin backward
-      intake.set(Intake::OUTTAKE);
-    } else {
-      clawIntake.move(0);  // Stop
-      intake.set(Intake::STOP);
+    // The lift runs the intakes itself while it's scoring
+    if (lift.state != Lift::SCORE) {
+      if (controller.get_digital(DIGITAL_R1)) {
+        clawIntake.move(-INTAKE_SPEED);  // Spin forward
+        intake.set(Intake::INTAKE);
+      } else if (controller.get_digital(DIGITAL_R2)) {
+        clawIntake.move(50);  // Spin backward
+        intake.set(Intake::OUTTAKE);
+      } else {
+        clawIntake.move(0);  // Stop
+        intake.set(Intake::STOP);
+      }
     }
 
     // if (controller.get_digital(DIGITAL_X)) {
@@ -383,8 +398,10 @@ void opcontrol() {
     if (controller.get_digital_new_press(DIGITAL_UP))
       lift.set(Lift::ROLLERS);
 
-    if (controller.get_digital_new_press(DIGITAL_Y))
+    if (controller.get_digital_new_press(DIGITAL_Y)){
       clawPivot.set(!clawPivot.get());
+      std::cout << "Lift position: " << liftRotation.get_position() << std::endl;
+    }
 
     pros::delay(ez::util::DELAY_TIME);  // This is used for timer calculations!  Keep this ez::util::DELAY_TIME
   }
