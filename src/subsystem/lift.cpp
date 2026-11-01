@@ -29,7 +29,7 @@ void Lift::liftControl() {
         target = LOADING_HEIGHT;
         break;
       case ROLLERS:
-        target = ROLLERS_HEIGHT;
+        target = rollersPhase == ROLLERS_DOWN ? ROLLERS_HEIGHT : rollersOvershoot;
         break;
       case LEVEL_1:
         target = LEVEL_1_HEIGHT;
@@ -47,7 +47,7 @@ void Lift::liftControl() {
         target = LEVEL_5_HEIGHT;
         break;
       case SCORE:
-        target = scorePhase == RAISING ? scoreStart : scoreStart - scoreDrop;
+        target = scorePhase == RAISING ? scoreStart + scoreRise : scoreStart - scoreDrop;
         break;
       case MATCHLOADING:
         target = MATCHLOADING_HEIGHT;
@@ -81,11 +81,25 @@ void Lift::liftControl() {
           scoreTime = 0;
         }
       } else {
-        // Done once it's back up and the outtake has run its full time
-        bool raised = position >= scoreStart - scoreTolerance || scoreTime >= scoreMoveTimeout;
+        // Done once it's up and the outtake has run its full time - hold right there, since
+        // going back to a level would just drop it back down to that height
+        bool raised = position >= scoreStart + scoreRise - scoreTolerance || scoreTime >= scoreMoveTimeout;
         if (raised && scoreTime >= scoreOuttakeTime)
-          state = scoreReturn;  // straight back, not through set(), so the piston isn't touched
+          set(RAW_HOLD);  // through set() so scoring from LOADING still turns the piston on
       }
+    }
+
+    if (state == ROLLERS && rollersPhase != ROLLERS_DOWN) {
+      rollersTime += 10;
+
+      if (rollersPhase == ROLLERS_UP &&
+          (position >= rollersOvershoot - rollersTolerance || rollersTime >= rollersTimeout)) {
+        rollersPhase = ROLLERS_WAIT;
+        rollersTime = 0;
+      }
+      // Not an else - with rollersDelay at 0 it heads down as soon as it gets to the top
+      if (rollersPhase == ROLLERS_WAIT && rollersTime >= rollersDelay)
+        rollersPhase = ROLLERS_DOWN;
     }
 
     if (state == HOMING) {
@@ -126,12 +140,13 @@ void Lift::liftControl() {
 
 void Lift::set(LiftState state) {
   // scoringPiston goes off heading to LOADING and back on leaving it - otherwise it's the driver's.
-  // Mid-SCORE it's still really at the state SCORE will return to.
+  // Mid-SCORE it counts as still in the state it was in when score() was called.
   LiftState from = this->state == SCORE ? scoreReturn : this->state;
   if (state == LOADING) scoringPiston.set(false);
   else if (from == LOADING) scoringPiston.set(true);
 
   if (state <= LEVEL_5) level = state;
+  rollersPhase = ROLLERS_DOWN;  // set(ROLLERS) goes straight there - only rollers() goes up first
   this->state = state;
 }
 
@@ -163,5 +178,11 @@ void Lift::score() {
   scoreStart = liftRotation.get_position() / 100.0;  // centidegrees -> degrees
   scorePhase = DROPPING;
   scoreTime = 0;
-  state = SCORE;  // not through set() - it comes back to scoreReturn, so the piston stays put
+  state = SCORE;  // not through set() - the piston waits until SCORE is done
+}
+
+void Lift::rollers() {
+  set(ROLLERS);  // through set() so leaving LOADING still turns the piston on
+  rollersTime = 0;
+  rollersPhase = ROLLERS_UP;
 }

@@ -331,8 +331,8 @@ void ez_template_extras() {
  *   A             lift to LOADING
  *   RIGHT         lift to MATCHLOADING and open claw
  *   X / B         raw lift up / down (hold)
- *   LEFT          score - drop 200, then back up outtaking for 500 ms
- *   UP            toggle claw
+ *   LEFT          score - drop, then up to 150 above where it was, outtaking for 500 ms
+ *   UP            lift to ROLLERS - up to rollersOvershoot first, then down
  *   Y             toggle claw pivot (also auto off going to LOADING, on leaving it)
  */
 void opcontrol() {
@@ -400,8 +400,10 @@ void opcontrol() {
     }
 
     // Pneumatics
-    if (controller.get_digital_new_press(DIGITAL_UP))
-      lift.set(Lift::ROLLERS);
+    if (controller.get_digital_new_press(DIGITAL_UP)){
+      lift.rollers();
+      clawPivot.set(true);
+    }
 
     if (controller.get_digital_new_press(DIGITAL_Y)){
       clawPivot.set(!clawPivot.get());

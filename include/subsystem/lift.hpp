@@ -26,13 +26,17 @@ class Lift {
                    MATCHLOADING };
   enum ScorePhase { DROPPING,
                     RAISING };
+  enum RollersPhase { ROLLERS_UP,
+                      ROLLERS_WAIT,
+                      ROLLERS_DOWN };
 
   void liftControl();
   void set(LiftState state);
   void levelUp();
   void levelDown();
   void home();   // starts HOMING - the lift task drives down until it stalls, then zeroes
-  void score();  // starts SCORE - drop scoreDrop, then outtake while going back up to where it was
+  void score();  // starts SCORE - drop scoreDrop, then outtake while going up to scoreRise above where it was
+  void rollers();  // driver ROLLERS - up to rollersOvershoot, wait rollersDelay, then down to ROLLERS_HEIGHT
 
   pros::Motor& liftMotor;
   pros::Rotation& liftRotation;
@@ -70,19 +74,33 @@ class Lift {
   int loadedTime = 0;
   int homePrintCounter = 0;
 
-  // Score - drops scoreDrop degrees below where the lift is, then goes straight back up
-  // outtaking (same as R2) for the first scoreOuttakeTime ms of the climb, and returns to
-  // the state it started in.  Each move counts as done within scoreTolerance degrees, or
-  // after scoreMoveTimeout ms so it can't get stuck.  Any other lift button cancels it.
-  double scoreDrop = 250;       // degrees, same units as the heights below
+  // Score - drops scoreDrop degrees below where the lift is, then goes up to scoreRise
+  // above where it started, outtaking (same as R2) for the first scoreOuttakeTime ms of
+  // the climb, and holds there (RAW_HOLD - L1 / L2 still step from the old level).  Each
+  // move counts as done within scoreTolerance degrees, or after scoreMoveTimeout ms so it
+  // can't get stuck.  Any other lift button cancels it.
+  double scoreDrop = 300;       // degrees, same units as the heights below
+  double scoreRise = 700;       // degrees above the starting position it ends at
   int scoreOuttakeTime = 500;   // ms
   double scoreTolerance = 30;   // degrees  (PLACEHOLDER)
   int scoreMoveTimeout = 1000;  // ms
   int scoreClawSpeed = 50;      // clawIntake power while outtaking - same as R2
   ScorePhase scorePhase = DROPPING;
-  LiftState scoreReturn = ZERO;  // state to go back to when it's done
+  LiftState scoreReturn = ZERO;  // state it was in when score() was called
   double scoreStart = 0;         // where it was when score() was called
   int scoreTime = 0;             // ms in the current phase
+
+  // Rollers (driver only, through rollers()) - goes up to rollersOvershoot first, waits
+  // rollersDelay ms once it's there, then comes down to ROLLERS_HEIGHT.  Counts as at the
+  // top within rollersTolerance degrees, or after rollersTimeout ms so it can't get stuck.
+  // If it's already above rollersOvershoot it just comes down.  set(ROLLERS) (autons) still
+  // goes straight to ROLLERS_HEIGHT, and any other lift button cancels it.
+  double rollersOvershoot = 4300;  // degrees
+  int rollersDelay = 0;            // ms to wait at the top before coming down
+  double rollersTolerance = 30;    // degrees  (PLACEHOLDER)
+  int rollersTimeout = 2000;       // ms  (PLACEHOLDER)
+  RollersPhase rollersPhase = ROLLERS_DOWN;
+  int rollersTime = 0;  // ms in the current phase
 
   // Heights in rotation sensor degrees.  PLACEHOLDERS - tune on the robot
   /*
@@ -95,7 +113,7 @@ class Lift {
   double LEVEL_5_HEIGHT = 10750;
   */
   double LOADING_HEIGHT = 1650;
-  double ROLLERS_HEIGHT = 2770;
+  double ROLLERS_HEIGHT = 3200;
   double ZERO_HEIGHT = 0;
   double LEVEL_1_HEIGHT = 2950;
   double LEVEL_2_HEIGHT = 5200;

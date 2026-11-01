@@ -377,53 +377,46 @@ void measure_offsets() {
 void driver_side_three_pin() {
   chassis.odom_xyt_set(-61, 0, 90);
   chassis.pid_odom_set({{-51, 0}, fwd, 90}, false);
-  lift.set(Lift::ROLLERS);
-  chassis.pid_wait_quick();
-  pros::delay(1500);
-  chassis.pid_odom_set({{-65, 0}, rev, 60}, false);
-  clawIntake.move(127);
+  lift.set(Lift::LEVEL_2);
   clawPivot.set(true);
   chassis.pid_wait_quick();
-  chassis.pid_odom_set({{-53, 0}, fwd, 90}, false);
-  lift.set(Lift::RAW_DOWN);
-  pros::delay(10);
-  lift.set(Lift::RAW_HOLD);
-  chassis.pid_wait_quick();
+  pros::delay(1000);
   chassis.pid_odom_set({{-65, 0}, rev, 60}, false);
   chassis.pid_wait_quick();
-  pros::delay(200);
+  lift.set(Lift::ROLLERS);
+  pros::delay(1000);
   clawIntake.move(0);
   chassis.pid_odom_set({{-42, 0}, fwd, 90}, false);
-  pros::delay(75);
+  pros::delay(750);
   clawPivot.set(false);
   lift.set(Lift::LOADING);
-  pros::delay(750);
+  pros::delay(500);
   intake.set(Intake::INTAKE);
   clawIntake.move(-127);
   chassis.pid_wait_quick();
   chassis.pid_turn_set(0, 0);
   chassis.pid_wait_quick();
-  chassis.pid_odom_set({{-42, -19}, rev, 90}, false);
+  pros::delay(750);
+  chassis.pid_odom_set({{-42, -18}, rev, 90}, false);
   pros::delay(300);
   clawPivot.set(true);
-  pros::delay(200);
-  lift.set(Lift::ZERO);
   chassis.pid_wait_quick();
   pros::delay(200);
+  lift.set(Lift::ZERO);
   clawIntake.move(50);
-  pros::delay(300);
-  lift.set(Lift::LOADING);
-  pros::delay(100);
+  pros::delay(500);
+  lift.set(Lift::LEVEL_1);
+  pros::delay(500);
 
   // pick up second pin
-  chassis.pid_odom_set({{-41, 2}, fwd, 90}, false);
+  chassis.pid_odom_set({{-44, 2}, fwd, 90}, false);
   lift.set(Lift::LEVEL_1);
   chassis.pid_wait_quick();
   chassis.pid_turn_set(-90, 90);
   chassis.pid_wait_quick();
   chassis.pid_odom_set({{-21, 2}, rev, 40}, false);
   clawPivot.set(true);
-  clawIntake.move(20);
+  clawIntake.move(100);
   chassis.pid_wait();
   lift.set(Lift::ZERO);
   double target = lift.ZERO_HEIGHT;
@@ -435,43 +428,43 @@ void driver_side_three_pin() {
 
   clawIntake.move(127);
   pros::delay(150);
-  chassis.pid_odom_set({{-41, 2}, fwd, 90}, false);
-  lift.set(Lift::LEVEL_1);
-  chassis.pid_wait_quick();
-  chassis.pid_turn_set(0, 90);
-  chassis.pid_wait_quick();
-  chassis.pid_odom_set({{-42, -19}, rev, 90}, false);
-  chassis.pid_wait_quick();
-  clawIntake.move(50);
-  pros::delay(30000);
+  // chassis.pid_odom_set({{-41, 2}, fwd, 90}, false);
+  // lift.set(Lift::LEVEL_1);
+  // chassis.pid_wait_quick();
+  // chassis.pid_turn_set(0, 90);
+  // chassis.pid_wait_quick();
+  // chassis.pid_odom_set({{-42, -19}, rev, 90}, false);
+  // chassis.pid_wait_quick();
+  // clawIntake.move(50);
+  // pros::delay(30000);
 
-  // score second pin
-  clawIntake.move(0);
-  lift.set(Lift::LEVEL_3);
-  chassis.pid_turn_set({-41, -13}, rev, 90);
-  chassis.pid_wait_quick();
-  chassis.pid_odom_set({{-41, -13}, rev, 90}, false);
-  chassis.pid_wait_quick();
-  clawIntake.move(-127);
-  pros::delay(300);
+  // // score second pin
+  // clawIntake.move(0);
+  // lift.set(Lift::LEVEL_3);
+  // chassis.pid_turn_set({-41, -13}, rev, 90);
+  // chassis.pid_wait_quick();
+  // chassis.pid_odom_set({{-41, -13}, rev, 90}, false);
+  // chassis.pid_wait_quick();
+  // clawIntake.move(-127);
+  // pros::delay(300);
 
-  // pick up third pin
-  chassis.pid_odom_set({{-29, -8}, fwd, 90}, false);
-  chassis.pid_wait_quick();
-  chassis.pid_turn_set({-27, -16}, rev, 90);
-  lift.set(Lift::LEVEL_2);
-  clawIntake.move(127);
-  chassis.pid_wait_quick();
-  chassis.pid_odom_set({{-27, -16}, rev, 90}, false);
-  chassis.pid_wait_quick();
-  lift.set(Lift::LEVEL_1);
+  // // pick up third pin
+  // chassis.pid_odom_set({{-29, -8}, fwd, 90}, false);
+  // chassis.pid_wait_quick();
+  // chassis.pid_turn_set({-27, -16}, rev, 90);
+  // lift.set(Lift::LEVEL_2);
+  // clawIntake.move(127);
+  // chassis.pid_wait_quick();
+  // chassis.pid_odom_set({{-27, -16}, rev, 90}, false);
+  // chassis.pid_wait_quick();
+  // lift.set(Lift::LEVEL_1);
 
-  // score third pin
-  chassis.pid_turn_set({-36, -20}, rev, 90);
-  lift.set(Lift::LEVEL_4);
-  clawIntake.move(0);
-  chassis.pid_wait_quick();
-  chassis.pid_odom_set({{-36, -20}, rev, 90}, false);
-  chassis.pid_wait_quick();
-  clawIntake.move(-127);
+  // // score third pin
+  // chassis.pid_turn_set({-36, -20}, rev, 90);
+  // lift.set(Lift::LEVEL_4);
+  // clawIntake.move(0);
+  // chassis.pid_wait_quick();
+  // chassis.pid_odom_set({{-36, -20}, rev, 90}, false);
+  // chassis.pid_wait_quick();
+  // clawIntake.move(-127);
 }
