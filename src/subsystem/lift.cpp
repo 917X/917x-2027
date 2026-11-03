@@ -7,50 +7,57 @@
 #include "pros/motors.h"
 #include "pros/rtos.hpp"
 
-Lift::Lift(pros::Motor& liftMotor, pros::Rotation& liftRotation, ez::Piston& scoringPiston,
-           Intake& intake, pros::Motor& clawIntake)
-    : liftMotor(liftMotor), liftRotation(liftRotation), scoringPiston(scoringPiston),
-      intake(intake), clawIntake(clawIntake) {}
+Lift::Lift(pros::Motor& liftMotor, pros::Rotation& liftRotation, pros::Motor& pivotMotor,
+           pros::Rotation& pivotRotation, ez::Piston& claw)
+    : liftMotor(liftMotor), liftRotation(liftRotation), pivotMotor(pivotMotor),
+      pivotRotation(pivotRotation), claw(claw) {}
 
 void Lift::liftControl() {
   liftMotor.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
-  liftRotation.reset_position();  // the lift starts sitting at LOADING
+  pivotMotor.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
+  liftRotation.reset_position();   // the lift starts sitting at ZERO_HEIGHT
+  pivotRotation.reset_position();  // the arm's angles are measured from where it starts
 
   while (true) {
     pros::delay(10);
-    double position = liftRotation.get_position() / 100.0;  // centidegrees -> degrees
+    double position = liftRotation.get_position() / 100.0;        // centidegrees -> degrees
+    double pivotPosition = pivotRotation.get_position() / 100.0;  // centidegrees -> degrees
 
     double target = position;  // raw states get no P power
     switch (state) {
       case ZERO:
         target = ZERO_HEIGHT;
         break;
+      case MATCHLOADING:
+        target = MATCHLOADING_HEIGHT;
+        pivotTarget = MATCHLOADING_ANGLE;
+        break;
       case LOADING:
         target = LOADING_HEIGHT;
-        break;
-      case ROLLERS:
-        target = rollersPhase == ROLLERS_DOWN ? ROLLERS_HEIGHT : rollersOvershoot;
+        pivotTarget = LOADING_ANGLE;
         break;
       case LEVEL_1:
         target = LEVEL_1_HEIGHT;
+        pivotTarget = SCORING_ANGLE;
         break;
       case LEVEL_2:
         target = LEVEL_2_HEIGHT;
+        pivotTarget = SCORING_ANGLE;
         break;
       case LEVEL_3:
         target = LEVEL_3_HEIGHT;
+        pivotTarget = SCORING_ANGLE;
         break;
       case LEVEL_4:
         target = LEVEL_4_HEIGHT;
+        pivotTarget = SCORING_ANGLE;
         break;
       case LEVEL_5:
         target = LEVEL_5_HEIGHT;
+        pivotTarget = SCORING_ANGLE;
         break;
       case SCORE:
         target = scorePhase == RAISING ? scoreStart + scoreRise : scoreStart - scoreDrop;
-        break;
-      case MATCHLOADING:
-        target = MATCHLOADING_HEIGHT;
         break;
       case RAW_UP:
       case RAW_DOWN:
@@ -67,39 +74,36 @@ void Lift::liftControl() {
     if (position >= MAX_POSITION && power > 0) power = 0;
     if (position <= MIN_POSITION && power < 0) power = 0;
 
+    int pivotPower = std::clamp(static_cast<int>(pivotKP * (pivotTarget - pivotPosition)), -pivotSpeed, pivotSpeed);
+    if (pivotPosition >= PIVOT_MAX_ANGLE && pivotPower > 0) pivotPower = 0;
+    if (pivotPosition <= PIVOT_MIN_ANGLE && pivotPower < 0) pivotPower = 0;
+    pivotMotor.move(pivotPower);
+
     if (state == SCORE) {
       scoreTime += 10;
 
-      // Outtake for the first scoreOuttakeTime ms of the way back up - stopped on the way down
-      bool outtaking = scorePhase == RAISING && scoreTime < scoreOuttakeTime;
-      intake.set(outtaking ? Intake::OUTTAKE : Intake::STOP);
-      clawIntake.move(outtaking ? scoreClawSpeed : 0);
-
       if (scorePhase == DROPPING) {
         if (position <= scoreStart - scoreDrop + scoreTolerance || scoreTime >= scoreMoveTimeout) {
+          if (claw.get()) {
+            scorePhase = RAISING;  // already open - nothing to wait for
+          } else {
+            claw.set(true);
+            scorePhase = RELEASING;
+          }
+          scoreTime = 0;
+        }
+      } else if (scorePhase == RELEASING) {
+        // Give the claw time to let go before pulling away
+        if (scoreTime >= scoreReleaseTime) {
           scorePhase = RAISING;
           scoreTime = 0;
         }
       } else {
-        // Done once it's up and the outtake has run its full time - hold right there, since
-        // going back to a level would just drop it back down to that height
-        bool raised = position >= scoreStart + scoreRise - scoreTolerance || scoreTime >= scoreMoveTimeout;
-        if (raised && scoreTime >= scoreOuttakeTime)
-          set(RAW_HOLD);  // through set() so scoring from LOADING still turns the piston on
+        // Done once it's up - hold right there, since going back to a level would just drop
+        // it back down to that height
+        if (position >= scoreStart + scoreRise - scoreTolerance || scoreTime >= scoreMoveTimeout)
+          set(RAW_HOLD);
       }
-    }
-
-    if (state == ROLLERS && rollersPhase != ROLLERS_DOWN) {
-      rollersTime += 10;
-
-      if (rollersPhase == ROLLERS_UP &&
-          (position >= rollersOvershoot - rollersTolerance || rollersTime >= rollersTimeout)) {
-        rollersPhase = ROLLERS_WAIT;
-        rollersTime = 0;
-      }
-      // Not an else - with rollersDelay at 0 it heads down as soon as it gets to the top
-      if (rollersPhase == ROLLERS_WAIT && rollersTime >= rollersDelay)
-        rollersPhase = ROLLERS_DOWN;
     }
 
     if (state == HOMING) {
@@ -139,27 +143,18 @@ void Lift::liftControl() {
 }
 
 void Lift::set(LiftState state) {
-  // scoringPiston goes off heading to LOADING and back on leaving it - otherwise it's the driver's.
-  // Mid-SCORE it counts as still in the state it was in when score() was called.
-  LiftState from = this->state == SCORE ? scoreReturn : this->state;
-  if (state == LOADING) scoringPiston.set(false);
-  else if (from == LOADING) scoringPiston.set(true);
-
   if (state <= LEVEL_5) level = state;
-  rollersPhase = ROLLERS_DOWN;  // set(ROLLERS) goes straight there - only rollers() goes up first
   this->state = state;
 }
 
 void Lift::levelUp() {
-  LiftState next = static_cast<LiftState>(level + 1);
-  if (next == ROLLERS) next = static_cast<LiftState>(next + 1);  // ROLLERS only via A
+  // MATCHLOADING and LOADING are picked with their own buttons - up from either is LEVEL_1
+  LiftState next = level < LEVEL_1 ? LEVEL_1 : static_cast<LiftState>(level + 1);
   if (next <= LEVEL_5) set(next);
 }
 
 void Lift::levelDown() {
-  LiftState next = static_cast<LiftState>(level - 1);
-  if (next == ROLLERS) next = static_cast<LiftState>(next - 1);  // ROLLERS only via A
-  if (next >= LOADING) set(next);
+  if (level > LOADING) set(static_cast<LiftState>(level - 1));
 }
 
 
@@ -169,20 +164,13 @@ void Lift::home() {
   homeLoose = false;
   loadedTime = 0;
   homePrintCounter = 0;
-  set(HOMING);  // through set() so leaving LOADING still turns the piston on
+  set(HOMING);
 }
 
 void Lift::score() {
   if (state == SCORE || state == HOMING) return;  // don't stack drops or cut homing short
-  scoreReturn = state;
   scoreStart = liftRotation.get_position() / 100.0;  // centidegrees -> degrees
   scorePhase = DROPPING;
   scoreTime = 0;
-  state = SCORE;  // not through set() - the piston waits until SCORE is done
-}
-
-void Lift::rollers() {
-  set(ROLLERS);  // through set() so leaving LOADING still turns the piston on
-  rollersTime = 0;
-  rollersPhase = ROLLERS_UP;
+  set(SCORE);
 }

@@ -31,12 +31,11 @@ extern ez::Drive chassis;
 
 extern pros::Motor intakeMotor;
 extern Intake intake;
-extern pros::Motor clawIntake;
 extern pros::Motor liftMotor;
 extern pros::Rotation liftRotation;
-extern ez::Piston scoringPiston;
+extern pros::Motor pivotMotor;
+extern pros::Rotation pivotRotation;
 extern ez::Piston claw;
-extern ez::Piston clawPivot;
 extern Lift lift;
 
 // ---------------------------------------------------------------------------

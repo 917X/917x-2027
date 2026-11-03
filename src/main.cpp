@@ -9,9 +9,6 @@
 // https://ez-robotics.github.io/EZ-Template/
 /////
 
-// Intake speed for the driver buttons
-constexpr int INTAKE_SPEED = 127;
-
 void ez_screen_task();
 pros::Task* ezScreenTask = nullptr;
 pros::Task* liftTask = nullptr;
@@ -328,12 +325,11 @@ void ez_template_extras() {
  * Driver layout:
  *   R1 / R2       intake in / out
  *   L1 / L2       lift up / down a level
- *   A             lift to LOADING
- *   RIGHT         lift to MATCHLOADING and open claw
+ *   A             lift to LOADING_HEIGHT, arm to LOADING_ANGLE
+ *   RIGHT         lift to MATCHLOADING_HEIGHT, arm to MATCHLOADING_ANGLE
  *   X / B         raw lift up / down (hold)
- *   LEFT          score - drop, then up to 150 above where it was, outtaking for 500 ms
- *   UP            lift to ROLLERS - up to rollersOvershoot first, then down
- *   Y             toggle claw pivot (also auto off going to LOADING, on leaving it)
+ *   LEFT          score - drop, open claw, then up to scoreRise above where it was
+ *   Y             open / close claw
  */
 void opcontrol() {
   // This is preference to what you like to drive on
@@ -352,31 +348,18 @@ void opcontrol() {
     // bool homeLeft = controller.get_digital_new_press(DIGITAL_LEFT);
     // if ((homeDown || homeLeft) && controller.get_digital(DIGITAL_DOWN) && controller.get_digital(DIGITAL_LEFT))
     //   lift.home();
-    // Score - LEFT on its own drops the lift a bit, outtakes, and goes back up
-    if (controller.get_digital(DIGITAL_LEFT))
+    // Score - LEFT drops the lift a bit, opens the claw, and goes back up.  Only on a new
+    // press, so holding it doesn't start another drop once it's done.
+    if (controller.get_digital_new_press(DIGITAL_LEFT))
       lift.score();
 
-    // The lift runs the intakes itself while it's scoring
-    if (lift.state != Lift::SCORE) {
-      if (controller.get_digital(DIGITAL_R1)) {
-        clawIntake.move(-INTAKE_SPEED);  // Spin forward
-        intake.set(Intake::INTAKE);
-      } else if (controller.get_digital(DIGITAL_R2)) {
-        clawIntake.move(50);  // Spin backward
-        intake.set(Intake::OUTTAKE);
-      } else {
-        clawIntake.move(0);  // Stop
-        intake.set(Intake::STOP);
-      }
+    if (controller.get_digital(DIGITAL_R1)) {
+      intake.set(Intake::INTAKE);
+    } else if (controller.get_digital(DIGITAL_R2)) {
+      intake.set(Intake::OUTTAKE);
+    } else {
+      intake.set(Intake::STOP);
     }
-
-    // if (controller.get_digital(DIGITAL_X)) {
-    //   liftMotor.move(127);
-    // } else if (controller.get_digital(DIGITAL_B)) {
-    //   liftMotor.move(-127);
-    // } else {
-    //   liftMotor.move(0);
-    // }
 
     // Lift levels - L1 / L2 step up / down a level, A drops straight to LOADING
     if (controller.get_digital_new_press(DIGITAL_L1))
@@ -385,10 +368,8 @@ void opcontrol() {
       lift.levelDown();
     if (controller.get_digital_new_press(DIGITAL_A))
       lift.set(Lift::LOADING);
-    if (controller.get_digital_new_press(DIGITAL_RIGHT)) {
+    if (controller.get_digital_new_press(DIGITAL_RIGHT))
       lift.set(Lift::MATCHLOADING);
-      clawPivot.set(true);
-    }
 
     // Raw lift - hold X / B to move it freely, let go and it holds right there
     if (controller.get_digital(DIGITAL_X)) {
@@ -399,15 +380,10 @@ void opcontrol() {
       lift.set(Lift::RAW_HOLD);
     }
 
-    // Pneumatics
-    if (controller.get_digital_new_press(DIGITAL_UP)){
-      lift.rollers();
-      clawPivot.set(true);
-    }
-
+    // Claw - Y opens it if it's closed, closes it if it's open
     if (controller.get_digital_new_press(DIGITAL_Y)){
-      clawPivot.set(!clawPivot.get());
-      std::cout << "Lift position: " << liftRotation.get_position() << std::endl;
+      claw.set(!claw.get());
+      std::cout << "Lift position: " << liftRotation.get_position() << "  Pivot position: " << pivotRotation.get_position() << std::endl;
     }
 
     pros::delay(ez::util::DELAY_TIME);  // This is used for timer calculations!  Keep this ez::util::DELAY_TIME

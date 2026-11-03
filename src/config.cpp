@@ -21,14 +21,14 @@ constexpr int RIGHT_B = 14;
 constexpr int IMU = 2;
 
 constexpr int INTAKE = -1;
-constexpr int CLAW_INTAKE = 10;
 
 constexpr int LIFT = 20;  // was LIFT_L when the lift had two motors - check this is the one left
 constexpr int LIFT_ROTATION = -18;
 
+constexpr int PIVOT = 19;           // PLACEHOLDER
+constexpr int PIVOT_ROTATION = 17;  // PLACEHOLDER
+
 constexpr char CLAW = 'B';
-constexpr char CLAW_PIVOT = 'A';
-constexpr char SCORING_PISTON = 'C';  // PLACEHOLDER
 
 // drivetrain geometry
 constexpr double WHEEL_DIAMETER = 2.75;  // 4" wheels without screw holes are actually 4.125
@@ -37,18 +37,18 @@ constexpr double WHEEL_RPM = 450;        // cartridge * (motor gear / wheel gear
 // intake
 pros::Motor intakeMotor(INTAKE);
 Intake intake(intakeMotor);
-pros::Motor clawIntake(CLAW_INTAKE);
 
-// lift + scoring piston
+// lift + pivoting arm
 pros::Motor liftMotor(LIFT);
 pros::Rotation liftRotation(LIFT_ROTATION);
-ez::Piston scoringPiston(SCORING_PISTON);
+pros::Motor pivotMotor(PIVOT);
+pros::Rotation pivotRotation(PIVOT_ROTATION);
 
-// claw - opcontrol toggles these directly, and the lift also flips clawPivot going in and out of LOADING
+// claw - true is open.  opcontrol toggles it directly, and the lift opens it while scoring.
+// If it's backwards, make this ez::Piston claw(CLAW, true) - that flips the output.
 ez::Piston claw(CLAW);
-ez::Piston clawPivot(CLAW_PIVOT);
 
-Lift lift(liftMotor, liftRotation, clawPivot, intake, clawIntake);
+Lift lift(liftMotor, liftRotation, pivotMotor, pivotRotation, claw);
 
 // drivetrain
 //  - the first motor in each side is the one used for sensing

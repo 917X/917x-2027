@@ -2,17 +2,18 @@
 #include "EZ-Template/piston.hpp"
 #include "pros/motors.hpp"
 #include "pros/rotation.hpp"
-#include "subsystem/intake.hpp"
 
-// Lift state machine, same idea as Intake.  lift.set(Lift::LEVEL_3) moves to and holds
-// that height; RAW_UP / RAW_DOWN move freely and RAW_HOLD holds where they stopped.
+// Lift state machine, same idea as Intake.  lift.set(Lift::LEVEL_3) moves the lift to and
+// holds that height, and swings the pivoting arm to the angle that goes with it.  RAW_UP /
+// RAW_DOWN move the lift freely and RAW_HOLD holds where they stopped.  The arm holds its
+// last angle through the raw states, HOMING and ZERO.
 class Lift {
  public:
-  Lift(pros::Motor& liftMotor, pros::Rotation& liftRotation, ez::Piston& scoringPiston,
-       Intake& intake, pros::Motor& clawIntake);
+  Lift(pros::Motor& liftMotor, pros::Rotation& liftRotation, pros::Motor& pivotMotor,
+       pros::Rotation& pivotRotation, ez::Piston& claw);
   enum LiftState { ZERO,
+                   MATCHLOADING,
                    LOADING,
-                   ROLLERS,
                    LEVEL_1,
                    LEVEL_2,
                    LEVEL_3,
@@ -22,33 +23,33 @@ class Lift {
                    RAW_DOWN,
                    RAW_HOLD,
                    HOMING,
-                   SCORE,
-                   MATCHLOADING };
+                   SCORE };
   enum ScorePhase { DROPPING,
+                    RELEASING,
                     RAISING };
-  enum RollersPhase { ROLLERS_UP,
-                      ROLLERS_WAIT,
-                      ROLLERS_DOWN };
 
   void liftControl();
   void set(LiftState state);
   void levelUp();
   void levelDown();
   void home();   // starts HOMING - the lift task drives down until it stalls, then zeroes
-  void score();  // starts SCORE - drop scoreDrop, then outtake while going up to scoreRise above where it was
-  void rollers();  // driver ROLLERS - up to rollersOvershoot, wait rollersDelay, then down to ROLLERS_HEIGHT
+  void score();  // starts SCORE - drop scoreDrop, open the claw if it's closed, then go up to scoreRise above where it was
 
   pros::Motor& liftMotor;
   pros::Rotation& liftRotation;
-  ez::Piston& scoringPiston;
-  Intake& intake;  // SCORE runs these to outtake - opcontrol leaves them alone while it does
-  pros::Motor& clawIntake;
+  pros::Motor& pivotMotor;
+  pros::Rotation& pivotRotation;
+  ez::Piston& claw;  // true is open.  SCORE opens it - opcontrol toggles it the rest of the time
   LiftState state = ZERO;
-  LiftState level = ZERO;  // last LOADING/ROLLERS..LEVEL_5 picked, so levelUp/levelDown still work after raw
+  LiftState level = ZERO;  // last ZERO..LEVEL_5 picked, so levelUp/levelDown still work after raw
 
   int speed = 127;     // max power moving to a level
   int rawSpeed = 127;  // power for RAW_UP / RAW_DOWN - lower it to make raw slower
   double kP = 1.0;     // power per degree of error  (PLACEHOLDER)
+
+  int pivotSpeed = 127;    // max power moving to an angle
+  double pivotKP = 1.0;    // power per degree of error  (PLACEHOLDER)
+  double pivotTarget = 0;  // starts at 0 so the arm stays put until a state gives it an angle
 
   // Homing - the lift hangs on a string wound around the axle, so there's no hard stop.
   // Driving down unwinds the string; once it's loose the axle spins freely and the motor
@@ -74,56 +75,42 @@ class Lift {
   int loadedTime = 0;
   int homePrintCounter = 0;
 
-  // Score - drops scoreDrop degrees below where the lift is, then goes up to scoreRise
-  // above where it started, outtaking (same as R2) for the first scoreOuttakeTime ms of
-  // the climb, and holds there (RAW_HOLD - L1 / L2 still step from the old level).  Each
-  // move counts as done within scoreTolerance degrees, or after scoreMoveTimeout ms so it
-  // can't get stuck.  Any other lift button cancels it.
+  // Score - drops scoreDrop degrees below where the lift is, then if the claw is closed,
+  // opens it and waits scoreReleaseTime ms for it to let go (already open skips the wait).
+  // Then goes up to scoreRise above where it started and holds there (RAW_HOLD - L1 / L2
+  // still step from the old level).  Each move counts as done within scoreTolerance
+  // degrees, or after scoreMoveTimeout ms so it can't get stuck.  The arm stays at its
+  // angle the whole time.  Any other lift button cancels it.
   double scoreDrop = 300;       // degrees, same units as the heights below
   double scoreRise = 700;       // degrees above the starting position it ends at
-  int scoreOuttakeTime = 500;   // ms
+  int scoreReleaseTime = 200;   // ms  (PLACEHOLDER)
   double scoreTolerance = 30;   // degrees  (PLACEHOLDER)
   int scoreMoveTimeout = 1000;  // ms
-  int scoreClawSpeed = 50;      // clawIntake power while outtaking - same as R2
   ScorePhase scorePhase = DROPPING;
-  LiftState scoreReturn = ZERO;  // state it was in when score() was called
-  double scoreStart = 0;         // where it was when score() was called
-  int scoreTime = 0;             // ms in the current phase
-
-  // Rollers (driver only, through rollers()) - goes up to rollersOvershoot first, waits
-  // rollersDelay ms once it's there, then comes down to ROLLERS_HEIGHT.  Counts as at the
-  // top within rollersTolerance degrees, or after rollersTimeout ms so it can't get stuck.
-  // If it's already above rollersOvershoot it just comes down.  set(ROLLERS) (autons) still
-  // goes straight to ROLLERS_HEIGHT, and any other lift button cancels it.
-  double rollersOvershoot = 4300;  // degrees
-  int rollersDelay = 0;            // ms to wait at the top before coming down
-  double rollersTolerance = 30;    // degrees  (PLACEHOLDER)
-  int rollersTimeout = 2000;       // ms  (PLACEHOLDER)
-  RollersPhase rollersPhase = ROLLERS_DOWN;
-  int rollersTime = 0;  // ms in the current phase
+  double scoreStart = 0;  // where it was when score() was called
+  int scoreTime = 0;      // ms in the current phase
 
   // Heights in rotation sensor degrees.  PLACEHOLDERS - tune on the robot
-  /*
-  double LOADING_HEIGHT = 750;
-  double ROLLERS_HEIGHT = 2350;
-  double LEVEL_1_HEIGHT = 2500;
-  double LEVEL_2_HEIGHT = 4750;
-  double LEVEL_3_HEIGHT = 6750;
-  double LEVEL_4_HEIGHT = 8750;
-  double LEVEL_5_HEIGHT = 10750;
-  */
-  double LOADING_HEIGHT = 1650;
-  double ROLLERS_HEIGHT = 3200;
   double ZERO_HEIGHT = 0;
+  double MATCHLOADING_HEIGHT = 0;
+  double LOADING_HEIGHT = 1650;
   double LEVEL_1_HEIGHT = 2950;
   double LEVEL_2_HEIGHT = 5200;
   double LEVEL_3_HEIGHT = 7200;
   double LEVEL_4_HEIGHT = 9200;
   double LEVEL_5_HEIGHT = 13000;
-  double MATCHLOADING_HEIGHT = 1870;
   // The lift never drives past these  (PLACEHOLDERS - tune on the robot)
   double MIN_POSITION = -1000000;
   double MAX_POSITION = 100000;  // was 1005000 (typo); set ~2× max level height as hard safety stop
+
+  // Arm angles in rotation sensor degrees, 0 is where the arm is when the program starts.
+  // PLACEHOLDERS - tune on the robot, keep MATCHLOADING_ANGLE < SCORING_ANGLE < LOADING_ANGLE
+  double MATCHLOADING_ANGLE = 0;
+  double SCORING_ANGLE = 90;
+  double LOADING_ANGLE = 180;
+  // The arm never drives past these  (PLACEHOLDERS - tune on the robot)
+  double PIVOT_MIN_ANGLE = -20;
+  double PIVOT_MAX_ANGLE = 200;
 };
 
 // miguel phonk
