@@ -56,6 +56,10 @@ void Lift::liftControl() {
         target = LEVEL_5_HEIGHT;
         pivotTarget = SCORING_ANGLE;
         break;
+      case LEVEL_6:
+        target = LEVEL_6_HEIGHT;
+        pivotTarget = SCORING_ANGLE;
+        break;
       case SCORE:
         target = scorePhase == RAISING ? scoreStart + scoreRise : scoreStart - scoreDrop;
         break;
@@ -143,14 +147,14 @@ void Lift::liftControl() {
 }
 
 void Lift::set(LiftState state) {
-  if (state <= LEVEL_5) level = state;
+  if (state <= LEVEL_6) level = state;
   this->state = state;
 }
 
 void Lift::levelUp() {
   // MATCHLOADING and LOADING are picked with their own buttons - up from either is LEVEL_1
   LiftState next = level < LEVEL_1 ? LEVEL_1 : static_cast<LiftState>(level + 1);
-  if (next <= LEVEL_5) set(next);
+  if (next <= LEVEL_6) set(next);
 }
 
 void Lift::levelDown() {

@@ -19,6 +19,7 @@ class Lift {
                    LEVEL_3,
                    LEVEL_4,
                    LEVEL_5,
+                   LEVEL_6,
                    RAW_UP,
                    RAW_DOWN,
                    RAW_HOLD,
@@ -41,7 +42,7 @@ class Lift {
   pros::Rotation& pivotRotation;
   ez::Piston& claw;  // true is open.  SCORE opens it - opcontrol toggles it the rest of the time
   LiftState state = ZERO;
-  LiftState level = ZERO;  // last ZERO..LEVEL_5 picked, so levelUp/levelDown still work after raw
+  LiftState level = ZERO;  // last ZERO..LEVEL_6 picked, so levelUp/levelDown still work after raw
 
   int speed = 127;     // max power moving to a level
   int rawSpeed = 127;  // power for RAW_UP / RAW_DOWN - lower it to make raw slower
@@ -99,9 +100,10 @@ class Lift {
   double LEVEL_3_HEIGHT = 7200;
   double LEVEL_4_HEIGHT = 9200;
   double LEVEL_5_HEIGHT = 13000;
-  // The lift never drives past these  (PLACEHOLDERS - tune on the robot)
-  double MIN_POSITION = -1000000;
-  double MAX_POSITION = 100000;  // was 1005000 (typo); set ~2× max level height as hard safety stop
+  double LEVEL_6_HEIGHT = 15500;  // LEVEL_5 + 2500, the average step from LEVEL_1 to LEVEL_5
+  // The lift never drives past these.  HOMING ignores them - it has to go below the old zero.
+  double MIN_POSITION = -10;     // just under ZERO_HEIGHT, so raw down stops before the string re-winds
+  double MAX_POSITION = 18000;   // about where a LEVEL_7 would be (LEVEL_6 + 2500) - redo if the heights change
 
   // Arm angles in rotation sensor degrees, 0 is where the arm is when the program starts.
   // PLACEHOLDERS - tune on the robot, keep MATCHLOADING_ANGLE < SCORING_ANGLE < LOADING_ANGLE
