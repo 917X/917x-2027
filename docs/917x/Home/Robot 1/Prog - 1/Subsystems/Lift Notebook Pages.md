@@ -6,17 +6,17 @@ Layout notes are in quote blocks (`>`). Everything else is page content and can 
 
 ## ▲ How the Intake Section Is Built
 
-| Notebook page | Header | Contents | How it presents the subsystem | Lift pages |
+| Notebook page | Header | Sections | How it introduces the subsystem | Lift pages |
 |:--|:--|:--|:--|:--|
 | Divider | "Part 1: Intake Subsystem", salmon background | ▲ In This Section: 1X, 1A, 1B, 1C | Table of contents for the part | 1 |
-| 572 | **1X** · Problem Statement · **IDENTIFY** (green) | ▲ Primary Issue, ▲ Stateful System, picture | Describes the hardware (one motor and what it picks up), then maps each hardware action to a state | 2-4 |
-| 573 | **1A** · Planning & Product Requirements · **PLAN** (olive) | ▲ Objective, ▲ Success Metrics (Goal / Metric) | Defines what "working" means, with one measurable metric per goal | 5-7 |
-| 574 | Title only | ▲ Requirements (Requirement / Importance / Notes), ▲ State Diagram | Each state is an ellipse with its motor value inside (`intakeSpeed = 127`) | 8-12 |
-| 575 | **1B** · Overall Implementation · **IMPLEMENT** (maroon) | ▲ In This Document, ▲ Executive Summary (Purpose & Need, Why Finite State Machine? with a./b.), picture box | Explains the reasoning behind the code structure before showing any code | 13 |
-| 576 | Title only | ▲ Architecture (External Dependencies table), ▲ Implementation Explainer → ◈ Finite State Machine, picture box | Lists the libraries used, then shows the enum | 14-15 |
-| 577 | "Src Explainer Cont." tab | ◈ Control Loop, picture box | One bullet, then the whole loop in one code box | 16-22 |
-| 578 | "Src Explainer Cont." tab | ◈ State Transitions (with a callout box), ◈ Background Task Execution, picture box | Shows the setter, then how the task is launched | 23-26 |
-| 580 | **1C** · Review Process · **TEST & ITERATE** (blue) | ▲ Tests & Performance Analysis (Test / Status / Result), Procedure, ▲ PRD Alignment (Description / Implementation / Status) | One driver-control test with a numbered procedure. Alignment rows restate the Requirements as questions ("Working FSM?") | 27-30 |
+| 572 | **1X** · Problem Statement · **IDENTIFY** (green) | ▲ Primary Issue, ▲ Stateful System, picture | Describes the hardware and its actions in words. **No code names**: the actions "translate to a finite state machine" without naming the states | 2, 3 |
+| 573 | **1A** · Planning & Product Requirements · **PLAN** (olive) | ▲ Objective, ▲ Success Metrics (Goal / Metric) | The Objective states what the intake does, **how it works with the claw**, and why it is an FSM. Code names are **introduced with a description**, for example "A simple state setter, set()" | 4, 5 |
+| 574 | Title only | ▲ Requirements (Requirement / Importance / Notes), ▲ State Diagram | The state names **first appear here**, each with the action it defines. The diagram follows the Requirements | 6 to 10 |
+| 575 | **1B** · Overall Implementation · **IMPLEMENT** (maroon) | ▲ In This Document, ▲ Executive Summary (Purpose & Need, Why Finite State Machine? with a./b.) | Explains the reasoning behind the code structure **before showing any code** | 11, 12 |
+| 576 | Title only | ▲ Architecture (External Dependencies), ▲ Implementation Explainer → ◈ Finite State Machine | Lists the libraries, then **refers back** to the states from 1A ("the aforementioned states") | 13, 14 |
+| 577 | "Src Explainer Cont." tab | ◈ Control Loop | Introduces each data field with **what it represents** before the code box | 15 to 21 |
+| 578 | "Src Explainer Cont." tab | ◈ State Transitions (with a callout box), ◈ Background Task Execution | Describes what the setter does, then how the task is launched | 22 to 24 |
+| 580 | **1C** · Review Process · **TEST & ITERATE** (blue) | ▲ Tests & Performance Analysis (Test / Status / Result) with a Procedure, ▲ PRD Alignment (Description / Implementation / Status) | One driver-control test with a numbered procedure. Alignment rows restate the Requirements as questions ("Working FSM?") | 25 to 28 |
 
 **Layout conventions to keep on every Lift page:**
 
@@ -32,12 +32,17 @@ Layout notes are in quote blocks (`>`). Everything else is page content and can 
 
 **Writing rules for these pages:**
 
-1. The reader already knows the **mechanical design** of the cascade lift and pivot arm from the build section. These pages explain **how the systems work together** and how the code controls them, and they do not repeat the mechanical design.
-2. Each page moves from **basics to detail**: what each part of the system does, how it interacts with the others, and then the specific values and code. A term is defined **the first time it appears**, and no page relies on a later page.
-3. Anything that happens in sequence (procedures, the score and homing sequences, the scoring cycle) is written as a **numbered list** with one action per step.
-4. Each bullet bolds the **one or two phrases that carry its point**, so a reader skimming the bold text can still follow the page. List lead-ins, phase names and new terms at their definition (such as **pose**) are also bold.
-5. Whole sentences are not bolded, except the first Objective bullet, which matches the Intake page. Code names are not bolded because the green monospace already sets them apart. In tables, bold only the key phrase in the first column and at most one phrase in each other cell.
-6. The writing is **formal**: no contractions, no conversational asides, and no dashes used as sentence punctuation.
+1. The Lift uses **the same ▲ and ◈ sections as the Intake**, in the same order. Content that the Intake does not have is placed **under the closest Intake section** as a sub-heading, not as a new ▲ section.
+2. The reader already knows the **mechanical design** of the cascade lift and pivot arm from the build section. These pages explain **how the systems work together** and how the code controls them, and they do not repeat the mechanical design.
+3. Each page moves from **basics to detail**, and no page relies on a later page.
+4. Every name and value is **introduced before it is used**, and its **source is stated**, following the Intake:
+   - 2X uses no code names.
+   - 2A introduces a code name only together with a description of what it is. The state names first appear in the Requirements (page 6).
+   - 2B refers back to the 2A design and introduces each variable and constant with what it represents.
+   - Every value states where it came from: measured on the robot, calculated, set on a given date, or a placeholder estimate.
+5. Anything that happens in sequence (procedures, the score and homing sequences, the scoring cycle) is written as a **numbered list** with one action per step.
+6. Each bullet bolds the **one or two phrases that carry its point**, so a reader skimming the bold text can still follow the page. List lead-ins, phase names and new terms at their definition (such as **pose**) are also bold. Whole sentences are not bolded, except the first Objective bullet, which matches the Intake page. Code names are not bolded.
+7. The writing is **formal**: no contractions, no conversational asides, and no dashes used as sentence punctuation.
 
 ## ▲ Intake Errors to Avoid
 
@@ -58,72 +63,69 @@ The following items on the Intake pages do not match the intake code (`src/subsy
 
 ## ▲ Adapting the Format for the Lift
 
-The Intake is one motor with three states, each of which sets a speed. The Lift has two motors, two rotation sensors, a pneumatic claw and fourteen states. Each Lift state is either a **pose** (a lift height paired with an arm angle) or a **behavior** such as free movement, scoring or homing. The Intake page layout cannot hold this without changes, but the Lift section keeps the Intake's structure wherever possible and adds pages only where the extra complexity requires them.
+The Intake is one motor with three states, each of which sets a speed. The Lift has two motors, two rotation sensors, a pneumatic claw and fourteen states. The Lift keeps every Intake section, and several sections run over more than one page. The table below lists the Lift content that has no Intake equivalent and the Intake section it is placed under.
+
+| Lift content | Placed under | Page | Reason |
+|:--|:--|:--|:--|
+| How the lift, arm and claw **work together** (the scoring cycle and poses) | ▲ Objective | 4 | The Intake Objective already states what the intake does and how it loads the claw |
+| The three **hardware constraints** (no hard stop, no limit switch, sensors zeroed at start) | ▲ Primary Issue | 2 | They are part of the problem the code must solve |
+| **Pose Table** | ▲ State Diagram | 8 | Replaces the motor speeds that the Intake writes inside each ellipse |
+| **SCORE and HOMING** step diagrams | ▲ State Diagram | 9, 10 | Each is one state with several steps |
+| **Development history** and design comparison | ▲ Executive Summary → Why Finite State Machine? | 12 | The Intake compares the FSM to a naive approach; the lift went through two earlier designs |
+| **Hardware configuration** (ports) | ▲ Architecture | 13 | Lists the devices the code depends on, alongside the libraries |
+| **Loop outline** and one page per loop step | ◈ Control Loop | 15 to 21 | The loop is about 130 lines, so it is shown one step at a time |
+| **Driver controls** | ◈ State Transitions | 23 | The buttons are how the driver triggers each transition |
+| **Before Testing** checklist and eight procedures | ▲ Tests & Performance Analysis → Procedure | 26, 27 | The Intake has one test and one procedure |
+| **Remaining work** | ▲ PRD Alignment (Implementation column) | 28 | Each Partial row states what is left |
 
 **Structure:** the Lift stays as one part with the same four phases (2X, 2A, 2B, 2C).
 
-- The lift, arm and claw share **one class** (`Lift`), one `state` variable and one task. Splitting them into three parts would describe three state machines that do not exist, and every pose would be split across two parts.
-- The pages separate the mechanisms in three ways instead:
-  - Success Metrics, Tests and Alignment rows are **grouped by mechanism** in a fixed order: Lift, Arm, Claw & Score, Safety, Whole System.
+- The lift, arm and claw share **one class**, one state variable and one task. Splitting them into three parts would describe three state machines that do not exist, and every pose would be split across two parts.
+- Within the shared sections, the mechanisms are kept apart in three ways:
+  - Success Metrics and Tests are **grouped by mechanism** in a fixed order: Lift, Arm, Claw & Score, Safety, Whole System.
   - Continuation tabs **name the mechanism**, for example "Src Explainer Cont. · Arm".
-  - Each step of the control loop gets **its own ◈ section**, in loop order.
-
-| Intake | Lift | Approach in these pages |
-|:--|:--|:--|
-| One mechanism that works on its own | Three mechanisms whose behavior depends on each other | 2X explains **how the mechanisms work together** through one scoring cycle, then the software constraints, before introducing code (pages 2-4) |
-| No control theory | Closed-loop P control | 2A explains **open loop, closed loop and P control** before the metrics refer to them (page 5) |
-| One design | Three control designs this season | A **decision matrix** (page 6) |
-| 3 states, each with a speed inside its ellipse | 14 states, each a pose or a behavior | Ellipses contain the **state name only** (page 9), and a **Pose Table** lists each state's height and angle (page 10) |
-| No multi-step behavior | `SCORE` and `HOMING` run in phases | Each has a **step list and diagram** in 2A (pages 11, 12) and a code page in 2B (pages 21, 22) |
-| Whole loop in one code box (about 20 lines) | Loop of about 130 lines | A **Loop Roadmap** (page 16) outlines one 10 ms pass, and each step then has a page showing only its lines |
-| One setter | `set()`, `levelUp()`, `levelDown()`, `score()`, `home()` | One ◈ State Transitions page (23) |
-| One speed constant | About 35 tunable constants, many of them placeholders | A **Tuning Constants** page (26) |
-| One test | Eight behaviors to verify | A grouped test table (27), a **Before Testing** checklist (28), one procedure per test (28, 29) and a **Next Iteration** list (30) |
+  - Each step of the control loop gets **its own page** under ◈ Control Loop, in loop order.
 
 **Reducing the page count:**
 
-- Merge pages 17 and 18 by trimming the target switch to `ZERO`, `LEVEL_1` and `SCORE`.
-- Remove the picture boxes on code pages 18, 19 and 23.
-- Move Tuning Constants (page 26) to an appendix.
-
-Keep the 2X pages (2-4), the Control Approach page (5), the Pose Table (10) and the sequence pages (11, 12). Later pages depend on them.
+- Merge pages 16 and 17 by trimming the target switch to `ZERO`, `LEVEL_1` and `SCORE`.
+- Remove the picture boxes on pages 17, 18 and 22.
+- Shorten the cells of the design comparison on page 12.
 
 ## ▲ Page Plan
 
 Continue the page numbering from the Intake section. If the Lift follows the Intake directly, the divider is the next page and 2X starts after it.
 
-| Page | Badge / tab | Title / Subtitle | Contents |
+| Page | Badge / tab | Subtitle | Sections |
 |:--|:--|:--|:--|
-| 1 | Divider | Part 2: Lift Subsystem | In This Section |
-| 2 | 2X · IDENTIFY | Problem Statement | Primary Issue, How the Mechanisms Work Together |
-| 3 | | Problem Statement | Stateful System, Why a Single State Machine |
-| 4 | | Problem Statement | Software Constraints |
-| 5 | 2A · PLAN | Planning & Product Requirements | Objective, Choosing a Control Approach |
-| 6 | | Planning & Product Requirements | Decision Matrix, Our Choice |
-| 7 | | Planning & Product Requirements | Success Metrics |
-| 8 | | Planning & Product Requirements | Requirements |
-| 9 | | Planning & Product Requirements | State Diagram |
-| 10 | | Planning & Product Requirements | Pose Table |
-| 11 | | Planning & Product Requirements | SCORE Sequence |
-| 12 | | Planning & Product Requirements | HOMING Sequence |
-| 13 | 2B · IMPLEMENT | Overall Implementation | In This Document, Executive Summary |
-| 14 | | Overall Implementation | Architecture |
-| 15 | | Overall Implementation | Implementation Explainer: ◈ Finite State Machine |
-| 16 | Src Explainer Cont. | Overall Implementation | ◈ Control Loop Roadmap |
-| 17 | Src Explainer Cont. · Lift & Arm | Overall Implementation | ◈ Reading the Sensors |
-| 18 | Src Explainer Cont. · Lift & Arm | Overall Implementation | ◈ Target Selection |
-| 19 | Src Explainer Cont. · Lift | Overall Implementation | ◈ Lift Power & Soft Limits |
-| 20 | Src Explainer Cont. · Arm | Overall Implementation | ◈ Arm Control |
-| 21 | Src Explainer Cont. · Claw & Score | Overall Implementation | ◈ Score Sequence |
-| 22 | Src Explainer Cont. · Homing | Overall Implementation | ◈ Homing |
-| 23 | Src Explainer Cont. | Overall Implementation | ◈ State Transitions |
-| 24 | Src Explainer Cont. | Overall Implementation | ◈ Driver Controls |
-| 25 | Src Explainer Cont. | Overall Implementation | ◈ Background Task Execution |
-| 26 | | Overall Implementation | Tuning Constants |
-| 27 | 2C · TEST & ITERATE | Review Process | Tests & Performance Analysis |
-| 28 | | Review Process | Before Testing, Procedures T1 to T4 |
-| 29 | | Review Process | Procedures T5 to T8 |
-| 30 | | Review Process | PRD Alignment, Next Iteration |
+| 1 | Divider | | Part 2: Lift Subsystem, In This Section |
+| 2 | 2X · IDENTIFY | Problem Statement | ▲ Primary Issue |
+| 3 | | Problem Statement | ▲ Stateful System |
+| 4 | 2A · PLAN | Planning & Product Requirements | ▲ Objective |
+| 5 | | Planning & Product Requirements | ▲ Success Metrics |
+| 6 | | Planning & Product Requirements | ▲ Requirements |
+| 7 | | Planning & Product Requirements | ▲ State Diagram |
+| 8 | | Planning & Product Requirements | ▲ State Diagram (cont.): Pose Table |
+| 9 | | Planning & Product Requirements | ▲ State Diagram (cont.): SCORE State |
+| 10 | | Planning & Product Requirements | ▲ State Diagram (cont.): HOMING State |
+| 11 | 2B · IMPLEMENT | Overall Implementation | ▲ In This Document, ▲ Executive Summary |
+| 12 | | Overall Implementation | ▲ Executive Summary (cont.): Development History |
+| 13 | | Overall Implementation | ▲ Architecture |
+| 14 | | Overall Implementation | ▲ Implementation Explainer: ◈ Finite State Machine |
+| 15 | Src Explainer Cont. | Overall Implementation | ◈ Control Loop |
+| 16 | Src Explainer Cont. · Lift & Arm | Overall Implementation | ◈ Control Loop: Step 1, Reading the Sensors |
+| 17 | Src Explainer Cont. · Lift & Arm | Overall Implementation | ◈ Control Loop: Step 2, Target Selection |
+| 18 | Src Explainer Cont. · Lift | Overall Implementation | ◈ Control Loop: Steps 3 and 4, Lift Power and Soft Limits |
+| 19 | Src Explainer Cont. · Arm | Overall Implementation | ◈ Control Loop: Step 5, Arm Control |
+| 20 | Src Explainer Cont. · Claw & Score | Overall Implementation | ◈ Control Loop: Step 6, Score Phases |
+| 21 | Src Explainer Cont. · Homing | Overall Implementation | ◈ Control Loop: Steps 7 and 8, Homing and Lift Output |
+| 22 | Src Explainer Cont. | Overall Implementation | ◈ State Transitions |
+| 23 | Src Explainer Cont. | Overall Implementation | ◈ State Transitions (cont.): Driver Controls |
+| 24 | Src Explainer Cont. | Overall Implementation | ◈ Background Task Execution |
+| 25 | 2C · TEST & ITERATE | Review Process | ▲ Tests & Performance Analysis |
+| 26 | | Review Process | Procedure: Before Testing, T1 to T4 |
+| 27 | | Review Process | Procedure: T5 to T8 |
+| 28 | | Review Process | ▲ PRD Alignment |
 
 ---
 
@@ -147,35 +149,20 @@ Continue the page numbering from the Intake section. If the Lift follows the Int
 
 > **Header:** badge `2X` · "Lift Subsystem" · subtitle "Problem Statement" · tag **IDENTIFY** (green)
 >
-> The build section already covers the mechanical design of the cascade lift and pivot arm. This page describes only how the mechanisms interact and what the code can measure.
+> The Intake fits Primary Issue and Stateful System on one page (572). The Lift's Primary Issue also lists the hardware constraints, so Stateful System moves to page 3.
 
 ### ▲ Primary Issue
 
 - The **lift subsystem** carries game objects from the loading position to the goals and places them.
-- It combines **three mechanisms** that must work together: the cascade lift, the pivot arm and the claw.
+- The lift comprises **three mechanisms**: a cascade lift driven by one motor, a pivot arm driven by a second motor, and a pneumatic claw.
 - We need a way to **control all three** from a programming standpoint.
-- We also want a **clean implementation**. Because the lift is a stateful system, it should follow the conventions of a **finite state machine (FSM)**, as the Intake does.
+- The hardware places **three constraints** on how the code can do this:
+  1. The cascade has **no hard stop** at the bottom. If the motor keeps turning after the lift bottoms out, the string winds in the opposite direction and **raises the lift again**. The code must stop the motor itself.
+  2. There is **no limit switch** to report when the lift reaches the bottom. The motor does report its **current draw**, which measures how hard it is working, in milliamps (mA). The current stays low while the string is slack and **rises sharply** once the string begins lifting the lift.
+  3. The rotation sensors read 0 **wherever they are when the program starts**. The lift must start at the bottom and the arm in its starting position; otherwise every height and angle is offset.
+- At the same time, we want our implementation to be **clean**. Since the lift is a stateful system, our implementation should follow the conventions of a **finite state machine (FSM)**, as the Intake does.
 
-### ▲ How the Mechanisms Work Together
-
-- The code controls each mechanism through **one actuator** and, where possible, reads its position from a **sensor**:
-
-| Mechanism | Controlled by | Feedback to the code |
-|:--|:--|:--|
-| **Cascade lift** | Lift motor | Lift rotation sensor (height) |
-| **Pivot arm** | Pivot motor | Arm rotation sensor (angle) |
-| **Claw** | Pneumatic piston | None. The code tracks the **last command** sent |
-
-- The steps below follow one game object through a **scoring cycle**:
-
-1. **Load.** The lift and arm move to the **loading height and angle** with the claw open. After the object is loaded, the driver **closes the claw**.
-2. **Raise.** The lift rises to one of **six scoring levels** while the arm turns to the **scoring angle**.
-3. **Score.** The lift drops slightly onto the goal, the claw opens, and the lift rises clear. This is the **drop, open, rise** sequence.
-4. **Return.** The lift and arm move **back to the loading position** for the next object.
-
-- Every step moves the lift and the arm together. A lift height combined with its matching arm angle is called a **pose**. Matchloading uses the same cycle with **its own pose**.
-
-> **Picture box** (to the right of the list, where the Intake picture is): the lift with the two rotation sensors and the claw labeled, since these are the parts the code reads from or controls directly.
+> **Picture box:** the lift at its lowest point with the string direction marked, to illustrate constraint 1.
 
 ---
 
@@ -186,107 +173,51 @@ Continue the page numbering from the Intake section. If the Lift follows the Int
 ### ▲ Stateful System
 
 - **From a hardware standpoint, the lift could perform the following:**
-  - **Hold a pose:** bottom, matchloading, loading, or Levels 1 to 6
-  - **Move freely** while the driver holds a button, then **hold** where it stops
-  - **Score:** the drop, open, rise sequence from page 2
+  - Hold the lift at the **bottom of travel**
+  - Hold the lift and arm at the **loading position**, the **matchloading position**, or one of **six scoring heights**
+  - **Move the lift freely** while the driver holds a button, then **hold** where it stops
+  - **Score** a game object: lower it onto the goal, open the claw, and rise clear
   - **Find the bottom** of its travel automatically, a process called **homing**
-- To hold position, the motor uses its **HOLD brake**. At zero power, the motor resists being turned and the lift does not slide down.
-- From a software standpoint, each action becomes **one or more finite states**:
+- From a software standpoint, this translates to a **finite state machine**, with each action of the lift classified as **one or more finite states**. The lift should exist in **one state at a given moment**, and this state could be altered by the driver or by an autonomous routine.
 
-| Hardware action | States |
-|:--|:--|
-| **Hold a pose** | Position states: `ZERO`, `MATCHLOADING`, `LOADING`, `LEVEL_1` to `LEVEL_6` |
-| **Move freely, then hold** | Raw states: `RAW_UP`, `RAW_DOWN`, `RAW_HOLD` |
-| **Score** | `SCORE` |
-| **Find the bottom** | `HOMING` |
-
-- The lift is in **one state at any moment**, and the driver changes the state **with a button**.
-
-### ▲ Why a Single State Machine
-
-1. The simplest design would give each mechanism **its own state machine**: one each for the lift, the arm and the claw.
-2. However, every step of the scoring cycle moves the lift and the arm together. With separate machines, the driver would need **two button presses per move** and could leave the arm at the **wrong angle** for the current height.
-3. A **single machine** avoids this problem. Each position state is a pose, which means one state sets both the lift height and the arm angle, and a mismatched pose **cannot be commanded**.
-4. The claw remains under **driver control**, since the driver closes it on each object. The state machine opens it only **during scoring**, where the timing matters.
+> **Picture box** (to the right of the list, where the Intake picture is): the lift with the two rotation sensors and the claw labeled, since these are the parts the code reads from or controls directly.
 
 ---
 
-## Page 4: 2X · Problem Statement (cont.)
-
-> **Header:** title and subtitle only
-
-### ▲ Software Constraints
-
-- Three properties of the hardware determine how the code must be written:
-
-1. **No hard stop at the bottom**
-   - The cascade does not stop the motor when the lift bottoms out. If the motor keeps turning, the string **winds in the opposite direction** and **raises the lift again**.
-   - The code must therefore stop the motor itself using a **soft limit**: a position beyond which the program will not drive the motor.
-2. **No limit switch**
-   - No sensor reports when the lift reaches the bottom. The motor does report its **current draw**, which measures how hard it is working, in milliamps (mA).
-   - While the string is slack, the current stays low. Once the string winds the other way and begins lifting the lift, the current **jumps**. Homing uses this jump to **find the bottom**.
-3. **Positions are measured from the starting point**
-   - The rotation sensors read 0 **wherever they are when the program starts**.
-   - The lift must start **at the bottom** and the arm in its starting pose; otherwise every height is offset. Homing can correct the lift's zero if it is wrong.
-
-> **Picture box:** the lift at its lowest point with the string direction marked, to illustrate constraint 1.
-
----
-
-## Page 5: 2A · Planning & Product Requirements
+## Page 4: 2A · Planning & Product Requirements
 
 > **Header:** badge `2A` · "Lift Subsystem" · subtitle "Planning & Product Requirements" · tag **PLAN** (olive)
 >
-> This page comes before Success Metrics because the metrics and requirements refer to P control and background tasks, which are explained here.
+> The Intake Objective (573) states what the intake does, how it works with the claw, and why it is an FSM. The Lift Objective follows the same order. The mechanism table and the scoring cycle in the middle explain how the three mechanisms work together. If the six scoring heights correspond to specific goals on the field, name them in step 2 of the cycle.
 
 ### ▲ Objective
 
-- **The lift system carries game objects between the loading height and six scoring levels, and places them, during both driver control and autonomous.**
-- It must reach the **same height every time**, hold that height against gravity, and respond to a new command **within 10 ms**.
-- Because three mechanisms must agree and scoring and homing are **multi-step sequences**, the lift is implemented as a **finite state machine (FSM)** in which each position state sets the lift height and arm angle together.
+- **The lift system carries game objects from the loading position to six scoring heights and places them, during both driver control and autonomous operation.**
+- It does this with **three mechanisms working together**. The code controls each mechanism through one actuator and, where possible, reads its position from a sensor:
 
-### ▲ Choosing a Control Approach
+| Mechanism | Controlled by | Feedback to the code |
+|:--|:--|:--|
+| **Cascade lift** | Lift motor | Rotation sensor on the lift (height) |
+| **Pivot arm** | Pivot motor | Rotation sensor on the arm (angle) |
+| **Claw** | Pneumatic piston | None. The code tracks the **last command** sent |
 
-1. **Open loop.** The motor runs for a **set time**, and the code assumes the lift reached its target. This is simple, but a low battery or a heavy object causes the same run time to cover **less distance**.
-2. **Closed loop.** The code **measures** the lift with the rotation sensor, compares the reading to the target height, and keeps powering the motor until the two match. The same command then **ends at the same height** every time.
-3. **P (proportional) control** is the simplest form of closed-loop control.
-   - The difference between the target height and the current height is the **error**.
-   - Motor power equals the error multiplied by a **gain** called `kP`.
-   - Far from the target, the power is high. Near the target, it drops, and the lift **slows as it arrives**.
-4. **Blocking and background execution**
-   - If the program waits for the lift to arrive, nothing else runs, and the driver **cannot drive**.
-   - PROS can run several loops at the same time; each one is called a **task**. When the lift loop runs in its own **background task**, no other code has to wait for the lift.
+- Each game object passes through the following **scoring cycle**:
 
----
+1. **Load.** The lift and arm move to the **loading height and angle** with the claw open. After the object is loaded, the driver **closes the claw**.
+2. **Raise.** The lift rises to one of the **six scoring heights** while the arm turns to the **scoring angle**.
+3. **Score.** The lift drops slightly onto the goal, the claw opens, and the lift rises clear. This is the **drop, open, rise** sequence.
+4. **Return.** The lift and arm move **back to the loading position** for the next object.
 
-## Page 6: 2A · Decision Matrix
-
-> **Header:** title and subtitle only. The Intake section has no decision matrix because the intake was designed once; the lift went through three control designs this season. The columns use the concepts from page 5.
-
-### ▲ Lift Control Decision Matrix
-
-- The three designs used this season are compared on the factors that matter **during a match**.
-
-| Approach | Blocks the Drive? | Height Feedback | Driver Override | Code Complexity |
-|:--|:--|:--|:--|:--|
-| **Blocking timed macros** | Yes. Each macro called `pros::delay()` inline and stalled `opcontrol()`, up to 2850 ms for `lower()` | None (**open loop**). Moves were timed (`MACRO_TIME_MS = 1300` for full travel) | None until the macro returned | Low |
-| **Non-blocking scripted macros** | No. A **background task** stepped through a script | None (**open loop**). Same timings as the blocking version | Manual input cancelled the running macro | High: step scripts, a `pros::Mutex`, `cancel()`, `busy()`, `waitUntilDone()` |
-| **Sensor-based FSM (chosen)** | No. `set()` writes a state and returns; a **background task** does the work | Rotation sensor, with **P control** to named heights | A new state **replaces the old one immediately** | Medium: one `switch` in one loop |
-
-### ▲ Our Choice: Sensor-Based FSM
-
-1. The macros were **open loop**. They ran the motor for a fixed time, and the same macro could stop at a **different height** from one match to the next.
-2. The scripted version removed the blocking but **kept the timing**. It also needed a mutex and cancel logic to coordinate the driver with the script.
-3. The FSM **measures the lift** and drives it to a target, so the same command always ends at the same height. The driver or an autonomous routine sets one state, and a single loop converts it into motor power every 10 ms.
-4. Scoring and homing still require ordered steps, so they are implemented as **states with their own phases**.
-
-> **Picture box (optional):** the old macro code beside the new `set()` call, to show the reduction in code.
+- Every step moves the lift and the arm together. A lift height combined with its matching arm angle is called a **pose**. Matchloading uses the same cycle with **its own pose**.
+- The lift must reach the **same height every time**, hold that height against gravity, and respond **instantly** to driver inputs and autonomous commands.
+- Because the lift and arm must always agree and scoring is a **multi-step sequence**, the lift is implemented as **one finite state machine** in which each pose state sets the lift height and arm angle together. Separate machines for the lift and arm would need **two commands per move** and could leave the arm at the wrong angle for the current height.
+- The claw stays under **driver control**, since the driver closes it on each object. The state machine opens it only **during scoring**, where the timing matters.
 
 ---
 
-## Page 7: 2A · Success Metrics
+## Page 5: 2A · Success Metrics
 
-> **Header:** title and subtitle only. The group rows (Lift, Arm, and so on) span both columns and are bold and unshaded. Pages 27 and 30 use the same groups in the same order.
+> **Header:** title and subtitle only. The Intake places Success Metrics on the same page as the Objective; the Lift Objective fills page 4, so the metrics move to page 5. The group rows (Lift, Arm, and so on) span both columns and are bold and unshaded. Page 25 uses the same groups in the same order.
 
 ### ▲ Success Metrics
 
@@ -295,63 +226,64 @@ Continue the page numbering from the Intake section. If the Lift follows the Int
 | Goal | Metric |
 |:--|:--|
 | **Lift** | |
-| The lift **reaches and holds** each pose height when commanded | Each position state drives the lift to its height with **P control** and holds it there |
-| The driver can **step between levels** with one press per level | L1 / L2 (`levelUp()` / `levelDown()`) move **exactly one level** per press, even after raw control or scoring |
-| The driver can **move the lift freely** and have it hold where released | Holding X / B moves the lift at `rawSpeed`. Releasing **holds it in place** (`RAW_HOLD`) |
+| The lift **reaches and holds** each preset height when commanded | Each pose state drives the lift to its height using the **lift rotation sensor** and holds it there |
+| The driver can **step between levels** with one press per level | Level-up and level-down commands move **exactly one level** per press, including after free movement or scoring |
+| The driver can **move the lift freely** and have it hold where released | Holding a button moves the lift at a fixed power. Releasing it **holds the lift in place** |
 | **Arm** | |
-| The **arm moves to the angle** that matches the lift's pose | Loading → `LOADING_ANGLE`, matchloading → `MATCHLOADING_ANGLE`, every level → `SCORING_ANGLE`. Other states **hold the last angle** |
+| The **arm moves to the angle** that matches the lift's pose | The loading, matchloading and scoring poses each set their own angle, measured by the **arm rotation sensor**. States without an angle **keep the last one** |
 | **Claw & Score** | |
-| **One press scores** a game object | LEFT (`score()`) drops, opens the claw, rises clear and holds. Every move has a **time limit** |
+| **One press scores** a game object | A score command drops the lift, opens the claw, rises clear and holds. Every move has a **time limit** |
 | **Safety** | |
-| The lift can **find its true bottom** without a limit switch | Homing (`home()`) detects the **current jump** when the string winds the other way, then zeros the sensor |
-| The lift and arm **never drive past their ends of travel** | **Soft limits** cut any power that would drive the lift or arm past its limits |
+| The lift can **find its true bottom** without a limit switch | A homing routine detects the **current rise** described on page 2, then zeros the lift sensor |
+| The lift and arm **never drive past their ends of travel** | The code cuts any power that would drive the lift or arm **past a set limit** |
 | **Whole System** | |
-| The control loop **never blocks** the main program | `liftControl()` runs in its own **background task** 100 times per second, and every command **returns immediately** |
+| The lift's control loop runs on a **dedicated background task** and does not block the main program | A parallel, separate PROS task houses the control loop, `liftControl()`. A simple state setter, `set()`, changes the state and **returns immediately** |
 
 ---
 
-## Page 8: 2A · Requirements
+## Page 6: 2A · Requirements
 
 > **Header:** title and subtitle only. Highlight `HIGH` in red as on the Intake page, and give `MEDIUM` a lighter highlight (orange or yellow) so the two levels are distinct.
 
 ### ▲ Requirements
 
 - Each requirement is a **feature the code must have** to meet the Success Metrics. `HIGH` means the lift **cannot be used in a match** without it.
+- The actions from the Stateful System (page 3) become **fourteen named states**, listed in the first row. Each state is named after the pose or behavior it represents.
 
 | Requirement | Importance | Notes |
 |:--|:--|:--|
-| **Finite state machine** with fourteen states | HIGH | Position: `ZERO`, `MATCHLOADING`, `LOADING`, `LEVEL_1` to `LEVEL_6`. Raw: `RAW_UP`, `RAW_DOWN`, `RAW_HOLD`. Sequences: `SCORE`, `HOMING` |
-| **Dedicated background** control task | HIGH | `liftControl()` runs in its own task, so lift commands **never block** driving or autonomous |
-| **Closed-loop control** for lift and arm | HIGH | P control on each rotation sensor, with power capped at a maximum |
-| **Arm angle tied** to the lift state | HIGH | Each position state sets **both** the height and the arm angle |
-| **One-press** level stepping | HIGH | `levelUp()` / `levelDown()` step through `LOADING` and `LEVEL_1` to `LEVEL_6` |
-| **Raw control** with hold | HIGH | Hold a button to move at `rawSpeed`. Release to hold with the **HOLD brake** |
-| **One-press score** sequence | HIGH | `score()` drops, opens the claw, rises, then holds |
-| **Soft limits** on lift and arm | HIGH | Power past a limit is set to zero. Power **back toward the range** is still allowed |
-| **Current-based homing** | MEDIUM | `home()` finds the bottom without a limit switch. Implemented, but **not yet assigned to a button** |
-| **Pneumatic claw** integration | MEDIUM | The driver toggles the claw. `SCORE` opens it automatically |
-| **Autonomous** uses the same commands | MEDIUM | Routines call the same `set()` and `score()` as driver control. There is **no wait helper** yet |
+| **Finite state machine** with fourteen states | HIGH | **Pose states:** `ZERO` (bottom of travel), `MATCHLOADING`, `LOADING`, and `LEVEL_1` to `LEVEL_6` (the six scoring heights). **Raw states** for free movement: `RAW_UP`, `RAW_DOWN`, `RAW_HOLD`. **Sequences:** `SCORE`, `HOMING`. Each defines a separate action of the lift |
+| **Dedicated background** control task | HIGH | `liftControl()` runs in a PROS task so that the control loop **never blocks** the main program |
+| **Closed-loop control** for lift and arm | HIGH | The code **measures** each mechanism with its rotation sensor and adjusts the power until the reading matches the target. The power is **proportional** to the remaining distance (P control) and capped at a maximum |
+| **Arm angle tied** to the lift state | HIGH | Each pose state sets **both** the height and the arm angle |
+| **One-press** level stepping | HIGH | Two commands, `levelUp()` and `levelDown()`, step through `LOADING` and `LEVEL_1` to `LEVEL_6` |
+| **Raw control** with hold | HIGH | Holding a button moves the lift at a fixed power. On release, the motor's **HOLD brake mode**, in which the motor resists turning at zero power, keeps the lift in place |
+| **One-press score** sequence | HIGH | A score command, `score()`, runs the drop, open, rise sequence and then holds |
+| **Soft limits** on lift and arm | HIGH | A **soft limit** is a position past which the code will not drive the motor. Power **back toward the range** is still allowed |
+| **Current-based homing** | MEDIUM | A homing command, `home()`, finds the bottom **without a limit switch**, using the current rise from page 2 |
+| **Pneumatic claw** integration | MEDIUM | The driver opens and closes the claw. The score sequence opens it automatically |
+| **Autonomous** uses the same commands | MEDIUM | Autonomous routines call the same `set()` and `score()` commands as driver control |
 
 ---
 
-## Page 9: 2A · State Diagram
+## Page 7: 2A · State Diagram
 
 > **Header:** title and subtitle only.
 >
 > **Drawing the diagram in the notebook style:**
 > - Use white ellipses with black outlines and black arrows, like the Intake diagram on page 574.
-> - Write **only the state name** in each ellipse. Fourteen states leave no room for values, so those go in the Pose Table on page 10.
-> - Arrange the states in three labeled groups. Raw states go on the left (`RAW_UP` top, `RAW_HOLD` middle, `RAW_DOWN` bottom). Position states go in the center from bottom to top: `ZERO` and `MATCHLOADING` side by side, then `LOADING` and `LEVEL_1` through `LEVEL_6`. Sequences go on the right (`SCORE` upper, `HOMING` lower).
+> - Write **only the state name** in each ellipse. Fourteen states leave no room for other details, so those go in the Pose Table on page 8.
+> - Arrange the states in three labeled groups. Raw states go on the left (`RAW_UP` top, `RAW_HOLD` middle, `RAW_DOWN` bottom). Pose states go in the center from bottom to top: `ZERO` and `MATCHLOADING` side by side, then `LOADING` and `LEVEL_1` through `LEVEL_6`. Sequences go on the right (`SCORE` upper, `HOMING` lower).
 > - Add a small **"Any state"** node on the far left instead of drawing fourteen copies of the same arrow.
 > - The Mermaid version below is laid out horizontally for screen readability. Redraw it in portrait for the page.
 
 ### ▲ State Diagram
 
 1. The program starts in `ZERO`.
-2. **Position states** (center) are the poses from page 2. L1 and L2 move up and down the column **one level per press**.
-3. **Raw states** (left) provide free movement. Holding X or B enters them from **any state**, and releasing the button switches to `RAW_HOLD`.
-4. **Sequences** (right) run their steps automatically. The **dashed arrows** are the only transitions the program makes on its own, when a sequence finishes.
-5. Any other lift button **cancels `SCORE`**. L1 and L2 always step from the **last level selected**, even after raw control or scoring.
+2. **Pose states** (center) are the poses from the Objective (page 4). `levelUp()` and `levelDown()` move up and down the column **one level per call**.
+3. **Raw states** (left) provide free movement. Holding a raw button enters them from **any state**, and releasing it switches to `RAW_HOLD`.
+4. **Sequences** (right) run their steps automatically; the steps are drawn on pages 9 and 10. The **dashed arrows** are the only transitions the program makes on its own, when a sequence finishes.
+5. Any other lift command **cancels `SCORE`**. Level stepping always starts from the **last level selected**, even after raw control or scoring.
 
 ```mermaid
 flowchart LR
@@ -364,7 +296,7 @@ flowchart LR
         RAW_DOWN(["RAW_DOWN"])
     end
 
-    subgraph POS["Position states"]
+    subgraph POS["Pose states"]
         LEVEL_6(["LEVEL_6"])
         LEVEL_5(["LEVEL_5"])
         LEVEL_4(["LEVEL_4"])
@@ -381,26 +313,26 @@ flowchart LR
         HOMING(["HOMING"])
     end
 
-    INIT -->|"initialize()"| ZERO
-    ZERO -->|"L1: levelUp()"| LEVEL_1
-    MATCHLOADING -->|"L1: levelUp()"| LEVEL_1
-    LOADING <-->|"L1 / L2"| LEVEL_1
-    LEVEL_1 <-->|"L1 / L2"| LEVEL_2
-    LEVEL_2 <-->|"L1 / L2"| LEVEL_3
-    LEVEL_3 <-->|"L1 / L2"| LEVEL_4
-    LEVEL_4 <-->|"L1 / L2"| LEVEL_5
-    LEVEL_5 <-->|"L1 / L2"| LEVEL_6
+    INIT -->|"program start"| ZERO
+    ZERO -->|"levelUp()"| LEVEL_1
+    MATCHLOADING -->|"levelUp()"| LEVEL_1
+    LOADING <-->|"levelUp() / levelDown()"| LEVEL_1
+    LEVEL_1 <-->|"up / down"| LEVEL_2
+    LEVEL_2 <-->|"up / down"| LEVEL_3
+    LEVEL_3 <-->|"up / down"| LEVEL_4
+    LEVEL_4 <-->|"up / down"| LEVEL_5
+    LEVEL_5 <-->|"up / down"| LEVEL_6
 
-    ANY -->|"A: set(LOADING)"| LOADING
-    ANY -->|"RIGHT: set(MATCHLOADING)"| MATCHLOADING
-    ANY -->|"X held"| RAW_UP
-    ANY -->|"B held"| RAW_DOWN
+    ANY -->|"set(LOADING)"| LOADING
+    ANY -->|"set(MATCHLOADING)"| MATCHLOADING
+    ANY -->|"raw up held"| RAW_UP
+    ANY -->|"raw down held"| RAW_DOWN
     ANY -->|"home()"| HOMING
-    RAW_UP -->|"X released"| RAW_HOLD
-    RAW_DOWN -->|"B released"| RAW_HOLD
-    POS -->|"LEFT: score()"| SCORE
-    RAW_HOLD -->|"LEFT: score()"| SCORE
-    RAW_HOLD -->|"L1 / L2 from last level"| POS
+    RAW_UP -->|"released"| RAW_HOLD
+    RAW_DOWN -->|"released"| RAW_HOLD
+    POS -->|"score()"| SCORE
+    RAW_HOLD -->|"score()"| SCORE
+    RAW_HOLD -->|"up / down from last level"| POS
     SCORE -.->|"auto: risen clear"| RAW_HOLD
     HOMING -.->|"auto: bottom found"| ZERO
 
@@ -412,71 +344,70 @@ flowchart LR
 
 ---
 
-## Page 10: 2A · Pose Table
+## Page 8: 2A · State Diagram (cont.)
 
-> **Header:** title and subtitle only. This table holds the values that the Intake diagram placed inside each ellipse.
+> **Header:** title and subtitle only. The Pose Table takes the place of the motor speeds that the Intake diagram writes inside each ellipse.
 
-### ▲ Pose Table
+### ▲ State Diagram (cont.)
 
-1. Each **position state** is a pose: it sets one lift height and one arm angle.
-2. The other states are **behaviors**. They set the lift power directly or run a sequence, and the arm **holds its last angle**.
-3. Heights and angles are in **rotation sensor degrees**, measured from where the lift and arm were when the program started (page 4).
-4. Every height and angle below is a **placeholder** until it is tuned on the robot.
+#### Pose Table
+
+1. Each **pose state** sets one lift height and one arm angle.
+2. The other states are **behaviors**. They set the lift power directly or run a sequence, and the arm **keeps its last angle**.
+3. Heights and angles are measured in **rotation sensor degrees** from the starting position (page 2).
+4. The numerical values are part of the implementation. They are introduced in 2B with their sources (pages 17 to 19).
 
 | State | Group | Lift target | Arm target |
 |:--|:--|:--|:--|
-| `ZERO` | Position | `ZERO_HEIGHT` = 0 | Holds last angle |
-| `MATCHLOADING` | Position | `MATCHLOADING_HEIGHT` = 0 | `MATCHLOADING_ANGLE` = 0 |
-| `LOADING` | Position | `LOADING_HEIGHT` = 1650 | `LOADING_ANGLE` = 180 |
-| `LEVEL_1` | Position | `LEVEL_1_HEIGHT` = 2950 | `SCORING_ANGLE` = 90 |
-| `LEVEL_2` | Position | `LEVEL_2_HEIGHT` = 5200 | `SCORING_ANGLE` = 90 |
-| `LEVEL_3` | Position | `LEVEL_3_HEIGHT` = 7200 | `SCORING_ANGLE` = 90 |
-| `LEVEL_4` | Position | `LEVEL_4_HEIGHT` = 9200 | `SCORING_ANGLE` = 90 |
-| `LEVEL_5` | Position | `LEVEL_5_HEIGHT` = 13000 | `SCORING_ANGLE` = 90 |
-| `LEVEL_6` | Position | `LEVEL_6_HEIGHT` = 15500 | `SCORING_ANGLE` = 90 |
-| `RAW_UP` | Raw | None (power +`rawSpeed`) | Holds last angle |
-| `RAW_DOWN` | Raw | None (power -`rawSpeed`) | Holds last angle |
-| `RAW_HOLD` | Raw | None (power 0, held by the HOLD brake) | Holds last angle |
-| `SCORE` | Sequence | Start height minus `scoreDrop`, then start height plus `scoreRise` | Holds last angle |
-| `HOMING` | Sequence | None (power -`homeSpeed` until the bottom is found) | Holds last angle |
+| `ZERO` | Pose | Bottom of travel | Keeps last angle |
+| `MATCHLOADING` | Pose | Matchloading height | Matchloading angle |
+| `LOADING` | Pose | Loading height | Loading angle |
+| `LEVEL_1` to `LEVEL_6` | Pose | Scoring height 1 to 6 | Scoring angle (the same for every level) |
+| `RAW_UP` | Raw | None; fixed upward power | Keeps last angle |
+| `RAW_DOWN` | Raw | None; fixed downward power | Keeps last angle |
+| `RAW_HOLD` | Raw | None; zero power, held by the HOLD brake | Keeps last angle |
+| `SCORE` | Sequence | Below the start height while dropping, then above it while rising (page 9) | Keeps last angle |
+| `HOMING` | Sequence | None; slow downward power until the bottom is found (page 10) | Keeps last angle |
 
-- The soft limits are `MIN_POSITION` = -10, slightly below `ZERO_HEIGHT`, and `MAX_POSITION` = 18000.
-- The levels are about **2500 degrees apart** on average. 18000 (`LEVEL_6_HEIGHT` + 2500) is therefore approximately where a **seventh level** would be.
+- The lift's soft limits sit **slightly below the bottom** of travel and about **one level above** the sixth scoring height. The arm has its own pair of soft limits.
 
-> **Picture box:** a vertical scale of the lift's travel marking every height from the table, with `MIN_POSITION` and `MAX_POSITION` as red lines. Photos of the lift at three heights beside it are an alternative.
+> **Picture box:** a vertical scale of the lift's travel marking each pose and both soft limits. Photos of the lift at three poses beside it are an alternative.
 
 ---
 
-## Page 11: 2A · SCORE Sequence
+## Page 9: 2A · State Diagram (cont.)
 
-> **Header:** title and subtitle only. This page and the next have no Intake equivalent. Draw the diagram in the same ellipse style as page 9; the diamonds are checks the program makes every 10 ms.
+> **Header:** title and subtitle only. Draw the diagram in the same ellipse style as page 7; the diamonds are checks the program makes on every pass of the control loop.
 
-### ▲ SCORE Sequence
+### ▲ State Diagram (cont.)
 
-- Scoring is step 3 of the scoring cycle (page 2), performed **automatically after one press** of LEFT. The arm **holds its angle** throughout.
+#### SCORE State
 
-1. **Record the start.** `score()` saves the lift's current height as `scoreStart`.
-2. **Drop.** The lift lowers by `scoreDrop` onto the goal.
-3. **Release.** The claw opens, and the lift **waits** for `scoreReleaseTime` while the claw lets go. If the claw is **already open**, this step is skipped.
-4. **Raise.** The lift rises to `scoreRise` **above the start height**, clear of the goal.
-5. **Hold.** The lift switches to `RAW_HOLD` and **stays at that height**. Returning to a level preset would lower it back onto the goal.
+- `SCORE` performs step 3 of the scoring cycle (page 4) **automatically** when `score()` is called. The arm **keeps its angle** throughout.
 
-- A move counts as complete when the lift is within `scoreTolerance` of its target or when `scoreMoveTimeout` has passed. The timeout **prevents any step from stalling** the sequence.
+1. **Record the start.** The current lift height is saved as the **start height**.
+2. **Drop.** The lift lowers by a set **drop distance** onto the goal.
+3. **Release.** The claw opens, and the lift waits a set **release time** while the claw lets go. If the claw is already open, this step is skipped.
+4. **Raise.** The lift rises to a set **rise distance** above the start height, clear of the goal.
+5. **Hold.** The lift switches to `RAW_HOLD` and stays at that height. Returning to a level preset would lower it back onto the goal.
+
+- Steps 2 to 4 are called the **Dropping, Releasing and Raising phases**.
+- A move counts as complete when the lift is within a set **tolerance** of its target or when a **move timeout** has passed. The timeout prevents any step from stalling the sequence.
 
 ```mermaid
 flowchart TD
-    S(["score(): scoreStart = current height"]) --> D(["DROPPING<br/>target = scoreStart - scoreDrop"])
-    D --> DQ{"Within scoreTolerance<br/>or scoreMoveTimeout passed?"}
+    S(["Save the start height"]) --> D(["Dropping<br/>target = start - drop distance"])
+    D --> DQ{"Within tolerance<br/>or move timeout passed?"}
     DQ -->|"no"| D
     DQ -->|"yes"| C{"Claw already open?"}
-    C -->|"yes"| R(["RAISING<br/>target = scoreStart + scoreRise"])
-    C -->|"no: open the claw"| L(["RELEASING<br/>hold the dropped height"])
-    L --> LQ{"scoreReleaseTime passed?"}
+    C -->|"yes"| R(["Raising<br/>target = start + rise distance"])
+    C -->|"no: open the claw"| L(["Releasing<br/>hold the dropped height"])
+    L --> LQ{"Release time passed?"}
     LQ -->|"no"| L
     LQ -->|"yes"| R
-    R --> RQ{"Within scoreTolerance<br/>or scoreMoveTimeout passed?"}
+    R --> RQ{"Within tolerance<br/>or move timeout passed?"}
     RQ -->|"no"| R
-    RQ -->|"yes"| H(["set(RAW_HOLD): hold above the goal"])
+    RQ -->|"yes"| H(["Switch to RAW_HOLD:<br/>hold above the goal"])
 
     classDef st fill:#ffffff,stroke:#000000,stroke-width:1.5px,color:#000000
     class S,D,R,L,H,DQ,C,LQ,RQ st
@@ -484,33 +415,41 @@ flowchart TD
 
 ---
 
-## Page 12: 2A · HOMING Sequence
+## Page 10: 2A · State Diagram (cont.)
 
 > **Header:** title and subtitle only
 
-### ▲ HOMING Sequence
+### ▲ State Diagram (cont.)
 
-- Homing finds the bottom using the **current jump** described on page 4. At power 45, the motor draws **50 to 105 mA** while the string is slack and **220 to 350 mA** while it is lifting the lift.
+#### HOMING State
 
-1. **Drive down slowly** at `homeSpeed`.
-2. **Ignore the start-up spike.** During the first `homeIgnoreTime`, the current reads 0 and then spikes as the motor accelerates, so the code does not check it yet.
-3. **Wait for slack.** When the current drops below `homeLooseCurrent`, the string is slack.
-4. **Wait for the jump.** After that, a current above `homeLoadedCurrent` **held continuously** for `homeLoadedTime` means the string has wound the other way and is lifting the lift. The lift is at the bottom.
-5. **Stop and zero.** The code stops the motor, **resets the lift height to 0** and switches to `ZERO`.
+- `HOMING` finds the bottom using the **current rise** described on page 2.
+- The rise was **measured on the robot** by driving the lift down at a power of 45 and printing the motor's current and speed every 50 ms:
+  - While the string was slack, the current was **50 to 105 mA** at about 84 RPM.
+  - Once the string began lifting the lift, the current was **220 to 350 mA** at about 70 RPM.
+- The speed dropped by only about 15%, but the current roughly tripled. The homing routine therefore **watches the current**, not the speed.
+
+1. **Drive down slowly** at the **homing speed**, the same power of 45 used in the measurement.
+2. **Ignore the start-up spike.** For a short **ignore time**, the current reads 0 and then spikes as the motor accelerates, so the code does not check it yet.
+3. **Wait for slack.** When the current drops below a **slack threshold**, the string is slack.
+4. **Wait for the rise.** After that, a current above a **loaded threshold**, held continuously for a set **loaded time**, means the string is lifting the lift. The lift is at the bottom.
+5. **Stop and zero.** The code stops the motor, resets the lift height to 0 and switches to `ZERO`.
+
+- Both thresholds are set **between the two measured ranges**, above the slack current and below the lifting current.
 
 ```mermaid
 flowchart TD
-    A(["home(): clear timers"]) --> B["Drive down at -homeSpeed"]
-    B --> C{"Past homeIgnoreTime?<br/>(skip the start-up spike)"}
+    A(["Start homing: clear the timers"]) --> B["Drive down at the homing speed"]
+    B --> C{"Past the ignore time?<br/>(skip the start-up spike)"}
     C -->|"no"| B
-    C -->|"yes"| D{"current < homeLooseCurrent?"}
-    D -->|"yes"| E["String is loose:<br/>homeLoose = true"]
+    C -->|"yes"| D{"Current below<br/>the slack threshold?"}
+    D -->|"yes"| E["Mark the string as slack"]
     D -->|"no"| F
-    E --> F{"homeLoose and<br/>current > homeLoadedCurrent?"}
-    F -->|"no: loadedTime = 0"| B
-    F -->|"yes: loadedTime += 10"| G{"loadedTime >= homeLoadedTime?"}
+    E --> F{"String slack and current<br/>above the loaded threshold?"}
+    F -->|"no: reset the loaded timer"| B
+    F -->|"yes: add to the loaded timer"| G{"Loaded timer reached<br/>the loaded time?"}
     G -->|"no"| B
-    G -->|"yes"| H(["Stop, zero lift motor + sensor,<br/>set(ZERO)"])
+    G -->|"yes"| H(["Stop, zero the lift sensor,<br/>switch to ZERO"])
 
     classDef st fill:#ffffff,stroke:#000000,stroke-width:1.5px,color:#000000
     class A,B,C,D,E,F,G,H st
@@ -518,38 +457,77 @@ flowchart TD
 
 ---
 
-## Page 13: 2B · Overall Implementation
+## Page 11: 2B · Overall Implementation
 
 > **Header:** badge `2B` · "Lift Subsystem" · subtitle "Overall Implementation" · tag **IMPLEMENT** (maroon)
 
 ### ▲ In This Document
 
-- The `Lift` class structure and its **fourteen-state** finite state machine
-- How **one control loop** converts the state into lift and arm power every 10 ms
-- The code behind the **score** and **homing** sequences
-- The commands `set()`, `levelUp()`, `levelDown()`, `score()` and `home()`, and the **driver controls**
-- **Background task** execution and the **tuning constants**
+- The `Lift` class structure and its **fourteen-state** finite state machine design
+- How **one control loop**, `liftControl()`, converts the state into lift and arm power
+- The code behind the **SCORE** and **HOMING** states
+- State transitions through `set()`, `levelUp()`, `levelDown()`, `score()` and `home()`, and the **driver controls**
+- **Background task** execution model
 
 ### ▲ Executive Summary
 
 #### Purpose & Need
 
 - The lift performs **four kinds of work** (holding a pose, moving freely, scoring and homing) using **three mechanisms**: the lift motor, the arm motor and the claw piston.
-- Instead of scattered motor calls, the system is a **finite state machine (FSM)** that **separates intent from action**. Intent is which state the lift should be in; action is what the motors do in that state.
+- Rather than implementing these as separate functions with scattered motor calls, the system is designed as a **finite state machine (FSM)** that **separates intent from action**. Intent is which state the lift should be in; action is what the motors do in that state.
 
 #### Why Finite State Machine?
 
-- A simpler approach would call `liftMotor.move()` and `pivotMotor.move()` from each button handler. This leads to **conflicting commands** between the two motors and **no single record** of what the lift is doing. The FSM addresses both problems:
-  1. Only `liftControl()` commands the motors. All other code **only sets the state**.
-  2. `set()` writes a field and returns. A button press or autonomous call therefore **never waits** for the lift to arrive.
-  3. Each position state holds **both targets**, which keeps the height and arm angle matched.
-  4. Scoring and homing are **states with phases**. They run inside the same loop instead of **blocking the program** as the old macros did.
+- A naive approach would call `motor.move()` directly from every button. This creates two problems: **conflicting commands** between the two motors, and **no single record** of what the lift is doing. The FSM solves both:
+  1. `liftControl()` is the only place the motors are commanded. All other code interacts with the lift **only by setting the state**.
+  2. `set()` is a single assignment, so a button press or autonomous call **never waits** for the lift to arrive. The control loop picks up the new state on its next pass.
+  3. Each pose state holds **both targets**, which keeps the height and arm angle matched.
+  4. Scoring and homing are **states with phases**. They run inside the same loop and **do not pause** the rest of the program.
+- The FSM is the **third design** the lift code has used this season. Page 12 describes the two earlier designs and why they were replaced.
 
+> Letter the four points a. to d., as on the Intake page.
+>
 > **Picture box:** the lift at `LOADING` beside the lift at `LEVEL_3`, showing a single state change moving both the height and the arm angle.
 
 ---
 
-## Page 14: 2B · Architecture
+## Page 12: 2B · Overall Implementation (cont.)
+
+> **Header:** title and subtitle only. The Intake compares its FSM only to a naive approach. The lift went through two earlier designs, so this page records them under the same heading.
+
+### ▲ Executive Summary (cont.)
+
+#### Development History
+
+- The dates below come from the team's code repository.
+
+| Date | Change |
+|:--|:--|
+| 9/11 | **Timed macros.** Each lift movement ran the motor for a fixed time inside the driver control loop. Later that day, the macros were moved to a background task so that they no longer stopped the drive |
+| 10/4 | **First state machine.** The macros were replaced with a state machine that drives the lift to target heights using the rotation sensor. The lift was also changed from two motors to one |
+| 10/11 | **Scoring, homing and matchloading** were added as states, and the first preset heights were set |
+| 11/1 | The score **drop and rise distances** were changed to their current values |
+| 11/2 | **Pivot arm.** The robot was rewired, and a second motor and rotation sensor were added for the pivot arm |
+| 11/3 | **Sixth scoring height** added, and the travel limits updated |
+
+#### Comparing the Designs
+
+| Design | Blocks the Drive? | Height Feedback | Driver Override | Code Complexity |
+|:--|:--|:--|:--|:--|
+| **Blocking timed macros** (9/11) | Yes. Each macro waited inside the driver control loop, which stopped the drive for **up to 2.85 s** while the lift lowered | None (**open loop**). Each move ran for a fixed time; full travel took 1.3 s | None until the macro finished | Low |
+| **Non-blocking scripted macros** (9/11) | No. A **background task** stepped through a script of moves | None (**open loop**). Same timings as the blocking version | Driver input cancelled the running macro | High: a script of steps, a lock (mutex) to share the lift between the driver and the script, and functions to cancel and wait for a macro |
+| **Sensor-based FSM** (10/4, chosen) | No. A command only changes the state; a **background task** moves the motors | Rotation sensor (**closed loop**) | A new state **replaces the old one immediately** | Medium: one control loop that selects behavior by state |
+
+1. Both macro designs were **open loop**: they ran the motor for a fixed time and assumed the lift had arrived. A low battery or a heavy object made the same run time cover **less distance**, so a macro could stop at a different height from one match to the next.
+2. The scripted version removed the blocking but **kept the timing**. It also needed a lock and cancel logic to coordinate the driver with the script.
+3. The FSM is **closed loop**. It measures the lift with the rotation sensor and drives it to a target, so the same command **ends at the same height** every time.
+4. Scoring and homing still require ordered steps, so they were added as **states with their own phases** rather than as macros.
+
+> If this page overflows, shorten the cells of the comparison table first.
+
+---
+
+## Page 13: 2B · Architecture
 
 > **Header:** title and subtitle only
 
@@ -557,20 +535,19 @@ flowchart TD
 
 #### External Dependencies
 
-- The lift code uses **four library classes**: three for the devices and one for the task.
-
 | Component | Type | Purpose |
 |:--|:--|:--|
-| `pros::Motor` | Kernel Library | **Motor control** for the lift (`liftMotor`) and the arm (`pivotMotor`) |
-| `pros::Rotation` | Kernel Library | **Height and angle** readings (`liftRotation`, `pivotRotation`) |
-| `ez::Piston` | EZ-Template Library | Opens and closes the **claw** (`claw`). `true` is open |
-| `pros::Task` | Kernel Library | Runs `liftControl()` as a **background task** |
+| `pros::Motor` | Kernel Library | **Motor control** interface for the lift motor, `liftMotor`, and the arm motor, `pivotMotor` |
+| `pros::Rotation` | Kernel Library | **Height and angle** readings from the lift sensor, `liftRotation`, and the arm sensor, `pivotRotation` |
+| `ez::Piston` | EZ-Template Library | Opens and closes the **claw**, `claw`. `true` is open |
+| `pros::Task` | Kernel Library | Runs `liftControl()` as a **background task** independent of the main program |
 
 #### Hardware Configuration
 
-1. Each device is declared **once**, in `config.cpp`, with the port it is plugged into.
+1. Each device is declared **once**, in `config.cpp`, with the port it is plugged into. The ports match the wiring from the **11/2 rewiring** (page 12).
 2. A **negative port number** reverses the device. The lift sensor is reversed so that its reading **increases as the lift rises**.
-3. The devices are **passed into the `Lift` constructor**, and the class itself contains no port numbers. Changing a port only requires editing `config.cpp`.
+3. The arm ports are marked as **placeholders** in `config.cpp` until they are confirmed on the robot.
+4. The devices are passed into the `Lift` constructor, and the class itself contains no port numbers. Changing a port only requires editing `config.cpp`.
 
 | Constant | Port | Device | Notes |
 |:--|:--|:--|:--|
@@ -596,7 +573,7 @@ Lift lift(liftMotor, liftRotation, pivotMotor, pivotRotation, claw);
 
 ---
 
-## Page 15: 2B · Implementation Explainer
+## Page 14: 2B · Implementation Explainer
 
 > **Header:** title and subtitle only
 
@@ -604,7 +581,7 @@ Lift lift(liftMotor, liftRotation, pivotMotor, pivotRotation, claw);
 
 #### ◈ Finite State Machine
 
-1. The `Lift` class lists the **fourteen states** from page 3 in the `LiftState` enumeration (enum), in three groups: position, raw and sequences.
+1. The `Lift` class first defines the aforementioned **fourteen states** (Requirements, page 6) in the `LiftState` enumeration (enum).
 
 ```cpp
   enum LiftState { ZERO,
@@ -624,11 +601,11 @@ Lift lift(liftMotor, liftRotation, pivotMotor, pivotRotation, claw);
 ```
 
 2. In C++, enum names are **numbered from 0** in the order listed: `ZERO` is 0, `LOADING` is 2, `LEVEL_6` is 8 and `SCORE` is 13.
-3. The position states come first, **in height order**. This allows the code to check for a position state with `state <= LEVEL_6` and to step one level with `level + 1`.
+3. The pose states come first, **in height order**. This allows the code to check for a pose state with `state <= LEVEL_6` and to step one level with `level + 1`.
 
 > **Callout beside the enum:** "New levels must be added directly after `LEVEL_6`; otherwise level stepping breaks."
 
-4. Scoring has its own phases in a second enum, matching the drop, release and raise steps on page 11.
+4. The Dropping, Releasing and Raising phases of the SCORE state (page 9) are defined in a second enum, `ScorePhase`.
 
 ```cpp
   enum ScorePhase { DROPPING,
@@ -636,37 +613,37 @@ Lift lift(liftMotor, liftRotation, pivotMotor, pivotRotation, claw);
                     RAISING };
 ```
 
-5. Two fields track the FSM. `state` is **what the lift is doing now**, and `level` is the **last position state selected**. After raw control, `state` is `RAW_HOLD`; without `level`, the L1 button would have no way to determine the next level.
+5. Two class fields hold the FSM's memory. `state` is **what the lift is doing now**, and `level` is the **last pose state selected**. After raw control, `state` is `RAW_HOLD`; without `level`, `levelUp()` would have no way to determine the next level.
 
 ```cpp
   LiftState state = ZERO;
   LiftState level = ZERO;  // last ZERO..LEVEL_6 picked, so levelUp/levelDown still work after raw
 ```
 
-> **Picture box:** the enum with the three groups bracketed and labeled with the group names from page 9.
+> **Picture box:** the enum with the three groups bracketed and labeled with the group names from page 7.
 
 ---
 
-## Page 16: 2B · ◈ Control Loop Roadmap
+## Page 15: 2B · ◈ Control Loop
 
-> **Header:** title and subtitle only, with the "Src Explainer Cont." tab. The Intake shows its whole loop in one code box. The Lift loop is about 130 lines, so this page outlines one pass and pages 17 to 22 each cover one step.
+> **Header:** title and subtitle only, with the "Src Explainer Cont." tab. The Intake shows its whole loop in one code box. The Lift loop is about 130 lines, so this page outlines one pass, and pages 16 to 21 each cover one step.
 
-#### ◈ Control Loop Roadmap
+#### ◈ Control Loop
 
-1. `liftControl()` runs **continuously** in its background task from startup until the program ends.
-2. Every 10 ms, the loop reads the sensors once, calculates the power for both motors and sends it. One pass is called a **tick**.
-3. Each tick runs the steps below **in this order**, and every step uses the sensor readings taken at the start of the tick.
+1. The control loop, `liftControl()`, runs **indefinitely** in a background PROS task and dispatches motor outputs based on the current state.
+2. Each pass through the loop is called a **tick**. A tick begins with a 10 ms wait (page 16), so the loop runs about **100 times per second**.
+3. Each tick reads the sensors once, calculates the power for both motors and sends it, using the steps below **in this order**.
 
-| Step | Action | Explained on |
+| Step | Action | Page |
 |:--|:--|:--|
-| 1 | Wait 10 ms, read the lift and arm sensors | ◈ Reading the Sensors (p. 17) |
-| 2 | Select the lift and arm targets for the state | ◈ Target Selection (p. 18) |
-| 3 | Lift power: P control, then raw overrides | ◈ Lift Power & Soft Limits (p. 19) |
-| 4 | Lift soft limits | ◈ Lift Power & Soft Limits (p. 19) |
-| 5 | Arm power, arm soft limits, move the arm | ◈ Arm Control (p. 20) |
-| 6 | Advance the score phase | ◈ Score Sequence (p. 21) |
-| 7 | Homing override and bottom check | ◈ Homing (p. 22) |
-| 8 | Move the lift motor | ◈ Homing (p. 22) |
+| 1 | Wait 10 ms, read the lift and arm sensors | 16 |
+| 2 | Select the lift and arm targets for the state | 17 |
+| 3 | Lift power: P control, then raw overrides | 18 |
+| 4 | Lift soft limits | 18 |
+| 5 | Arm power, arm soft limits, move the arm | 19 |
+| 6 | Advance the score phase | 20 |
+| 7 | Homing override and bottom check | 21 |
+| 8 | Move the lift motor | 21 |
 
 4. The order affects behavior in two places:
    - The soft limits (step 4) run **after** the raw overrides (step 3). Raw control therefore **cannot exceed** the ends of travel.
@@ -675,18 +652,18 @@ Lift lift(liftMotor, liftRotation, pivotMotor, pivotRotation, claw);
 ```mermaid
 flowchart TD
     I(["Task starts: HOLD brakes, zero both sensors"]) --> W
-    W["1. Wait 10 ms, read both sensors"] --> T["2. Pick targets from state"]
+    W["1. Wait 10 ms, read both sensors"] --> T["2. Select targets from the state"]
     T --> P["3. Lift power: P control, raw overrides"]
     P --> L["4. Lift soft limits"]
-    L --> A["5. Arm: P control, limits, move pivotMotor"]
-    A --> S{"6. state == SCORE?"}
-    S -->|"yes"| SP["Advance score phase"]
+    L --> A["5. Arm: P control, soft limits, move the arm motor"]
+    A --> S{"6. Scoring?"}
+    S -->|"yes"| SP["Advance the score phase"]
     S -->|"no"| H
-    SP --> H{"7. state == HOMING?"}
-    H -->|"yes"| HO["Power = -homeSpeed, check current"]
+    SP --> H{"7. Homing?"}
+    H -->|"yes"| HO["Override power to the homing speed,<br/>check the current"]
     H -->|"no"| M
-    HO -->|"bottom found: zero, set(ZERO)"| W
-    HO -->|"not yet"| M["8. liftMotor.move(power)"]
+    HO -->|"bottom found: zero, switch to ZERO"| W
+    HO -->|"not yet"| M["8. Send power to the lift motor"]
     M --> W
 
     classDef st fill:#ffffff,stroke:#000000,stroke-width:1.5px,color:#000000
@@ -695,21 +672,23 @@ flowchart TD
 
 ---
 
-## Page 17: 2B · ◈ Reading the Sensors
+## Page 16: 2B · ◈ Control Loop (cont.)
 
 > **Header:** title and subtitle only, with the "Src Explainer Cont. · Lift & Arm" tab
 
-#### ◈ Reading the Sensors
+#### ◈ Control Loop (cont.)
+
+##### Step 1: Reading the Sensors
 
 Before the loop starts, the code:
 
-1. Sets both motors to the **HOLD brake** (page 3), which holds the lift and arm in place at zero power.
-2. **Zeros both rotation sensors**, so every height and angle is measured from the starting position.
+1. Sets both motors to the **HOLD brake mode** from the Requirements (page 6), so zero power holds the lift and arm in place.
+2. **Zeros both rotation sensors**, so every height and angle is measured from the starting position (page 2).
 
 At the start of every tick, the code:
 
-3. **Waits 10 ms**, which sets the loop rate at 100 ticks per second.
-4. **Reads each sensor once**. The sensors report **centidegrees** (hundredths of a degree), and each reading is divided by 100 to convert it to degrees.
+3. **Waits 10 ms**. This sets the loop rate and matches the 10 ms delay used by the driver control loop.
+4. **Reads each sensor once** and stores the results as `position` (lift height) and `pivotPosition` (arm angle). The sensors report **centidegrees** (hundredths of a degree), so each reading is divided by 100 to convert it to degrees.
 
 ```cpp
 void Lift::liftControl() {
@@ -728,16 +707,28 @@ void Lift::liftControl() {
 
 ---
 
-## Page 18: 2B · ◈ Target Selection
+## Page 17: 2B · ◈ Control Loop (cont.)
 
 > **Header:** title and subtitle only, with the "Src Explainer Cont. · Lift & Arm" tab
 
-#### ◈ Target Selection
+#### ◈ Control Loop (cont.)
 
-1. The loop uses two targets: `target` is the height the lift should be at **during this tick**, and `pivotTarget` is the angle the arm should be at.
-2. The `switch` statement **converts the state into a pose** by setting the targets from the Pose Table (page 10).
-3. `target` starts at the **current position**. Raw and homing states leave it unchanged; their error is therefore zero, and **P control adds no power**.
-4. `pivotTarget` is a **class field** rather than a loop variable, and it keeps its value between ticks. States that do not set it **keep the last angle**.
+##### Step 2: Target Selection
+
+1. Each lift height from the Pose Table (page 8) is stored as a **named constant**. The arm angles are introduced with the arm on page 19.
+
+| Constant | Used by | Value (degrees) | Source |
+|:--|:--|:--|:--|
+| `ZERO_HEIGHT` | `ZERO` | 0 | The bottom of travel, where the sensor is zeroed (page 2) |
+| `MATCHLOADING_HEIGHT` | `MATCHLOADING` | 0 | Placeholder estimate |
+| `LOADING_HEIGHT` | `LOADING` | 1650 | Set on 10/11, before the arm was added. **Placeholder** until re-measured |
+| `LEVEL_1_HEIGHT` to `LEVEL_5_HEIGHT` | `LEVEL_1` to `LEVEL_5` | 2950, 5200, 7200, 9200, 13000 | Set on 10/11, before the arm was added. **Placeholders** until re-measured |
+| `LEVEL_6_HEIGHT` | `LEVEL_6` | 15500 | **Calculated** on 11/3 as `LEVEL_5_HEIGHT` + 2500, the average step from Level 1 to Level 5 |
+
+2. The loop uses two targets: `target` is the height the lift should be at **during this tick**, and `pivotTarget` is the angle the arm should be at.
+3. The `switch` statement **converts the state into a pose** by setting both targets from the matching constants.
+4. `target` starts at the **current position**. Raw and homing states leave it unchanged; their error is therefore zero, and **P control adds no power** (page 18).
+5. `pivotTarget` is a **class field** rather than a loop variable, and it keeps its value between ticks. States that do not set it **keep the last angle**.
 
 ```cpp
     double target = position;  // raw states get no P power
@@ -766,25 +757,27 @@ void Lift::liftControl() {
     }
 ```
 
-> **Callout beside `case SCORE`:** "The score target depends on the phase: below the start height while dropping or releasing, and above it while raising."
+> **Callout beside `case SCORE`:** "`scoreStart` is the start height, and `scoreDrop` and `scoreRise` are the drop and rise distances from page 9. All three are introduced on page 20. The target is below the start while dropping or releasing, and above it in the Raising phase."
 >
 > Lines marked `// ...` were trimmed to save space. The trimmed cases follow the same pattern.
 
 ---
 
-## Page 19: 2B · ◈ Lift Power & Soft Limits
+## Page 18: 2B · ◈ Control Loop (cont.)
 
 > **Header:** title and subtitle only, with the "Src Explainer Cont. · Lift" tab
 
-#### ◈ Lift Power & Soft Limits
+#### ◈ Control Loop (cont.)
 
-The lift power is calculated with the P control from page 5:
+##### Steps 3 and 4: Lift Power and Soft Limits
 
-1. Calculate the **error**: target - position.
-2. Multiply the error by `kP` to get the power.
-3. **Cap the power** between -`speed` and +`speed`. Motor power ranges from -127 to 127.
-4. In raw states, **replace the power**. `RAW_UP` and `RAW_DOWN` use a fixed `rawSpeed`, and `RAW_HOLD` sends 0 so that the HOLD brake holds the lift.
-5. **Apply the soft limits**. Past a limit, only power that pushes **further out of range** is set to zero. The driver can always move the lift back into range.
+- The lift power is calculated with the **P control** from the Requirements (page 6). Three class fields control it: `kP` is the **gain**, `speed` is the **maximum power** for moves to a pose, and `rawSpeed` is the **fixed power** for raw control.
+
+1. Calculate the **error**, the distance left to travel: `target - position`.
+2. Multiply the error by `kP` to get the power. Far from the target, the power is high; near the target, it drops, so the lift **slows as it arrives**.
+3. **Cap the power** between `-speed` and `speed`. PROS motor power ranges from -127 to 127.
+4. In raw states, **replace the power**. `RAW_UP` and `RAW_DOWN` use `rawSpeed`, and `RAW_HOLD` sends 0 so that the HOLD brake holds the lift.
+5. **Apply the soft limits**, stored as `MIN_POSITION` and `MAX_POSITION`. Past a limit, only power that pushes **further out of range** is set to zero, so the driver can always move the lift back into range.
 
 ```cpp
     int power = std::clamp(static_cast<int>(kP * (target - position)), -speed, speed);
@@ -797,26 +790,31 @@ The lift power is calculated with the P control from page 5:
     if (position <= MIN_POSITION && power < 0) power = 0;
 ```
 
-> **Callout (worked example):** "Moving from `LOADING` to `LEVEL_1`, the error is 2950 - 1650 = 1300°. Multiplying by `kP` (1.0) gives 1300, which is capped at 127. The lift runs at full power until it is within 127° of the target and then slows down."
+> **Callout (worked example):** "Moving from `LOADING` (1650°) to `LEVEL_1` (2950°), the error is 2950 - 1650 = 1300°. Multiplying by `kP` (1.0) gives 1300, which is capped at 127. The lift runs at full power until it is within 127° of the target and then slows down."
 
-| Limit | Value | Reason |
+| Field | Value | Source |
 |:--|:--|:--|
-| `MAX_POSITION` | 18000° | Approximately where a **seventh level** would be (`LEVEL_6_HEIGHT` + 2500, the average step between levels). This leaves one level of travel for raw control and the score rise |
-| `MIN_POSITION` | -10° | Slightly below `ZERO_HEIGHT`, so raw down stops **before the string winds the other way** |
+| `kP` | 1.0 | **Placeholder** estimate, to be tuned on the robot |
+| `speed`, `rawSpeed` | 127 | The **PROS maximum** motor power. `rawSpeed` can be lowered to slow raw control |
+| `MAX_POSITION` | 18000° | **Calculated** on 11/3 as `LEVEL_6_HEIGHT` + 2500, about where a seventh level would be. This leaves one level of travel for raw control and the score rise |
+| `MIN_POSITION` | -10° | **Chosen** on 11/3, slightly below `ZERO_HEIGHT`, so raw down stops before the string winds the other way |
 
 > **Picture box:** the lift at its highest safe point with the 18000° reading. Take this photo after `MAX_POSITION` has been checked against the physical top.
 
 ---
 
-## Page 20: 2B · ◈ Arm Control
+## Page 19: 2B · ◈ Control Loop (cont.)
 
 > **Header:** title and subtitle only, with the "Src Explainer Cont. · Arm" tab
 
-#### ◈ Arm Control
+#### ◈ Control Loop (cont.)
 
-1. The arm uses the **same P control** as the lift (page 19), with its own gain `pivotKP`, maximum power `pivotSpeed` and soft limits.
-2. `pivotTarget` starts at 0, and the arm sensor was zeroed at the arm's starting position. The arm therefore **holds its starting pose** until a state assigns it an angle.
-3. The arm is driven **before** the score and homing steps (steps 6 and 7 on page 16), so it **keeps its angle** during both.
+##### Step 5: Arm Control
+
+1. The arm uses the **same P control** as the lift (page 18), with its own fields: `pivotKP` (gain), `pivotSpeed` (maximum power) and `pivotTarget` (target angle, page 17).
+2. `pivotTarget` starts at 0, and the arm sensor was zeroed at the arm's starting position. The arm therefore **holds its starting position** until a state assigns it an angle.
+3. The arm's soft limits are stored as `PIVOT_MIN_ANGLE` and `PIVOT_MAX_ANGLE`.
+4. The arm is driven **before** the score and homing steps (steps 6 and 7 on page 15), so it **keeps its angle** during both.
 
 ```cpp
   int pivotSpeed = 127;    // max power moving to an angle
@@ -831,31 +829,44 @@ The lift power is calculated with the P control from page 5:
     pivotMotor.move(pivotPower);
 ```
 
-| Angle | Value | Used by |
-|:--|:--|:--|
-| `MATCHLOADING_ANGLE` | 0° | `MATCHLOADING` |
-| `SCORING_ANGLE` | 90° | `LEVEL_1` to `LEVEL_6` |
-| `LOADING_ANGLE` | 180° | `LOADING` |
-| `PIVOT_MIN_ANGLE` / `PIVOT_MAX_ANGLE` | -20° / 200° | Arm soft limits |
+5. Each arm angle from the Pose Table (page 8) is stored as a named constant:
 
-- All arm values are **placeholders** until they are tuned on the robot. Keep the angles in the order `MATCHLOADING_ANGLE` < `SCORING_ANGLE` < `LOADING_ANGLE`.
+| Constant | Used by | Value (degrees) |
+|:--|:--|:--|
+| `MATCHLOADING_ANGLE` | `MATCHLOADING` | 0 |
+| `SCORING_ANGLE` | `LEVEL_1` to `LEVEL_6` | 90 |
+| `LOADING_ANGLE` | `LOADING` | 180 |
+| `PIVOT_MIN_ANGLE` / `PIVOT_MAX_ANGLE` | Arm soft limits | -20 / 200 |
+
+- The arm was added on 11/2 (page 12), and all arm values, including `pivotKP`, are **placeholder estimates** until they are tuned on the robot. 0 is the arm's starting position, and the comments in `lift.hpp` require the order `MATCHLOADING_ANGLE` < `SCORING_ANGLE` < `LOADING_ANGLE`.
 
 > **Picture box:** one photo with the arm drawn at its three angles (matchloading, scoring and loading).
 
 ---
 
-## Page 21: 2B · ◈ Score Sequence
+## Page 20: 2B · ◈ Control Loop (cont.)
 
 > **Header:** title and subtitle only, with the "Src Explainer Cont. · Claw & Score" tab
 
-#### ◈ Score Sequence
+#### ◈ Control Loop (cont.)
 
-The code below implements the steps on page 11, with one branch per phase:
+##### Step 6: Score Phases
 
-1. On every tick in `SCORE`, `scoreTime` increases by 10 ms. It resets to 0 at the start of each phase.
-2. In `DROPPING` (step 2), the phase ends when the lift is near the dropped height or the timeout has passed. If the claw is closed, the code **opens it** and moves to `RELEASING`. If the claw is already open, the code moves **directly to `RAISING`**.
-3. In `RELEASING` (step 3), the code waits for `scoreReleaseTime`, then moves to `RAISING`.
-4. In `RAISING` (steps 4 and 5), the phase ends when the lift is near the raised height or the timeout has passed. The code then **switches to `RAW_HOLD`**.
+1. The values of the SCORE state (page 9) are stored as class fields:
+
+| Page 9 term | Field | Value | Source |
+|:--|:--|:--|:--|
+| **Drop distance** | `scoreDrop` | 300° | Set on 11/1 |
+| **Rise distance** | `scoreRise` | 700° | Set on 11/1 |
+| **Release time** | `scoreReleaseTime` | 200 ms | Placeholder estimate |
+| **Tolerance** | `scoreTolerance` | 30° | Placeholder estimate |
+| **Move timeout** | `scoreMoveTimeout` | 1000 ms | Set on 10/11, when scoring was added |
+
+2. Three more fields track progress: `scoreStart` is the **start height**, `scorePhase` is the **current phase**, and `scoreTime` is the **time spent in that phase**.
+3. On every tick in `SCORE`, `scoreTime` increases by 10 ms. It resets to 0 at the start of each phase.
+4. In `DROPPING`, the phase ends when the lift is within the tolerance of the dropped height or the timeout has passed. `claw.get()` returns the last claw command: if the claw is closed, the code **opens it** and moves to `RELEASING`; if it is already open, the code moves **directly to `RAISING`**.
+5. In `RELEASING`, the code waits for the release time, then moves to `RAISING`.
+6. In `RAISING`, the phase ends when the lift is within the tolerance of the raised height or the timeout has passed. The code then **switches to `RAW_HOLD`**.
 
 ```cpp
     if (state == SCORE) {
@@ -886,27 +897,35 @@ The code below implements the steps on page 11, with one branch per phase:
     }
 ```
 
-> **Callout with the score constants:** `scoreDrop` = 300°, `scoreRise` = 700°, `scoreReleaseTime` = 200 ms (placeholder), `scoreTolerance` = 30° (placeholder), `scoreMoveTimeout` = 1000 ms.
->
 > **Picture box:** three frames from one score: lowered onto the goal, claw open, and risen clear.
 
 ---
 
-## Page 22: 2B · ◈ Homing
+## Page 21: 2B · ◈ Control Loop (cont.)
 
 > **Header:** title and subtitle only, with the "Src Explainer Cont. · Homing" tab
 
-#### ◈ Homing
+#### ◈ Control Loop (cont.)
 
-The code below implements the steps on page 12:
+##### Steps 7 and 8: Homing and Lift Output
 
-1. In `HOMING`, `power` is **overridden** to -`homeSpeed`. This happens **after the soft limits** (page 16), which is why homing can drive below the bottom limit.
-2. The code reads the motor current every tick, in mA.
-3. The current is not checked until `homeTime` passes `homeIgnoreTime`, which **skips the start-up spike**.
-4. The first time the current drops below `homeLooseCurrent`, the string is marked **slack** (`homeLoose`).
-5. While the string has been slack and the current is above `homeLoadedCurrent`, `loadedTime` increases by 10 ms per tick. Any tick below that threshold **resets it to 0**, and the jump must therefore be **sustained**.
-6. When `loadedTime` reaches `homeLoadedTime`, the code stops the motor, **zeros the lift motor's encoder and the lift rotation sensor**, and switches to `ZERO`. `continue` skips the rest of the loop for that tick.
-7. On every other tick, the loop ends by sending `power` to the lift motor (step 8 on page 16).
+1. The values of the HOMING state (page 10) are stored as class fields:
+
+| Page 10 term | Field | Value | Source |
+|:--|:--|:--|:--|
+| **Homing speed** | `homeSpeed` | 45 | The power used for the **current measurement** (page 10) |
+| **Ignore time** | `homeIgnoreTime` | 100 ms | Set on 10/11, when homing was added |
+| **Slack threshold** | `homeLooseCurrent` | 130 mA | Set **between the measured ranges**: above the slack current (up to 105 mA) |
+| **Loaded threshold** | `homeLoadedCurrent` | 160 mA | Set **between the measured ranges**: below the lifting current (from 220 mA) |
+| **Loaded time** | `homeLoadedTime` | 50 ms | Set on 10/11, when homing was added |
+
+2. Three more fields track progress: `homeTime` is the **time since homing started**, `homeLoose` records whether the **string has gone slack**, and `loadedTime` is the **loaded timer**.
+3. In `HOMING`, `power` is **overridden** to `-homeSpeed`. This happens after the soft limits (page 15), which is why homing can drive below the bottom limit.
+4. The code reads the motor current every tick, in mA. The current is not checked until `homeTime` passes the ignore time.
+5. The first time the current drops below the slack threshold, `homeLoose` is set.
+6. While `homeLoose` is set and the current is above the loaded threshold, `loadedTime` increases by 10 ms per tick. Any tick below that threshold **resets it to 0**, so the rise must be **sustained**.
+7. When `loadedTime` reaches the loaded time, the code stops the motor, **zeros the lift motor's encoder and the lift rotation sensor**, and switches to `ZERO`. `continue` skips the rest of the loop for that tick.
+8. On every other tick, the loop ends by sending `power` to the lift motor (step 8).
 
 ```cpp
     if (state == HOMING) {
@@ -942,24 +961,24 @@ The code below implements the steps on page 12:
     liftMotor.move(power);
 ```
 
-> **Callout with the homing constants:** `homeSpeed` = 45, `homeIgnoreTime` = 100 ms, `homeLooseCurrent` = 130 mA, `homeLoadedCurrent` = 160 mA, `homeLoadedTime` = 50 ms.
+> **Callout beside the trimmed line:** "This print produced the current and speed measurements on page 10."
 >
 > **Picture box:** a graph of current (mA) against time for one homing run, using the printed values, with the slack and lifting ranges shaded. The graph provides the measured basis for the homing thresholds.
 
 ---
 
-## Page 23: 2B · ◈ State Transitions
+## Page 22: 2B · ◈ State Transitions
 
 > **Header:** title and subtitle only, with the "Src Explainer Cont." tab
 
 #### ◈ State Transitions
 
-1. Every state change goes through `set()`, which writes the new state. If the new state is a **position state** (`<= LEVEL_6`, page 15), `set()` also stores it in `level`.
-2. `levelUp()` and `levelDown()` step from `level` rather than `state`. This is why L1 and L2 **still work after raw control or scoring**.
+1. State transitions are handled by the function `set()`, which accepts the desired state and writes it. If the new state is a **pose state** (`<= LEVEL_6`, page 14), `set()` also stores it in `level`.
+2. `levelUp()` and `levelDown()` step from `level` rather than `state`. This is why level stepping **still works after raw control or scoring**.
    - Stepping up from `ZERO`, `MATCHLOADING` or `LOADING` goes to `LEVEL_1`. Stepping up at `LEVEL_6` has no effect.
    - Stepping down stops at `LOADING`.
-3. `score()` prepares the sequence: it saves the start height, resets the phase and timer, and calls `set(SCORE)`. It has **no effect while scoring or homing** is already in progress.
-4. `home()` prepares homing in the same way. It clears the homing timers and has no effect if homing is already running.
+3. `score()` prepares the SCORE state: it saves the start height, resets the phase and timer, and calls `set(SCORE)`. It has **no effect while scoring or homing** is already in progress.
+4. `home()` prepares the HOMING state in the same way. It clears the homing timers and has no effect if homing is already running.
 
 ```cpp
 void Lift::set(LiftState state) {
@@ -978,7 +997,7 @@ void Lift::levelDown() {
 }
 ```
 
-> **Callout beside `set()`, in the same style as the Intake's:** "A simple setter. It only writes fields; the control loop picks up the new state on its next tick, within 10 ms."
+> **Callout beside `set()`, in the same style as the Intake's:** "Simple self-explanatory setter. It only writes fields; the control loop picks up the new state on its next tick, within 10 ms."
 
 ```cpp
 void Lift::score() {
@@ -992,16 +1011,18 @@ void Lift::score() {
 
 ---
 
-## Page 24: 2B · ◈ Driver Controls
+## Page 23: 2B · ◈ State Transitions (cont.)
 
 > **Header:** title and subtitle only, with the "Src Explainer Cont." tab
 
-#### ◈ Driver Controls
+#### ◈ State Transitions (cont.)
 
-1. `opcontrol()` checks the controller in a loop about every 10 ms and calls the lift commands.
+##### Driver Controls
+
+1. The driver control function, `opcontrol()`, checks the controller in a loop every 10 ms and calls the commands from page 22.
 2. The code reads buttons in two ways:
-   - `get_digital_new_press()` is true **only on the first tick** of a press, and holding the button triggers the command once. The presets, L1 / L2, LEFT and Y use this.
-   - `get_digital()` is true **on every tick** the button is held, and raw control continues for as long as the button is held. X and B use this.
+   - `get_digital_new_press()` is true **only on the first tick** of a press, so holding the button triggers the command once. The presets, level stepping, scoring and the claw use this.
+   - `get_digital()` is true **on every tick** the button is held, so raw control continues for as long as the button is held. The raw buttons use this.
 3. The buttons map to these commands:
 
 | Button | Action | Command |
@@ -1031,15 +1052,15 @@ void Lift::score() {
 
 ---
 
-## Page 25: 2B · ◈ Background Task Execution
+## Page 24: 2B · ◈ Background Task Execution
 
 > **Header:** title and subtitle only, with the "Src Explainer Cont." tab
 
 #### ◈ Background Task Execution
 
-1. A task is a loop that PROS runs **alongside other loops** (page 5). `opcontrol()` and autonomous also run as tasks.
-2. The lift has **its own task**. Its control loop never waits for driver control, and driver control never waits for it.
-3. The task is started **once, in `initialize()`**, after the devices in `config.cpp` have been constructed, and it runs for the rest of the program.
+1. `liftControl()` is launched **once, in `initialize()`**, the PROS function that runs when the program starts. It then runs concurrently with all other code for the **duration of the match**.
+2. The task is started after the devices in `config.cpp` have been constructed. Its control loop never waits for driver control, and driver control never waits for it.
+3. The same block also starts the EZ-Template screen task and the intake task.
 
 ```cpp
   // Started here rather than at static init - chassis, lift and intake live in
@@ -1053,40 +1074,7 @@ void Lift::score() {
 
 ---
 
-## Page 26: 2B · Tuning Constants
-
-> **Header:** title and subtitle only. The Intake has one speed constant; the Lift has a constant for every height, angle, gain, limit and timing. The Status column follows the `PLACEHOLDER` markers in `include/subsystem/lift.hpp` and should be kept up to date.
-
-### ▲ Tuning Constants
-
-- Every number the lift uses is a **named constant** in `lift.hpp`. Tuning the lift **changes these values**; the control logic stays the same.
-- A **placeholder** is a starting estimate that has not yet been measured on the robot.
-
-| Group | Constant | Value | Effect of increasing it | Status |
-|:--|:--|:--|:--|:--|
-| **Lift control** | `kP` | 1.0 | Arrives faster; too high a value overshoots and oscillates | Placeholder |
-| | `speed` | 127 | Faster preset moves | Set |
-| | `rawSpeed` | 127 | Faster raw moves | Set |
-| **Arm control** | `pivotKP` | 1.0 | Arm arrives faster; too high a value swings past the angle | Placeholder |
-| | `pivotSpeed` | 127 | Faster arm moves | Set |
-| **Heights** | `ZERO_HEIGHT`, `MATCHLOADING_HEIGHT` | 0, 0 | Raises that pose | Placeholder |
-| | `LOADING_HEIGHT` | 1650 | Raises the loading pose | Placeholder |
-| | `LEVEL_1_HEIGHT` to `LEVEL_6_HEIGHT` | 2950, 5200, 7200, 9200, 13000, 15500 | Raises that level. `LEVEL_6` is calculated as `LEVEL_5` + 2500 | Placeholder |
-| **Angles** | `MATCHLOADING_ANGLE`, `SCORING_ANGLE`, `LOADING_ANGLE` | 0, 90, 180 | Rotates that pose further | Placeholder |
-| **Limits** | `MIN_POSITION` | -10 | Lets raw down go lower. Below 0, the string can wind the other way | Set |
-| | `MAX_POSITION` | 18000 | Lets the lift go higher. Calculated as a seventh level from placeholder heights | Recalculate after tuning |
-| | `PIVOT_MIN_ANGLE`, `PIVOT_MAX_ANGLE` | -20, 200 | Widens the arm's range | Placeholder |
-| **Score** | `scoreDrop`, `scoreRise` | 300, 700 | Drops deeper / ends higher | Set |
-| | `scoreReleaseTime` | 200 ms | Longer wait for the claw to let go | Placeholder |
-| | `scoreTolerance` | 30° | Moves count as complete sooner | Placeholder |
-| | `scoreMoveTimeout` | 1000 ms | Longer wait before a blocked move gives up | Set |
-| **Homing** | `homeSpeed` | 45 | Homes faster. The current ranges were measured at 45 | Set from measurements |
-| | `homeLooseCurrent`, `homeLoadedCurrent` | 130, 160 mA | Changes the thresholds for slack and lifting | Set from measurements |
-| | `homeLoadedTime`, `homeIgnoreTime` | 50, 100 ms | Requires a longer current jump / skips a longer start-up | Set |
-
----
-
-## Page 27: 2C · Review Process
+## Page 25: 2C · Review Process
 
 > **Header:** badge `2C` · "Lift Subsystem" · subtitle "Review Process" · tag **TEST & ITERATE** (blue)
 >
@@ -1094,18 +1082,18 @@ void Lift::score() {
 
 ### ▲ Tests & Performance Analysis
 
-- Each test corresponds to **one Success Metric** (page 7), using the same groups. The procedures are on pages 28 and 29.
+- Each test corresponds to **one Success Metric** (page 5), using the same groups. The procedures are on pages 26 and 27, and the buttons are listed on page 23.
 
 | # | Test Description | Status | Result |
 |:--|:--|:--|:--|
 | | **Lift** | | |
 | T1 | Each preset (`LOADING`, `MATCHLOADING`, `LEVEL_1` to `LEVEL_6`) **reaches its height** and holds it without sagging | Not yet tested | |
-| T2 | L1 / L2 step **exactly one level** per press, including immediately after raw control and after scoring | Not yet tested | |
-| T3 | Holding X / B moves the lift; releasing **holds it** without drifting | Not yet tested | |
+| T2 | Level stepping moves **exactly one level** per press, including immediately after raw control and after scoring | Not yet tested | |
+| T3 | Holding a raw button moves the lift; releasing it **holds the lift** without drifting | Not yet tested | |
 | | **Arm** | | |
 | T4 | The arm **reaches the matching angle** at `LOADING`, `MATCHLOADING` and every level | Not yet tested | |
 | | **Claw & Score** | | |
-| T5 | LEFT **scores a held object**: drop, open, rise | Not yet tested | |
+| T5 | The score button **scores a held object**: drop, open, rise | Not yet tested | |
 | | **Safety** | | |
 | T6 | The lift **stops at both soft limits**, and the driver can still move it back | Not yet tested | |
 | T7 | Homing from a raised start **stops at the true bottom** and zeros the sensor | Blocked: `home()` is not assigned to a button | |
@@ -1114,24 +1102,27 @@ void Lift::score() {
 
 ---
 
-## Page 28: 2C · Before Testing & Procedures T1 to T4
+## Page 26: 2C · Review Process (cont.)
 
-> **Header:** title and subtitle only. As with the Intake, these tests run in driver control without autonomous code.
+> **Header:** title and subtitle only
 
-### ▲ Before Testing
+### ▲ Tests & Performance Analysis (cont.)
 
-1. Start the program with the lift **at the bottom** and the arm in its starting pose (page 4).
+#### Procedure
+
+Since this testing is executed during driver control and has no autonomous code block, testing procedures have been provided instead.
+
+**Before testing**
+1. Start the program with the lift **at the bottom** and the arm in its starting position (page 2).
 2. Press Y to print the lift and arm positions. The values are in **centidegrees**; divide by 100 to get degrees.
 3. Y **also toggles the claw**. Press it a second time if the claw needs to stay in its current position.
-4. **Set the pass margins** before testing and keep them the same between runs. The margins below (±30° for the lift and ±5° for the arm) are suggested values.
-
-### ▲ Procedures
+4. **Set the pass margins** before testing and keep them the same between runs. The margins below (±30° for the lift and ±5° for the arm) are suggested values; the lift margin matches the score tolerance (page 20).
 
 **T1 Preset heights**
 1. Press A, wait for the lift to settle, and press Y. Record the reading divided by 100.
 2. Repeat for RIGHT, then press L1 six times to reach `LEVEL_1` through `LEVEL_6`, taking a reading at each.
 3. Wait 5 s at each height and press Y again to check for sag.
-4. **Pass:** every reading is within **±30°** of its target (the same margin as `scoreTolerance`) and does not change by more than that while holding.
+4. **Pass:** every reading is within **±30°** of its target (page 17) and does not change by more than that while holding.
 
 **T2 Level stepping**
 1. From `LOADING`, press L1 three times. The lift should be at `LEVEL_3`.
@@ -1147,15 +1138,17 @@ void Lift::score() {
 
 **T4 Arm angles**
 1. Press A, then RIGHT, then L1, pressing Y after each to read the arm angle.
-2. **Pass:** the readings are within **±5°** of `LOADING_ANGLE`, `MATCHLOADING_ANGLE` and `SCORING_ANGLE` respectively.
+2. **Pass:** the readings are within **±5°** of `LOADING_ANGLE`, `MATCHLOADING_ANGLE` and `SCORING_ANGLE` respectively (page 19).
 
 ---
 
-## Page 29: 2C · Procedures T5 to T8
+## Page 27: 2C · Review Process (cont.)
 
 > **Header:** title and subtitle only
 
-### ▲ Procedures (cont.)
+### ▲ Tests & Performance Analysis (cont.)
+
+#### Procedure (cont.)
 
 **T5 Score**
 1. Close the claw on an object at `LOADING`, then press L1 to reach a level.
@@ -1165,7 +1158,7 @@ void Lift::score() {
 
 **T6 Soft limits**
 1. Lower `rawSpeed` for this test.
-2. Hold X until the lift stops, then press Y twice. The reading should be close to **18000°**. If the lift reaches its **physical top first**, release X and lower `MAX_POSITION` (Next Iteration item 4).
+2. Hold X until the lift stops, then press Y twice. The reading should be close to **18000°**. If the lift reaches its **physical top first**, release X and lower `MAX_POSITION` (see the Soft limits row on page 28).
 3. Hold B until the lift stops. The reading should be close to **-10°**, with the string still wound in the correct direction.
 4. At each end, press the opposite button to confirm that the lift **moves back**.
 5. **Pass:** the lift stops at both limits without hitting anything and can always move back.
@@ -1182,36 +1175,27 @@ void Lift::score() {
 
 ---
 
-## Page 30: 2C · PRD Alignment & Next Iteration
+## Page 28: 2C · PRD Alignment
 
 > **Header:** title and subtitle only
 >
-> As on the Intake page, each row restates a **Requirement** from page 8 as a question. These statuses are based on a review of the code on 2026-11-03, not on robot testing. Update them as the tests on page 27 pass.
+> As on the Intake page, each row restates a **Requirement** from page 6 as a question. These statuses are based on a review of the code on 11/3, not on robot testing. Update them as the tests on page 25 pass. For each Partial row, the Implementation column states the remaining work; the tuning order for the placeholders is in `Lift Implementation.md`.
 
 ### ▲ PRD Alignment
 
 | Description | Implementation | Status |
 |:--|:--|:--|
-| **Working FSM?** | Fourteen states, with one loop setting both motors from the state | Met |
+| **Working FSM?** | Fourteen FSM states implemented. One control loop sets both motors from the state | Met |
 | **Background control task?** | `liftControl()` runs in its own task, started in `initialize()` | Met |
-| **Closed-loop control** for lift and arm? | P control on both rotation sensors. `kP` and `pivotKP` are **placeholders** | Partial |
-| **Arm angle tied** to lift state? | Every position state except `ZERO` sets `pivotTarget`. Arm ports and angles are **placeholders** | Partial |
+| **Closed-loop control** for lift and arm? | P control on both rotation sensors. `kP` and `pivotKP` are **placeholders** and still need tuning | Partial |
+| **Arm angle tied** to lift state? | Every pose state except `ZERO` sets `pivotTarget`. The arm ports and angles are **placeholders** | Partial |
 | **One-press level stepping?** | `levelUp()` / `levelDown()` on L1 / L2, stepping from `level` | Met |
 | **Raw control with hold?** | X / B set `RAW_UP` / `RAW_DOWN`; release sets `RAW_HOLD` | Met |
 | **One-press score?** | `score()` on LEFT. `scoreReleaseTime` and `scoreTolerance` are **placeholders** | Partial |
-| **Soft limits?** | `MIN_POSITION` -10, `MAX_POSITION` 18000. The 18000 value has **not been checked** against the physical top, and the arm limits are placeholders | Partial |
-| **Current-based homing?** | Implemented, but **not assigned to a button** and has no timeout | Partial |
+| **Soft limits?** | `MIN_POSITION` -10, `MAX_POSITION` 18000. The 18000 value has **not been checked** against the physical top; once the heights are tuned, it should be recalculated as one average level step above `LEVEL_6_HEIGHT`. The arm limits are placeholders | Partial |
+| **Current-based homing?** | Implemented, but `home()` is **not assigned to a button** (the DOWN + LEFT combination is commented out), and homing has no timeout if the current rise is missed | Partial |
 | **Claw integration?** | Y toggles the claw. `SCORE` opens it automatically | Met |
-| **Autonomous** through the same commands? | Routines call `set()` and `score()`. There is no wait helper, and **`autons.cpp` does not compile** yet | Partial |
-
-### ▲ Next Iteration
-
-1. **Fix `autons.cpp`.** It still references `clawPivot`, `clawIntake` and `Lift::ROLLERS`, which no longer exist, and the project does not build.
-2. **Assign `home()` to a button** and run T7. The DOWN + LEFT combination is written in `opcontrol()` but commented out.
-3. **Tune the placeholders** in the order given in `Lift Implementation.md`: ports and signs, soft limits, `kP`, `pivotKP`, heights and angles.
-4. **Check `MAX_POSITION` against the physical top.** Once the heights are tuned, recalculate it as one average level step above `LEVEL_6_HEIGHT`.
-5. **Add a wait-until-arrived helper** for autonomous, so that each routine does not need its own wait loop.
-6. **Add a homing timeout**, so that a missed current jump cannot drive the lift down indefinitely.
+| **Autonomous** through the same commands? | Routines call `set()` and `score()`, but `autons.cpp` still references `clawPivot`, `clawIntake` and `Lift::ROLLERS`, which no longer exist, so the project **does not build**. There is also no helper to wait for the lift to arrive | Partial |
 
 ---
 
@@ -1219,15 +1203,15 @@ void Lift::score() {
 
 | Page | Picture |
 |:--|:--|
-| 2 | The lift with the two rotation sensors and the claw labeled |
-| 4 | The lift at its lowest point with the string direction marked |
-| 10 | Lift travel scale with every height and both limits |
-| 13 | Lift at `LOADING` beside the lift at `LEVEL_3` |
-| 15 | Enum with the three state groups bracketed |
-| 17 | Mounting locations of the two rotation sensors |
-| 19 | Lift at its highest safe point (after the `MAX_POSITION` check) |
-| 20 | Arm at its three angles |
-| 21 | Three frames from one score |
-| 22 | Current-against-time graph of one homing run |
-| 24 | Controller with the lift buttons labeled |
-| 25 | Timeline of the three tasks running in parallel |
+| 2 | The lift at its lowest point with the string direction marked |
+| 3 | The lift with the two rotation sensors and the claw labeled |
+| 8 | Lift travel scale with each pose and both soft limits |
+| 11 | Lift at `LOADING` beside the lift at `LEVEL_3` |
+| 14 | Enum with the three state groups bracketed |
+| 16 | Mounting locations of the two rotation sensors |
+| 18 | Lift at its highest safe point (after the `MAX_POSITION` check) |
+| 19 | Arm at its three angles |
+| 20 | Three frames from one score |
+| 21 | Current-against-time graph of one homing run |
+| 23 | Controller with the lift buttons labeled |
+| 24 | Timeline of the three tasks running in parallel |
