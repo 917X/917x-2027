@@ -153,6 +153,8 @@ void initialize() {
   ez::as::initialize();
 
   liftMotor.tare_position();
+  liftRotation.reset_position();
+  pivotRotation.reset_position();
   lift.state = Lift::ZERO;
   // Started here rather than at static init - chassis, lift and intake live in
   // config.cpp now, and a file scope task could run before their constructors do.
@@ -202,7 +204,7 @@ void autonomous() {
   chassis.drive_imu_reset();                          // Reset gyro position to 0
   chassis.drive_sensor_reset();                       // Reset drive sensors to 0
   chassis.odom_xyt_set(0_in, 0_in, 0_deg);            // Set the current position, you can start at a specific position with this
-  chassis.drive_brake_set(pros::E_MOTOR_BRAKE_COAST);  // Set motors to hold.  This helps autonomous consistency
+  chassis.drive_brake_set(pros::E_MOTOR_BRAKE_HOLD);  // Set motors to hold.  This helps autonomous consistency
 
   /*
   Odometry and Pure Pursuit are not magic

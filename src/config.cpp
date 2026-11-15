@@ -10,25 +10,25 @@
 pros::Controller controller(pros::E_CONTROLLER_MASTER);
 
 // ports
+constexpr int RIGHT_F = -8;
+constexpr int RIGHT_M = -9;
+constexpr int RIGHT_B = 20;
+
 constexpr int LEFT_F = 7;
 constexpr int LEFT_M = 6;
 constexpr int LEFT_B = -5;
 
-constexpr int RIGHT_F = 20;
-constexpr int RIGHT_M = -9;
-constexpr int RIGHT_B = -8;
-
 constexpr int IMU = 2;
 
-constexpr int INTAKE = -1;
+constexpr int INTAKE = -19;
 
-constexpr int LIFT = 20;  // was LIFT_L when the lift had two motors - check this is the one left
-constexpr int LIFT_ROTATION = -18;
+constexpr int LIFT = -18;  // was LIFT_L when the lift had two motors - check this is the one left
+constexpr int LIFT_ROTATION = 17;
 
-constexpr int PIVOT = 19;           // PLACEHOLDER
-constexpr int PIVOT_ROTATION = 17;  // PLACEHOLDER
+constexpr int PIVOT = 11;           // PLACEHOLDER
+constexpr int PIVOT_ROTATION = -15;  // PLACEHOLDER
 
-constexpr char CLAW = 'B';
+constexpr char CLAW = 'H';
 
 // drivetrain geometry
 constexpr double WHEEL_DIAMETER = 2.75;  // 4" wheels without screw holes are actually 4.125
@@ -64,5 +64,5 @@ ez::Drive chassis(
 //  - you should get positive values on the encoders going FORWARD and RIGHT
 // - `2.75` is the wheel diameter
 // - `4.0` is the distance from the center of the wheel to the center of the robot
-ez::tracking_wheel horiz_tracker(21, 2.75, 4.0);  // This tracking wheel is perpendicular to the drive wheels
+// ez::tracking_wheel horiz_tracker(8, 2.75, 4.0);  // This tracking wheel is perpendicular to the drive wheels
 // ez::tracking_wheel vert_tracker(9, 2.75, 4.0);   // This tracking wheel is parallel to the drive wheels

@@ -57,20 +57,24 @@ void drive_example() {
   // The second parameter is max speed the robot will drive at
   // The third parameter is a boolean (true or false) for enabling/disabling a slew at the start of drive motions
   // for slew, only enable it when the drive distance is greater than the slew distance + a few inches
-  /*
-  chassis.pid_drive_set(24_in, DRIVE_SPEED, true);
-  chassis.pid_wait();
+  
+  // chassis.pid_drive_set(24_in, DRIVE_SPEED, false);
+  // chassis.pid_wait();
 
-  chassis.pid_drive_set(-12_in, DRIVE_SPEED);
-  chassis.pid_wait();
+  // chassis.pid_drive_set(-12_in, DRIVE_SPEED);
+  // chassis.pid_wait();
 
-  chassis.pid_drive_set(-12_in, DRIVE_SPEED);
+  // chassis.pid_drive_set(-12_in, DRIVE_SPEED);
+  // chassis.pid_wait();
+
+  chassis.pid_turn_set(120,100,false);
   chassis.pid_wait();
-  */
+  chassis.pid_turn_set(0,100,false);
+  chassis.pid_wait();
 
 // Swings the left side of the drivetrain until the robot hits 90 degrees
-  chassis.pid_swing_set(ez::LEFT_SWING, 90_deg, 110);
-  chassis.pid_wait();
+  // chassis.pid_swing_set(ez::LEFT_SWING, 90_deg, 110);
+  // chassis.pid_wait();
 }
 
 ///
