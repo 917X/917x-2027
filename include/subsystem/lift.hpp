@@ -35,6 +35,7 @@ class Lift {
   void levelDown();
   void home();   // starts HOMING - the lift task drives down until it stalls, then zeroes
   void score();  // starts SCORE - drop scoreDrop, open the claw if it's closed, then go up to scoreRise above where it was
+  void setPivot(double angle);  // swings the arm to angle and keeps it there until the next set() - the lift doesn't move
 
   pros::Motor& liftMotor;
   pros::Rotation& liftRotation;
@@ -51,6 +52,8 @@ class Lift {
   int pivotSpeed = 127;    // max power moving to an angle
   double pivotKP = 1.0;    // power per degree of error  (PLACEHOLDER)
   double pivotTarget = 0;  // starts at 0 so the arm stays put until a state gives it an angle
+  bool pivotManual = false;     // true after setPivot() - the lift state stops picking the arm angle
+  double pivotManualTarget = 0; // the angle setPivot() asked for
 
   // Homing - the lift hangs on a string wound around the axle, so there's no hard stop.
   // Driving down unwinds the string; once it's loose the axle spins freely and the motor
@@ -94,8 +97,8 @@ class Lift {
   // Heights in rotation sensor degrees.  PLACEHOLDERS - tune on the robot
   double ZERO_HEIGHT = 0;
   double MATCHLOADING_HEIGHT = 0;
-  double LOADING_HEIGHT = 1650;
-  double LEVEL_1_HEIGHT = 2950;
+  double LOADING_HEIGHT = 1016;
+  double LEVEL_1_HEIGHT = 2050;
   double LEVEL_2_HEIGHT = 5200;
   double LEVEL_3_HEIGHT = 7200;
   double LEVEL_4_HEIGHT = 9200;
@@ -108,11 +111,12 @@ class Lift {
   // Arm angles in rotation sensor degrees, 0 is where the arm is when the program starts.
   // PLACEHOLDERS - tune on the robot, keep MATCHLOADING_ANGLE < SCORING_ANGLE < LOADING_ANGLE
   double MATCHLOADING_ANGLE = 0;
-  double SCORING_ANGLE = 90;
-  double LOADING_ANGLE = 180;
-  // The arm never drives past these  (PLACEHOLDERS - tune on the robot)
+  double PRESCORING_ANGLE = 145;
+  double SCORING_ANGLE = 180;
+  double LOADING_ANGLE = 297;
+  // The arm never drives past these
   double PIVOT_MIN_ANGLE = -20;
-  double PIVOT_MAX_ANGLE = 200;
+  double PIVOT_MAX_ANGLE = 310;
 };
 
 // miguel phonk

@@ -69,6 +69,8 @@ void Lift::liftControl() {
       case HOMING:
         break;
     }
+    if (pivotManual) pivotTarget = pivotManualTarget;  // setPivot() wins over the state's angle
+
     int power = std::clamp(static_cast<int>(kP * (target - position)), -speed, speed);
     if (state == RAW_UP) power = rawSpeed;
     if (state == RAW_DOWN) power = -rawSpeed;
@@ -148,7 +150,13 @@ void Lift::liftControl() {
 
 void Lift::set(LiftState state) {
   if (state <= LEVEL_6) level = state;
+  pivotManual = false;  // a new lift state picks the arm angle again
   this->state = state;
+}
+
+void Lift::setPivot(double angle) {
+  pivotManualTarget = angle;
+  pivotManual = true;
 }
 
 void Lift::levelUp() {
