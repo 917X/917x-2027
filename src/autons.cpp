@@ -17,13 +17,13 @@ const int SWING_SPEED = 110;
 // Constants
 ///
 void default_constants() {
-  chassis.drive_width_set(10.5);
+  chassis.drive_width_set(10.5); 
   // P, I, D, and Start I
-  chassis.pid_drive_constants_forward_set(11.2, 0, 56);  // 52
-  chassis.pid_drive_constants_backward_set(5.7, 0.0, 9);
-  chassis.pid_heading_constants_set(11, 0, 50.0);            // Holds the robot straight while going forward without odom. 11 40
-  chassis.pid_turn_constants_set(3.2, 0, 25, 16.0);          // Turn in place constants
-  chassis.pid_swing_constants_set(6.0, 0.0, 65.0);           // Swing constants
+  chassis.pid_drive_constants_forward_set(9.4, 0, 27);  // 52
+  chassis.pid_drive_constants_backward_set(9.4, 0, 35);
+  chassis.pid_heading_constants_set(5.6, 0, 24);            // Holds the robot straight while going forward without odom. 11 40
+  chassis.pid_turn_constants_set(1.2, 0.1, 3, 15);          // Turn in place constants
+  chassis.pid_swing_constants_set(4, 0.0, 35);           // Swing constants
   chassis.pid_odom_angular_constants_set(6.5, 0.0, 60.5);    // Angular control for odom motions
   chassis.pid_odom_boomerang_constants_set(5.8, 0.0, 32.5);  // Angular control for boomerang motions
   // Exit conditions
@@ -57,7 +57,7 @@ void drive_example() {
   // The second parameter is max speed the robot will drive at
   // The third parameter is a boolean (true or false) for enabling/disabling a slew at the start of drive motions
   // for slew, only enable it when the drive distance is greater than the slew distance + a few inches
-
+  /*
   chassis.pid_drive_set(24_in, DRIVE_SPEED, true);
   chassis.pid_wait();
 
@@ -65,6 +65,11 @@ void drive_example() {
   chassis.pid_wait();
 
   chassis.pid_drive_set(-12_in, DRIVE_SPEED);
+  chassis.pid_wait();
+  */
+
+// Swings the left side of the drivetrain until the robot hits 90 degrees
+  chassis.pid_swing_set(ez::LEFT_SWING, 90_deg, 110);
   chassis.pid_wait();
 }
 
@@ -373,7 +378,7 @@ void measure_offsets() {
   if (chassis.odom_tracker_back != nullptr) chassis.odom_tracker_back->distance_to_center_set(b_offset);
   if (chassis.odom_tracker_front != nullptr) chassis.odom_tracker_front->distance_to_center_set(f_offset);
 }
-
+/*
 void driver_side_three_pin() {
   chassis.odom_xyt_set(-61, 0, 90);
   chassis.pid_odom_set({{-51, 0}, fwd, 90}, false);
@@ -468,3 +473,4 @@ void driver_side_three_pin() {
   // chassis.pid_wait_quick();
   // clawIntake.move(-127);
 }
+  */

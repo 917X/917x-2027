@@ -108,7 +108,7 @@ void initialize() {
   // Look at your horizontal tracking wheel and decide if it's in front of the midline of your robot or behind it
   //  - change `back` to `front` if the tracking wheel is in front of the midline
   //  - ignore this if you aren't using a horizontal tracker
-  // chassis.odom_tracker_back_set(&horiz_tracker);
+  //chassis.odom_tracker_back_set(&horiz_tracker);
   // Look at your vertical tracking wheel and decide if it's to the left or right of the center of the robot
   //  - change `left` to `right` if the tracking wheel is to the right of the centerline
   //  - ignore this if you aren't using a vertical tracker
@@ -196,12 +196,13 @@ void competition_initialize() {
  * will be stopped. Re-enabling the robot will restart the task, not re-start it
  * from where it left off.
  */
+ /**/
 void autonomous() {
   chassis.pid_targets_reset();                        // Resets PID targets to 0
   chassis.drive_imu_reset();                          // Reset gyro position to 0
   chassis.drive_sensor_reset();                       // Reset drive sensors to 0
   chassis.odom_xyt_set(0_in, 0_in, 0_deg);            // Set the current position, you can start at a specific position with this
-  chassis.drive_brake_set(pros::E_MOTOR_BRAKE_HOLD);  // Set motors to hold.  This helps autonomous consistency
+  chassis.drive_brake_set(pros::E_MOTOR_BRAKE_COAST);  // Set motors to hold.  This helps autonomous consistency
 
   /*
   Odometry and Pure Pursuit are not magic
@@ -215,9 +216,11 @@ void autonomous() {
   You can do cool curved motions, but you have to give your robot the best chance
   to be consistent
   */
+  
 
   // ez::as::auton_selector.selected_auton_call();  // Calls selected auton from autonomous selector
-  driver_side_three_pin();
+  //driver_side_three_pin();
+  drive_example();
 }
 
 /**

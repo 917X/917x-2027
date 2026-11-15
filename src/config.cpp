@@ -10,13 +10,13 @@
 pros::Controller controller(pros::E_CONTROLLER_MASTER);
 
 // ports
-constexpr int LEFT_F = 13;
-constexpr int LEFT_M = 15;
-constexpr int LEFT_B = -16;
+constexpr int LEFT_F = 7;
+constexpr int LEFT_M = 6;
+constexpr int LEFT_B = -5;
 
-constexpr int RIGHT_F = -11;
-constexpr int RIGHT_M = -12;
-constexpr int RIGHT_B = 14;
+constexpr int RIGHT_F = 20;
+constexpr int RIGHT_M = -9;
+constexpr int RIGHT_B = -8;
 
 constexpr int IMU = 2;
 
@@ -64,5 +64,5 @@ ez::Drive chassis(
 //  - you should get positive values on the encoders going FORWARD and RIGHT
 // - `2.75` is the wheel diameter
 // - `4.0` is the distance from the center of the wheel to the center of the robot
-// ez::tracking_wheel horiz_tracker(8, 2.75, 4.0);  // This tracking wheel is perpendicular to the drive wheels
+ez::tracking_wheel horiz_tracker(21, 2.75, 4.0);  // This tracking wheel is perpendicular to the drive wheels
 // ez::tracking_wheel vert_tracker(9, 2.75, 4.0);   // This tracking wheel is parallel to the drive wheels
