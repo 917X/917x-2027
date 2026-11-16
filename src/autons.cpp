@@ -17,7 +17,7 @@ const int SWING_SPEED = 110;
 // Constants
 ///
 void default_constants() {
-  chassis.drive_width_set(10.5); 
+  chassis.drive_width_set(10.5);
   // P, I, D, and Start I
   chassis.pid_drive_constants_forward_set(9.4, 0, 27);  // 52
   chassis.pid_drive_constants_backward_set(9.4, 0, 35);
@@ -478,3 +478,14 @@ void driver_side_three_pin() {
   // clawIntake.move(-127);
 }
   */
+
+void skillz(){
+  chassis.odom_pose_set({63,0,90});
+  chassis.pid_drive_set(-16,120,false);
+  chassis.pid_wait_quick();
+  chassis.pid_turn_set(0,120);
+  chassis.pid_wait_quick();
+  chassis.pid_drive_set(14,120,false);
+  lift.set(Lift::MATCHLOADING);
+  chassis.pid_wait_quick();
+}

@@ -17,8 +17,5 @@ void odom_boomerang_example();
 void odom_boomerang_injected_pure_pursuit_example();
 void measure_offsets();
 
-void solo_awp();
-void right_elims();
-void left_elims();
-void skills();
+void skillz();
 // void driver_side_three_pin();

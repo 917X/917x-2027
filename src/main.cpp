@@ -108,7 +108,7 @@ void initialize() {
   // Look at your horizontal tracking wheel and decide if it's in front of the midline of your robot or behind it
   //  - change `back` to `front` if the tracking wheel is in front of the midline
   //  - ignore this if you aren't using a horizontal tracker
-  //chassis.odom_tracker_back_set(&horiz_tracker);
+  chassis.odom_tracker_back_set(&horiz_tracker);
   // Look at your vertical tracking wheel and decide if it's to the left or right of the center of the robot
   //  - change `left` to `right` if the tracking wheel is to the right of the centerline
   //  - ignore this if you aren't using a vertical tracker
@@ -222,7 +222,8 @@ void autonomous() {
 
   // ez::as::auton_selector.selected_auton_call();  // Calls selected auton from autonomous selector
   //driver_side_three_pin();
-  drive_example();
+  // drive_example();
+  skillz();
 }
 
 /**
@@ -332,6 +333,9 @@ void ez_template_extras() {
  *   L1 / L2       lift up / down a level
  *   A             lift to LOADING_HEIGHT, arm to LOADING_ANGLE
  *   RIGHT         lift to MATCHLOADING_HEIGHT, arm to MATCHLOADING_ANGLE
+ *   L1 + L2       lift to MATCHLOADING_HEIGHT, arm to MATCHLOADING_ANGLE
+ *   UP            toggle the LEVELs between normal (arm at MATCHLOADING_ANGLE) and scoring
+ *                 (SCORING_LEVEL_x_HEIGHT, arm at SCORING_ANGLE)
  *   X / B         raw lift up / down (hold)
  *   LEFT          score - drop, open claw, then up to scoreRise above where it was
  *   Y             open / close claw
@@ -339,6 +343,9 @@ void ez_template_extras() {
 void opcontrol() {
   // This is preference to what you like to drive on
   chassis.drive_brake_set(pros::E_MOTOR_BRAKE_COAST);
+
+  // Driver starts in normal mode - the first UP press switches the LEVELs to scoring
+  lift.scoringMode = false;
 
   while (true) {
     // Gives you some extras to make EZ-Template ezier
@@ -360,21 +367,29 @@ void opcontrol() {
 
     if (controller.get_digital(DIGITAL_R1)) {
       intake.set(Intake::INTAKE);
+      toggleMotor.move(127);
     } else if (controller.get_digital(DIGITAL_R2)) {
       intake.set(Intake::OUTTAKE);
     } else {
       intake.set(Intake::STOP);
+      toggleMotor.move(0);
     }
 
-    // Lift levels - L1 / L2 step up / down a level, A drops straight to LOADING
-    if (controller.get_digital_new_press(DIGITAL_L1))
+    bool l1Press = controller.get_digital_new_press(DIGITAL_L1);
+    bool l2Press = controller.get_digital_new_press(DIGITAL_L2);
+    if ((l1Press || l2Press) && controller.get_digital(DIGITAL_L1) && controller.get_digital(DIGITAL_L2)) {
+      lift.set(Lift::MATCHLOADING);
+    } else if (l1Press) {
       lift.levelUp();
-    if (controller.get_digital_new_press(DIGITAL_L2))
+    } else if (l2Press) {
       lift.levelDown();
+    }
     if (controller.get_digital_new_press(DIGITAL_A))
       lift.set(Lift::LOADING);
-    if (controller.get_digital_new_press(DIGITAL_RIGHT))
-      lift.set(Lift::MATCHLOADING);
+    // Scoring mode - UP flips the LEVELs between normal and scoring.  At a LEVEL the lift and
+    // arm move over now; at LOADING nothing moves and the next LEVEL uses the new mode.
+    if (controller.get_digital_new_press(DIGITAL_UP))
+      lift.toggleScoringMode();
 
     // Raw lift - hold X / B to move it freely, let go and it holds right there
     if (controller.get_digital(DIGITAL_X)) {

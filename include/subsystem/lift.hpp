@@ -4,7 +4,8 @@
 #include "pros/rotation.hpp"
 
 // Lift state machine, same idea as Intake.  lift.set(Lift::LEVEL_3) moves the lift to and
-// holds that height, and swings the pivoting arm to the angle that goes with it.  RAW_UP /
+// holds that height, and swings the pivoting arm to the angle that goes with it.  The LEVELs
+// have two sets of heights - see scoringMode.  RAW_UP /
 // RAW_DOWN move the lift freely and RAW_HOLD holds where they stopped.  The arm holds its
 // last angle through the raw states, HOMING and ZERO.
 class Lift {
@@ -36,6 +37,7 @@ class Lift {
   void home();   // starts HOMING - the lift task drives down until it stalls, then zeroes
   void score();  // starts SCORE - drop scoreDrop, open the claw if it's closed, then go up to scoreRise above where it was
   void setPivot(double angle);  // swings the arm to angle and keeps it there until the next set() - the lift doesn't move
+  void toggleScoringMode();     // flips scoringMode - if it's at a LEVEL it moves to the other height and angle right away
 
   pros::Motor& liftMotor;
   pros::Rotation& liftRotation;
@@ -52,6 +54,12 @@ class Lift {
   int pivotSpeed = 127;    // max power moving to an angle
   double pivotKP = 1.0;    // power per degree of error  (PLACEHOLDER)
   double pivotTarget = 0;  // starts at 0 so the arm stays put until a state gives it an angle
+  // Which set the LEVELs use.  false (normal) is LEVEL_x_HEIGHT with the arm at
+  // MATCHLOADING_ANGLE, true is SCORING_LEVEL_x_HEIGHT with the arm at SCORING_ANGLE.  Starts
+  // true so autons score like before - opcontrol sets it to false, so the driver's first
+  // toggle press switches to scoring.  Only the LEVELs read it: at LOADING the arm stays at
+  // LOADING_ANGLE, and the next LEVEL uses whatever mode is set.
+  bool scoringMode = true;
   bool pivotManual = false;     // true after setPivot() - the lift state stops picking the arm angle
   double pivotManualTarget = 0; // the angle setPivot() asked for
 
@@ -97,23 +105,31 @@ class Lift {
   // Heights in rotation sensor degrees.  PLACEHOLDERS - tune on the robot
   double ZERO_HEIGHT = 0;
   double MATCHLOADING_HEIGHT = 0;
-  double LOADING_HEIGHT = 1016;
-  double LEVEL_1_HEIGHT = 2050;
-  double LEVEL_2_HEIGHT = 5200;
-  double LEVEL_3_HEIGHT = 7200;
-  double LEVEL_4_HEIGHT = 9200;
-  double LEVEL_5_HEIGHT = 13000;
-  double LEVEL_6_HEIGHT = 15500;  // LEVEL_5 + 2500, the average step from LEVEL_1 to LEVEL_5
+  double LOADING_HEIGHT = 500;
+  double LEVEL_1_HEIGHT = 1294;
+  double LEVEL_2_HEIGHT = 2185;
+  double LEVEL_3_HEIGHT = 3874;
+  double LEVEL_4_HEIGHT = 3874;
+  double LEVEL_5_HEIGHT = 3874;
+  double LEVEL_6_HEIGHT = 3874;  // LEVEL_5 + 2500, the average step from LEVEL_1 to LEVEL_5
+  // Same levels with the arm at SCORING_ANGLE (scoringMode).  1 and 2 are the old heights from
+  // before LEVEL_1 / LEVEL_2 were retuned for the front, 3-6 are copies of the normal ones.
+  double SCORING_LEVEL_1_HEIGHT = 733;
+  double SCORING_LEVEL_2_HEIGHT = 1560;
+  double SCORING_LEVEL_3_HEIGHT = 2513;
+  double SCORING_LEVEL_4_HEIGHT = 3170;
+  double SCORING_LEVEL_5_HEIGHT = 3170;
+  double SCORING_LEVEL_6_HEIGHT = 3170;
   // The lift never drives past these.  HOMING ignores them - it has to go below the old zero.
   double MIN_POSITION = -10;     // just under ZERO_HEIGHT, so raw down stops before the string re-winds
   double MAX_POSITION = 18000;   // about where a LEVEL_7 would be (LEVEL_6 + 2500) - redo if the heights change
 
   // Arm angles in rotation sensor degrees, 0 is where the arm is when the program starts.
   // PLACEHOLDERS - tune on the robot, keep MATCHLOADING_ANGLE < SCORING_ANGLE < LOADING_ANGLE
-  double MATCHLOADING_ANGLE = 0;
-  double PRESCORING_ANGLE = 145;
-  double SCORING_ANGLE = 180;
-  double LOADING_ANGLE = 297;
+  double MATCHLOADING_ANGLE = 293;
+  double PRESCORING_ANGLE = 137;
+  double SCORING_ANGLE = 132;
+  double LOADING_ANGLE = 0;
   // The arm never drives past these
   double PIVOT_MIN_ANGLE = -20;
   double PIVOT_MAX_ANGLE = 310;

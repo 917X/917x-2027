@@ -1,5 +1,6 @@
 #pragma once
 #include "EZ-Template/api.hpp"
+#include "EZ-Template/tracking_wheel.hpp"
 #include "api.h"
 #include "pros/distance.hpp"
 #include "pros/misc.hpp"
@@ -35,8 +36,10 @@ extern pros::Motor liftMotor;
 extern pros::Rotation liftRotation;
 extern pros::Motor pivotMotor;
 extern pros::Rotation pivotRotation;
+extern pros::Motor toggleMotor;
 extern ez::Piston claw;
 extern Lift lift;
+extern ez::tracking_wheel horiz_tracker;
 
 // ---------------------------------------------------------------------------
 // Last season (Push Back) - reference only, not wired up

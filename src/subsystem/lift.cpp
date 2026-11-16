@@ -17,13 +17,17 @@ void Lift::liftControl() {
   pivotMotor.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
   liftRotation.reset_position();   // the lift starts sitting at ZERO_HEIGHT
   pivotRotation.reset_position();  // the arm's angles are measured from where it starts
-
+  int count = 0;
   while (true) {
     pros::delay(10);
     double position = liftRotation.get_position() / 100.0;        // centidegrees -> degrees
     double pivotPosition = pivotRotation.get_position() / 100.0;  // centidegrees -> degrees
-
+    if (count % 10 == 0) {
+      std::cout << "Lift position: " << position << "  Pivot position: " << pivotPosition << std::endl;
+    }
+    count++;
     double target = position;  // raw states get no P power
+    double levelAngle = scoringMode ? SCORING_ANGLE : MATCHLOADING_ANGLE;  // arm angle at every LEVEL
     switch (state) {
       case ZERO:
         target = ZERO_HEIGHT;
@@ -37,28 +41,28 @@ void Lift::liftControl() {
         pivotTarget = LOADING_ANGLE;
         break;
       case LEVEL_1:
-        target = LEVEL_1_HEIGHT;
-        pivotTarget = SCORING_ANGLE;
+        target = scoringMode ? SCORING_LEVEL_1_HEIGHT : LEVEL_1_HEIGHT;
+        pivotTarget = levelAngle;
         break;
       case LEVEL_2:
-        target = LEVEL_2_HEIGHT;
-        pivotTarget = SCORING_ANGLE;
+        target = scoringMode ? SCORING_LEVEL_2_HEIGHT : LEVEL_2_HEIGHT;
+        pivotTarget = levelAngle;
         break;
       case LEVEL_3:
-        target = LEVEL_3_HEIGHT;
-        pivotTarget = SCORING_ANGLE;
+        target = scoringMode ? SCORING_LEVEL_3_HEIGHT : LEVEL_3_HEIGHT;
+        pivotTarget = levelAngle;
         break;
       case LEVEL_4:
-        target = LEVEL_4_HEIGHT;
-        pivotTarget = SCORING_ANGLE;
+        target = scoringMode ? SCORING_LEVEL_4_HEIGHT : LEVEL_4_HEIGHT;
+        pivotTarget = levelAngle;
         break;
       case LEVEL_5:
-        target = LEVEL_5_HEIGHT;
-        pivotTarget = SCORING_ANGLE;
+        target = scoringMode ? SCORING_LEVEL_5_HEIGHT : LEVEL_5_HEIGHT;
+        pivotTarget = levelAngle;
         break;
       case LEVEL_6:
-        target = LEVEL_6_HEIGHT;
-        pivotTarget = SCORING_ANGLE;
+        target = scoringMode ? SCORING_LEVEL_6_HEIGHT : LEVEL_6_HEIGHT;
+        pivotTarget = levelAngle;
         break;
       case SCORE:
         target = scorePhase == RAISING ? scoreStart + scoreRise : scoreStart - scoreDrop;
@@ -157,6 +161,14 @@ void Lift::set(LiftState state) {
 void Lift::setPivot(double angle) {
   pivotManualTarget = angle;
   pivotManual = true;
+}
+
+void Lift::toggleScoringMode() {
+  scoringMode = !scoringMode;
+  // At a LEVEL the lift task picks the new height and angle on its next loop.  Drop any
+  // setPivot() override so the arm actually moves.  Anywhere else nothing moves until the
+  // next LEVEL.
+  if (state >= LEVEL_1 && state <= LEVEL_6) pivotManual = false;
 }
 
 void Lift::levelUp() {
