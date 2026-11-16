@@ -27,9 +27,9 @@ void default_constants() {
   chassis.pid_odom_angular_constants_set(6.5, 0.0, 60.5);    // Angular control for odom motions
   chassis.pid_odom_boomerang_constants_set(5.8, 0.0, 32.5);  // Angular control for boomerang motions
   // Exit conditions
-  chassis.pid_turn_exit_condition_set(90_ms, 3_deg, 250_ms, 7_deg, 500_ms, 500_ms);  // 90,3_deg,250_ms,7_deg,500_ms,500_ms
+  chassis.pid_turn_exit_condition_set(90_ms, 3_deg, 150_ms, 7_deg, 500_ms, 500_ms);  // 90,3_deg,250_ms,7_deg,500_ms,500_ms
   chassis.pid_swing_exit_condition_set(90_ms, 3_deg, 250_ms, 7_deg, 500_ms, 500_ms);
-  chassis.pid_drive_exit_condition_set(90_ms, 1_in, 250_ms, 3_in, 500_ms, 500_ms);
+  chassis.pid_drive_exit_condition_set(90_ms, 1_in, 150_ms, 3_in, 500_ms, 500_ms);
   chassis.pid_odom_turn_exit_condition_set(90_ms, 3_deg, 250_ms, 7_deg, 500_ms, 750_ms);
   chassis.pid_odom_drive_exit_condition_set(90_ms, 1_in, 250_ms, 5_in, 500_ms, 750_ms);
   chassis.pid_turn_chain_constant_set(3_deg);
@@ -66,15 +66,24 @@ void drive_example() {
 
   // chassis.pid_drive_set(-12_in, DRIVE_SPEED);
   // chassis.pid_wait();
-
+  /*
   chassis.pid_turn_set(120,100,false);
   chassis.pid_wait();
   chassis.pid_turn_set(0,100,false);
   chassis.pid_wait();
-
+  */
 // Swings the left side of the drivetrain until the robot hits 90 degrees
   // chassis.pid_swing_set(ez::LEFT_SWING, 90_deg, 110);
   // chassis.pid_wait();
+  chassis.pid_drive_set(24_in, DRIVE_SPEED, false);
+  chassis.pid_wait_quick();
+  chassis.pid_drive_set(-24_in, DRIVE_SPEED, false);
+  chassis.pid_wait_quick();
+  chassis.pid_drive_set(24_in, DRIVE_SPEED, false);
+  chassis.pid_wait_quick();
+  chassis.pid_drive_set(-24_in, DRIVE_SPEED, false);
+  chassis.pid_wait_quick();
+
 }
 
 ///
@@ -480,12 +489,16 @@ void driver_side_three_pin() {
   */
 
 void skillz(){
-  chassis.odom_pose_set({63,0,90});
+  chassis.odom_pose_set({0,-63,180});
   chassis.pid_drive_set(-16,120,false);
   chassis.pid_wait_quick();
-  chassis.pid_turn_set(0,120);
+  chassis.pid_turn_set(90,120);
   chassis.pid_wait_quick();
-  chassis.pid_drive_set(14,120,false);
   lift.set(Lift::MATCHLOADING);
+  chassis.pid_drive_set(15,120,false);
+  chassis.pid_wait_quick();
+  chassis.pid_drive_set(-15,120,false);
+  chassis.pid_wait_quick();
+  chassis.pid_turn_set({24, -24}, fwd,  90);
   chassis.pid_wait_quick();
 }
