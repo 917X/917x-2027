@@ -27,42 +27,47 @@ void Lift::liftControl() {
     }
     count++;
     double target = position;  // raw states get no P power
-    double levelAngle = scoringMode ? SCORING_ANGLE : MATCHLOADING_ANGLE;  // arm angle at every LEVEL
+    double levelAngle = isBackMode ? BACK_ANGLE : FRONT_ANGLE;
+
     switch (state) {
       case ZERO:
         target = ZERO_HEIGHT;
         break;
       case MATCHLOADING:
         target = MATCHLOADING_HEIGHT;
-        pivotTarget = MATCHLOADING_ANGLE;
+        pivotTarget = FRONT_ANGLE;
         break;
       case LOADING:
         target = LOADING_HEIGHT;
         pivotTarget = LOADING_ANGLE;
         break;
       case LEVEL_1:
-        target = scoringMode ? SCORING_LEVEL_1_HEIGHT : LEVEL_1_HEIGHT;
-        pivotTarget = levelAngle;
+        target = LEVEL_1_HEIGHT;
+        pivotTarget = FRONT_ANGLE;
         break;
       case LEVEL_2:
-        target = scoringMode ? SCORING_LEVEL_2_HEIGHT : LEVEL_2_HEIGHT;
-        pivotTarget = levelAngle;
+        target = LEVEL_2_HEIGHT;
+        pivotTarget = FRONT_ANGLE;
         break;
       case LEVEL_3:
-        target = scoringMode ? SCORING_LEVEL_3_HEIGHT : LEVEL_3_HEIGHT;
+        target = isBackMode ? BACK_LEVEL_3_HEIGHT : LEVEL_3_HEIGHT;
         pivotTarget = levelAngle;
         break;
       case LEVEL_4:
-        target = scoringMode ? SCORING_LEVEL_4_HEIGHT : LEVEL_4_HEIGHT;
+        target = isBackMode ? BACK_LEVEL_4_HEIGHT : LEVEL_4_HEIGHT;
         pivotTarget = levelAngle;
         break;
       case LEVEL_5:
-        target = scoringMode ? SCORING_LEVEL_5_HEIGHT : LEVEL_5_HEIGHT;
-        pivotTarget = levelAngle;
+        target = BACK_LEVEL_5_HEIGHT;
+        pivotTarget = BACK_ANGLE;
         break;
       case LEVEL_6:
-        target = scoringMode ? SCORING_LEVEL_6_HEIGHT : LEVEL_6_HEIGHT;
-        pivotTarget = levelAngle;
+        target = BACK_LEVEL_6_HEIGHT;
+        pivotTarget = BACK_ANGLE;
+        break;
+      case LEVEL_7:
+        target = BACK_LEVEL_7_HEIGHT;
+        pivotTarget = BACK_ANGLE;
         break;
       case SCORE:
         target = scorePhase == RAISING ? scoreStart + scoreRise : scoreStart - scoreDrop;
@@ -73,7 +78,7 @@ void Lift::liftControl() {
       case HOMING:
         break;
     }
-    if (pivotManual) pivotTarget = pivotManualTarget;  // setPivot() wins over the state's angle
+    if (pivotManual) pivotTarget = pivotManualTarget;  // setPivot() or manual hold wins over the state's angle
 
     int power = std::clamp(static_cast<int>(kP * (target - position)), -speed, speed);
     if (state == RAW_UP) power = rawSpeed;
@@ -87,6 +92,13 @@ void Lift::liftControl() {
     int pivotPower = std::clamp(static_cast<int>(pivotKP * (pivotTarget - pivotPosition)), -pivotSpeed, pivotSpeed);
     if (pivotPosition >= PIVOT_MAX_ANGLE && pivotPower > 0) pivotPower = 0;
     if (pivotPosition <= PIVOT_MIN_ANGLE && pivotPower < 0) pivotPower = 0;
+
+    if (pivotRawPower != 0) {
+      pivotPower = pivotRawPower;
+      pivotManualTarget = pivotPosition;
+      pivotManual = true;
+    }
+
     pivotMotor.move(pivotPower);
 
     if (state == SCORE) {
@@ -153,7 +165,14 @@ void Lift::liftControl() {
 }
 
 void Lift::set(LiftState state) {
-  if (state <= LEVEL_6) level = state;
+  if (state <= LEVEL_7) {
+    level = state;
+    if (state == LEVEL_1 || state == LEVEL_2) {
+      isBackMode = false;
+    } else if (state >= LEVEL_5) {
+      isBackMode = true;
+    }
+  }
   pivotManual = false;  // a new lift state picks the arm angle again
   this->state = state;
 }
@@ -163,24 +182,26 @@ void Lift::setPivot(double angle) {
   pivotManual = true;
 }
 
-void Lift::toggleScoringMode() {
-  scoringMode = !scoringMode;
-  // At a LEVEL the lift task picks the new height and angle on its next loop.  Drop any
-  // setPivot() override so the arm actually moves.  Anywhere else nothing moves until the
-  // next LEVEL.
-  if (state >= LEVEL_1 && state <= LEVEL_6) pivotManual = false;
+void Lift::toggleFrontBack() {
+  isBackMode = !isBackMode;
+  if (isBackMode && (level == LEVEL_1 || level == LEVEL_2)) {
+    set(LEVEL_3);
+  } else if (!isBackMode && level >= LEVEL_5) {
+    set(LEVEL_4);
+  } else if (level >= LEVEL_3 && level <= LEVEL_4) {
+    set(level);
+  }
 }
 
 void Lift::levelUp() {
   // MATCHLOADING and LOADING are picked with their own buttons - up from either is LEVEL_1
   LiftState next = level < LEVEL_1 ? LEVEL_1 : static_cast<LiftState>(level + 1);
-  if (next <= LEVEL_6) set(next);
+  if (next <= LEVEL_7) set(next);
 }
 
 void Lift::levelDown() {
   if (level > LOADING) set(static_cast<LiftState>(level - 1));
 }
-
 
 void Lift::home() {
   if (state == HOMING) return;  // already homing - holding the buttons shouldn't restart it

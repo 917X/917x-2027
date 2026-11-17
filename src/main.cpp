@@ -198,7 +198,6 @@ void competition_initialize() {
  * will be stopped. Re-enabling the robot will restart the task, not re-start it
  * from where it left off.
  */
- /**/
 void autonomous() {
   chassis.pid_targets_reset();                        // Resets PID targets to 0
   chassis.drive_imu_reset();                          // Reset gyro position to 0
@@ -206,23 +205,9 @@ void autonomous() {
   chassis.odom_xyt_set(0_in, 0_in, 0_deg);            // Set the current position, you can start at a specific position with this
   chassis.drive_brake_set(pros::E_MOTOR_BRAKE_HOLD);  // Set motors to hold.  This helps autonomous consistency
 
-  /*
-  Odometry and Pure Pursuit are not magic
-
-  It is possible to get perfectly consistent results without tracking wheels,
-  but it is also possible to have extremely inconsistent results without tracking wheels.
-  When you don't use tracking wheels, you need to:
-   - avoid wheel slip
-   - avoid wheelies
-   - avoid throwing momentum around (super harsh turns, like in the example below)
-  You can do cool curved motions, but you have to give your robot the best chance
-  to be consistent
-  */
-  
-
   // ez::as::auton_selector.selected_auton_call();  // Calls selected auton from autonomous selector
-  //driver_side_three_pin();
-  //drive_example();
+  // driver_side_three_pin();
+  // drive_example();
   skillz();
 }
 
@@ -287,15 +272,9 @@ void ez_screen_task() {
 void ez_template_extras() {
   // Only run this when not connected to a competition switch
   if (!pros::competition::is_connected()) {
-    // PID Tuner
-    // - after you find values that you're happy with, you'll have to set them in auton.cpp
-
-    // Enable / Disable PID Tuner
-    //  When enabled:
-    //  * use A and Y to increment / decrement the constants
-    //  * use the arrow keys to navigate the constants
-    if (controller.get_digital_new_press(DIGITAL_X))
-      chassis.pid_tuner_toggle();
+    // Disabled so pressing X for raw lift up doesn't turn on the PID tuner
+    // if (controller.get_digital_new_press(DIGITAL_X))
+    //   chassis.pid_tuner_toggle();
 
     // Trigger the selected autonomous routine
     if (controller.get_digital(DIGITAL_B) && controller.get_digital(DIGITAL_DOWN)) {
@@ -316,96 +295,92 @@ void ez_template_extras() {
 }
 
 /**
- * Runs the operator control code. This function will be started in its own task
- * with the default priority and stack size whenever the robot is enabled via
- * the Field Management System or the VEX Competition Switch in the operator
- * control mode.
- *
- * If no competition control is connected, this function will run immediately
- * following initialize().
- *
- * If the robot is disabled or communications is lost, the
- * operator control task will be stopped. Re-enabling the robot will restart the
- * task, not resume it from where it left off.
- *
  * Driver layout:
  *   R1 / R2       intake in / out
  *   L1 / L2       lift up / down a level
+ *   L1 + L2       toggle between Front Mode and Back Mode
  *   A             lift to LOADING_HEIGHT, arm to LOADING_ANGLE
- *   RIGHT         lift to MATCHLOADING_HEIGHT, arm to MATCHLOADING_ANGLE
- *   L1 + L2       lift to MATCHLOADING_HEIGHT, arm to MATCHLOADING_ANGLE
- *   UP            toggle the LEVELs between normal (arm at MATCHLOADING_ANGLE) and scoring
- *                 (SCORING_LEVEL_x_HEIGHT, arm at SCORING_ANGLE)
  *   X / B         raw lift up / down (hold)
+ *   X + B         lift to MATCHLOADING_HEIGHT, arm to FRONT_ANGLE
+ *   RIGHT / DOWN  raw pivot arm control (hold to move, release to hold angle)
  *   LEFT          score - drop, open claw, then up to scoreRise above where it was
  *   Y             open / close claw
  */
 void opcontrol() {
-  // This is preference to what you like to drive on
   chassis.drive_brake_set(pros::E_MOTOR_BRAKE_COAST);
-
-  // Driver starts in normal mode - the first UP press switches the LEVELs to scoring
-  lift.scoringMode = false;
+  lift.isBackMode = false;
+  bool xbComboActive = false;
 
   while (true) {
-    // Gives you some extras to make EZ-Template ezier
-    // ez_template_extras();
+    ez_template_extras();
+    chassis.opcontrol_arcade_standard(ez::SPLIT);
 
-    // chassis.opcontrol_tank();  // Tank control
-    chassis.opcontrol_arcade_standard(ez::SPLIT);  // Standard split arcade
-    
-    // Homing - pressing DOWN + LEFT starts it once; the lift task finishes it on its own.
-    // Only on a new press, so holding the combo doesn't start it again after it's done.
-    // bool homeDown = controller.get_digital_new_press(DIGITAL_DOWN);
-    // bool homeLeft = controller.get_digital_new_press(DIGITAL_LEFT);
-    // if ((homeDown || homeLeft) && controller.get_digital(DIGITAL_DOWN) && controller.get_digital(DIGITAL_LEFT))
-    //   lift.home();
-    // Score - LEFT drops the lift a bit, opens the claw, and goes back up.  Only on a new
-    // press, so holding it doesn't start another drop once it's done.
     if (controller.get_digital_new_press(DIGITAL_LEFT))
       lift.score();
 
+    // Intake
     if (controller.get_digital(DIGITAL_R1)) {
       intake.set(Intake::INTAKE);
       toggleMotor.move(127);
+      pivotMotor.move(127);
     } else if (controller.get_digital(DIGITAL_R2)) {
       intake.set(Intake::OUTTAKE);
+      pivotMotor.move(0);
     } else {
       intake.set(Intake::STOP);
       toggleMotor.move(0);
+      pivotMotor.move(0);
     }
 
+    // Lift Levels & Front/Back Toggle (L1 + L2)
     bool l1Press = controller.get_digital_new_press(DIGITAL_L1);
     bool l2Press = controller.get_digital_new_press(DIGITAL_L2);
+
     if ((l1Press || l2Press) && controller.get_digital(DIGITAL_L1) && controller.get_digital(DIGITAL_L2)) {
-      lift.set(Lift::MATCHLOADING);
+      lift.toggleFrontBack();
     } else if (l1Press) {
       lift.levelUp();
     } else if (l2Press) {
       lift.levelDown();
     }
+
     if (controller.get_digital_new_press(DIGITAL_A))
       lift.set(Lift::LOADING);
-    // Scoring mode - UP flips the LEVELs between normal and scoring.  At a LEVEL the lift and
-    // arm move over now; at LOADING nothing moves and the next LEVEL uses the new mode.
-    if (controller.get_digital_new_press(DIGITAL_UP))
-      lift.toggleScoringMode();
 
-    // Raw lift - hold X / B to move it freely, let go and it holds right there
-    if (controller.get_digital(DIGITAL_X)) {
-      lift.set(Lift::RAW_UP);
-    } else if (controller.get_digital(DIGITAL_B)) {
-      lift.set(Lift::RAW_DOWN);
-    } else if (lift.state == Lift::RAW_UP || lift.state == Lift::RAW_DOWN) {
-      lift.set(Lift::RAW_HOLD);
+    // Raw Lift & Matchloading (X + B)
+    bool xHeld = controller.get_digital(DIGITAL_X);
+    bool bHeld = controller.get_digital(DIGITAL_B) && !controller.get_digital(DIGITAL_DOWN);
+
+    if (xHeld && bHeld) {
+      xbComboActive = true;
+      lift.set(Lift::MATCHLOADING);
+    } else if (!xHeld && !bHeld) {
+      xbComboActive = false;
+      if (lift.state == Lift::RAW_UP || lift.state == Lift::RAW_DOWN) {
+        lift.set(Lift::RAW_HOLD);
+      }
+    } else if (!xbComboActive) {
+      if (xHeld) {
+        lift.set(Lift::RAW_UP);
+      } else if (bHeld) {
+        lift.set(Lift::RAW_DOWN);
+      }
     }
 
-    // Claw - Y opens it if it's closed, closes it if it's open
-    if (controller.get_digital_new_press(DIGITAL_Y)){
+    // Manual Pivot (Hold to move, release to lock angle)
+    if (controller.get_digital(DIGITAL_RIGHT)) {
+      lift.pivotRawPower = 127;
+    } else if (controller.get_digital(DIGITAL_DOWN) && !controller.get_digital(DIGITAL_B)) {
+      lift.pivotRawPower = -127;
+    } else {
+      lift.pivotRawPower = 0;
+    }
+
+    // Claw Toggle
+    if (controller.get_digital_new_press(DIGITAL_Y)) {
       claw.set(!claw.get());
-      std::cout << "Lift position: " << liftRotation.get_position() << "  Pivot position: " << pivotRotation.get_position() << std::endl;
     }
 
-    pros::delay(ez::util::DELAY_TIME);  // This is used for timer calculations!  Keep this ez::util::DELAY_TIME
+    pros::delay(ez::util::DELAY_TIME);
   }
 }
