@@ -319,17 +319,15 @@ void opcontrol() {
       lift.score();
 
     // Intake
-    if (controller.get_digital(DIGITAL_R1)) {
+    if (controller.get_digital(DIGITAL_R2)) {
       intake.set(Intake::INTAKE);
-      toggleMotor.move(127);
-      pivotMotor.move(127);
-    } else if (controller.get_digital(DIGITAL_R2)) {
+      toggleMotor.move(0);
+    } else if (controller.get_digital(DIGITAL_R1)) {
       intake.set(Intake::OUTTAKE);
-      pivotMotor.move(0);
+      toggleMotor.move(127);
     } else {
       intake.set(Intake::STOP);
       toggleMotor.move(0);
-      pivotMotor.move(0);
     }
 
     // Lift Levels & Front/Back Toggle (L1 + L2)

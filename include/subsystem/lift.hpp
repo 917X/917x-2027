@@ -53,7 +53,7 @@ class Lift {
   double kP = 1.0;     // power per degree of error  (PLACEHOLDER)
 
   int pivotSpeed = 127;    // max power moving to an angle
-  double pivotKP = 1.0;    // power per degree of error  (PLACEHOLDER)
+  double pivotKP = 0.4;    // power per degree of error  (PLACEHOLDER)
   double pivotTarget = 0;  // starts at 0 so the arm stays put until a state gives it an angle
   int pivotRawPower = 0;   // raw manual override power from controller
 

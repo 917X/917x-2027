@@ -25,7 +25,7 @@ constexpr int INTAKE = -19;
 constexpr int LIFT = -18;  // was LIFT_L when the lift had two motors - check this is the one left
 constexpr int LIFT_ROTATION = 17;
 
-constexpr int TOGGLE = 10;          // PLACEHOLDER
+constexpr int TOGGLE = 3;          // PLACEHOLDER
 
 constexpr int PIVOT = -11;           // PLACEHOLDER
 constexpr int PIVOT_ROTATION = 15;  // PLACEHOLDER
