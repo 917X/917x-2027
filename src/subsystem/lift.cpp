@@ -54,19 +54,11 @@ void Lift::liftControl() {
         pivotTarget = levelAngle;
         break;
       case LEVEL_4:
-        target = isBackMode ? BACK_LEVEL_4_HEIGHT : LEVEL_4_HEIGHT;
-        pivotTarget = levelAngle;
+        target = BACK_LEVEL_4_HEIGHT;
+        pivotTarget = BACK_ANGLE;
         break;
       case LEVEL_5:
         target = BACK_LEVEL_5_HEIGHT;
-        pivotTarget = BACK_ANGLE;
-        break;
-      case LEVEL_6:
-        target = BACK_LEVEL_6_HEIGHT;
-        pivotTarget = BACK_ANGLE;
-        break;
-      case LEVEL_7:
-        target = BACK_LEVEL_7_HEIGHT;
         pivotTarget = BACK_ANGLE;
         break;
       case SCORE:
@@ -165,11 +157,13 @@ void Lift::liftControl() {
 }
 
 void Lift::set(LiftState state) {
-  if (state <= LEVEL_7) {
+  if (state <= LEVEL_5) {
     level = state;
-    if (state == LEVEL_1 || state == LEVEL_2) {
+    // LEVEL_1 only exists in front and LEVEL_4-5 only in back.  LEVEL_2-3 keep the current mode.
+    // MATCHLOADING and LOADING swing the arm off the back angle, so the next toggle goes to back.
+    if (state == MATCHLOADING || state == LOADING || state == LEVEL_1) {
       isBackMode = false;
-    } else if (state >= LEVEL_5) {
+    } else if (state >= LEVEL_4) {
       isBackMode = true;
     }
   }
@@ -182,21 +176,46 @@ void Lift::setPivot(double angle) {
   pivotManual = true;
 }
 
-void Lift::toggleFrontBack() {
-  isBackMode = !isBackMode;
-  if (isBackMode && (level == LEVEL_1 || level == LEVEL_2)) {
-    set(LEVEL_3);
-  } else if (!isBackMode && level >= LEVEL_5) {
-    set(LEVEL_4);
-  } else if (level >= LEVEL_3 && level <= LEVEL_4) {
-    set(level);
+double Lift::levelHeight(LiftState level, bool back) {
+  switch (level) {
+    case LEVEL_1: return LEVEL_1_HEIGHT;
+    case LEVEL_2: return back ? BACK_LEVEL_2_HEIGHT : LEVEL_2_HEIGHT;
+    case LEVEL_3: return back ? BACK_LEVEL_3_HEIGHT : LEVEL_3_HEIGHT;
+    case LEVEL_4: return BACK_LEVEL_4_HEIGHT;
+    case LEVEL_5: return BACK_LEVEL_5_HEIGHT;
+    case MATCHLOADING: return MATCHLOADING_HEIGHT;
+    case LOADING: return LOADING_HEIGHT;
+    default: return ZERO_HEIGHT;
   }
+}
+
+double Lift::targetHeight() {
+  if (state <= LEVEL_5) return levelHeight(state, isBackMode);
+  return liftRotation.get_position() / 100.0;  // raw, score and homing - use where it is now
+}
+
+void Lift::toggleFrontBack() {
+  if (state == HOMING || state == SCORE) return;  // don't cut either one short
+  double target = targetHeight();
+  isBackMode = !isBackMode;
+
+  // Go to whichever level on the new side is closest to the old target.
+  // Back is LEVEL_2-5, front is LEVEL_1-3.  A tie picks the higher level.
+  LiftState first = isBackMode ? LEVEL_2 : LEVEL_1;
+  LiftState last = isBackMode ? LEVEL_5 : LEVEL_3;
+  LiftState closest = first;
+  for (int l = first; l <= last; l++) {
+    LiftState candidate = static_cast<LiftState>(l);
+    if (std::fabs(levelHeight(candidate, isBackMode) - target) <= std::fabs(levelHeight(closest, isBackMode) - target))
+      closest = candidate;
+  }
+  set(closest);
 }
 
 void Lift::levelUp() {
   // MATCHLOADING and LOADING are picked with their own buttons - up from either is LEVEL_1
   LiftState next = level < LEVEL_1 ? LEVEL_1 : static_cast<LiftState>(level + 1);
-  if (next <= LEVEL_7) set(next);
+  if (next <= LEVEL_5) set(next);
 }
 
 void Lift::levelDown() {
@@ -214,6 +233,11 @@ void Lift::home() {
 
 void Lift::score() {
   if (state == SCORE || state == HOMING) return;  // don't stack drops or cut homing short
+  // At zero there's no room to drop, so just open the claw and leave the lift where it is
+  if (targetHeight() <= ZERO_HEIGHT + scoreTolerance) {
+    claw.set(true);
+    return;
+  }
   scoreStart = liftRotation.get_position() / 100.0;  // centidegrees -> degrees
   scorePhase = DROPPING;
   scoreTime = 0;

@@ -298,12 +298,12 @@ void ez_template_extras() {
  * Driver layout:
  *   R1 / R2       intake in / out
  *   L1 / L2       lift up / down a level
- *   L1 + L2       toggle between Front Mode and Back Mode
+ *   L1 + L2       toggle Front / Back - goes to the level on the other side closest to the current target
  *   UP            lift to LOADING_HEIGHT, arm to LOADING_ANGLE
  *   A             lift to MATCHLOADING_HEIGHT, arm to FRONT_ANGLE
  *   X / B         raw lift up / down (hold)
  *   RIGHT / DOWN  raw pivot arm control (hold to move, release to hold angle)
- *   LEFT          score - drop, open claw, then up to scoreRise above where it was
+ *   LEFT          score - drop, open claw, then up to scoreRise above where it was (at zero: only opens the claw)
  *   Y             open / close claw
  */
 void opcontrol() {
