@@ -52,7 +52,7 @@ class Lift {
   int rawSpeed = 127;  // power for RAW_UP / RAW_DOWN - lower it to make raw slower
   double kP = 1.0;     // power per degree of error  (PLACEHOLDER)
 
-  int pivotSpeed = 127;    // max power moving to an angle
+  int pivotSpeed = 70;    // max power moving to an angle
   double pivotKP = 0.4;    // power per degree of error  (PLACEHOLDER)
   double pivotTarget = 0;  // starts at 0 so the arm stays put until a state gives it an angle
   int pivotRawPower = 0;   // raw manual override power from controller
@@ -61,7 +61,7 @@ class Lift {
   // true (back) is BACK_LEVEL_x_HEIGHT with the arm at BACK_ANGLE.
   bool isBackMode = false;
   bool pivotManual = false;      // true after setPivot() or manual raw pivot - the lift state stops picking the arm angle
-  double pivotManualTarget = 0;  // the angle setPivot() or manual hold asked for
+  double pivotManualTarget = 0;  // the angle setPivot() asked for, or where raw pivot was let go
 
   // Homing
   int homeSpeed = 45;
@@ -96,11 +96,12 @@ class Lift {
   double LEVEL_4_HEIGHT = 3874;
 
   // Back Heights (Levels 3-7)
+  double BACK_LEVEL_2_HEIGHT = 0;
   double BACK_LEVEL_3_HEIGHT = 2513;
   double BACK_LEVEL_4_HEIGHT = 3170;
-  double BACK_LEVEL_5_HEIGHT = 3170;
-  double BACK_LEVEL_6_HEIGHT = 3170;
-  double BACK_LEVEL_7_HEIGHT = 3170;
+  double BACK_LEVEL_5_HEIGHT = 4170;
+  double BACK_LEVEL_6_HEIGHT = 5170;
+  double BACK_LEVEL_7_HEIGHT = 6170;
 
   // The lift never drives past these.  HOMING ignores them - it has to go below the old zero.
   double MIN_POSITION = -10;    // just under ZERO_HEIGHT, so raw down stops before the string re-winds
@@ -108,12 +109,12 @@ class Lift {
 
   // Arm angles in rotation sensor degrees, 0 is where the arm is when the program starts.
   // PLACEHOLDERS - tune on the robot
-  double FRONT_ANGLE = 293;
+  double FRONT_ANGLE = 280;
   double PRESCORING_ANGLE = 137;
-  double BACK_ANGLE = 132;
-  double LOADING_ANGLE = 0;
+  double BACK_ANGLE = 122;
+  double LOADING_ANGLE =-5;
 
   // The arm never drives past these
-  double PIVOT_MIN_ANGLE = -360;
-  double PIVOT_MAX_ANGLE = 360;
+  double PIVOT_MIN_ANGLE = -10;  // must be the smaller number - if MIN > MAX every PID move gets zeroed
+  double PIVOT_MAX_ANGLE = 281;
 };

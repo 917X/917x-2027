@@ -46,8 +46,8 @@ void Lift::liftControl() {
         pivotTarget = FRONT_ANGLE;
         break;
       case LEVEL_2:
-        target = LEVEL_2_HEIGHT;
-        pivotTarget = FRONT_ANGLE;
+        target = isBackMode ? BACK_LEVEL_2_HEIGHT : LEVEL_2_HEIGHT;
+        pivotTarget = levelAngle;
         break;
       case LEVEL_3:
         target = isBackMode ? BACK_LEVEL_3_HEIGHT : LEVEL_3_HEIGHT;
@@ -95,7 +95,7 @@ void Lift::liftControl() {
 
     if (pivotRawPower != 0) {
       pivotPower = pivotRawPower;
-      pivotManualTarget = pivotPosition;
+      pivotManualTarget = pivotPosition;  // follows the arm while it moves, so it holds where you let go
       pivotManual = true;
     }
 

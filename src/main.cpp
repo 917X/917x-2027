@@ -116,7 +116,7 @@ void initialize() {
 
   // Configure your chassis controls
   // Curve buttons are OFF: EZ's defaults for them are LEFT/RIGHT and Y/A, and A sends
-  // the lift to LOADING.  With this enabled, every press of A would also nudge the turn
+  // the lift to MATCHLOADING.  With this enabled, every press of A would also nudge the turn
   // curve.  Tune the curve here instead and reflash.
   chassis.opcontrol_curve_buttons_toggle(false);
   chassis.opcontrol_drive_activebrake_set(0.0);   // Sets the active brake kP. We recommend ~2.  0 will disable.
@@ -299,9 +299,9 @@ void ez_template_extras() {
  *   R1 / R2       intake in / out
  *   L1 / L2       lift up / down a level
  *   L1 + L2       toggle between Front Mode and Back Mode
- *   A             lift to LOADING_HEIGHT, arm to LOADING_ANGLE
+ *   UP            lift to LOADING_HEIGHT, arm to LOADING_ANGLE
+ *   A             lift to MATCHLOADING_HEIGHT, arm to FRONT_ANGLE
  *   X / B         raw lift up / down (hold)
- *   X + B         lift to MATCHLOADING_HEIGHT, arm to FRONT_ANGLE
  *   RIGHT / DOWN  raw pivot arm control (hold to move, release to hold angle)
  *   LEFT          score - drop, open claw, then up to scoreRise above where it was
  *   Y             open / close claw
@@ -309,7 +309,6 @@ void ez_template_extras() {
 void opcontrol() {
   chassis.drive_brake_set(pros::E_MOTOR_BRAKE_COAST);
   lift.isBackMode = false;
-  bool xbComboActive = false;
 
   while (true) {
     ez_template_extras();
@@ -342,34 +341,26 @@ void opcontrol() {
       lift.levelDown();
     }
 
-    if (controller.get_digital_new_press(DIGITAL_A))
+    if (controller.get_digital_new_press(DIGITAL_UP))
       lift.set(Lift::LOADING);
 
-    // Raw Lift & Matchloading (X + B)
-    bool xHeld = controller.get_digital(DIGITAL_X);
-    bool bHeld = controller.get_digital(DIGITAL_B) && !controller.get_digital(DIGITAL_DOWN);
-
-    if (xHeld && bHeld) {
-      xbComboActive = true;
+    if (controller.get_digital_new_press(DIGITAL_A))
       lift.set(Lift::MATCHLOADING);
-    } else if (!xHeld && !bHeld) {
-      xbComboActive = false;
-      if (lift.state == Lift::RAW_UP || lift.state == Lift::RAW_DOWN) {
-        lift.set(Lift::RAW_HOLD);
-      }
-    } else if (!xbComboActive) {
-      if (xHeld) {
-        lift.set(Lift::RAW_UP);
-      } else if (bHeld) {
-        lift.set(Lift::RAW_DOWN);
-      }
+
+    // Raw Lift (X up / B down)
+    if (controller.get_digital(DIGITAL_X)) {
+      lift.set(Lift::RAW_UP);
+    } else if (controller.get_digital(DIGITAL_B) && !controller.get_digital(DIGITAL_DOWN)) {
+      lift.set(Lift::RAW_DOWN);
+    } else if (lift.state == Lift::RAW_UP || lift.state == Lift::RAW_DOWN) {
+      lift.set(Lift::RAW_HOLD);
     }
 
     // Manual Pivot (Hold to move, release to lock angle)
     if (controller.get_digital(DIGITAL_RIGHT)) {
-      lift.pivotRawPower = 127;
+      lift.pivotRawPower = -90;
     } else if (controller.get_digital(DIGITAL_DOWN) && !controller.get_digital(DIGITAL_B)) {
-      lift.pivotRawPower = -127;
+      lift.pivotRawPower = 90;
     } else {
       lift.pivotRawPower = 0;
     }
