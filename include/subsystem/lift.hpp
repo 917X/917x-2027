@@ -31,13 +31,13 @@ class Lift {
 
   void liftControl();
   void set(LiftState state);
-  void levelUp();
-  void levelDown();
+  void levelUp();    // next level up - LEVEL_1 is on the front, LEVEL_2-5 always go to the back
+  void levelDown();  // next level down - same front / back rule as levelUp, LEVEL_1 goes down to LOADING
   void home();   // starts HOMING - the lift task drives down until it stalls, then zeroes
   void score();  // starts SCORE - drop scoreDrop, open the claw if it's closed, then go up to scoreRise above where it was.
                  // At zero it only opens the claw.
   void setPivot(double angle);  // swings the arm to angle and keeps it there until the next set() - the lift doesn't move
-  void toggleFrontBack();       // flips isBackMode and goes to the level on the new side closest to the current target
+  void toggleFrontBack();       // flips isBackMode and keeps the same level - zero or LEVEL_1 go to back LEVEL_2
   double levelHeight(LiftState level, bool back);  // the height a state aims for, front or back
   double targetHeight();                           // the height the lift is aiming for right now
 
@@ -88,18 +88,19 @@ class Lift {
   // Heights in rotation sensor degrees.  PLACEHOLDERS - tune on the robot
   double ZERO_HEIGHT = 0;
   double MATCHLOADING_HEIGHT = 0;
+  double MATCHLOADING_PIVOT_HEIGHT = 800;  // A doesn't swing the arm until the lift is below this
   double LOADING_HEIGHT = 500;
 
   // Front Heights (Levels 1-3)
-  double LEVEL_1_HEIGHT = 1713;
-  double LEVEL_2_HEIGHT = 2544;
-  double LEVEL_3_HEIGHT = 3445;
+  double LEVEL_1_HEIGHT = 1463;
+  double LEVEL_2_HEIGHT = 2294;
+  double LEVEL_3_HEIGHT = 3195;
 
   // Back Heights (Levels 2-5)
   double BACK_LEVEL_2_HEIGHT = 0;
-  double BACK_LEVEL_3_HEIGHT = 1133;
-  double BACK_LEVEL_4_HEIGHT = 2077;
-  double BACK_LEVEL_5_HEIGHT = 2911;
+  double BACK_LEVEL_3_HEIGHT = 1117;
+  double BACK_LEVEL_4_HEIGHT = 2082;
+  double BACK_LEVEL_5_HEIGHT = 2995;
 
   // The lift never drives past these.  HOMING ignores them - it has to go below the old zero.
   double MIN_POSITION = -10;    // just under ZERO_HEIGHT, so raw down stops before the string re-winds
@@ -107,9 +108,9 @@ class Lift {
 
   // Arm angles in rotation sensor degrees, 0 is where the arm is when the program starts.
   // PLACEHOLDERS - tune on the robot
-  double FRONT_ANGLE = 280;
+  double FRONT_ANGLE = 275;
   double PRESCORING_ANGLE = 137;
-  double BACK_ANGLE = 122;
+  double BACK_ANGLE = 133;
   double LOADING_ANGLE =-5;
 
   // The arm never drives past these

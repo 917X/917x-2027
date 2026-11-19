@@ -23,7 +23,7 @@ void Lift::liftControl() {
     double position = liftRotation.get_position() / 100.0;        // centidegrees -> degrees
     double pivotPosition = pivotRotation.get_position() / 100.0;  // centidegrees -> degrees
     if (count % 10 == 0) {
-      std::cout << "Lift position: " << position << "  Pivot position: " << pivotPosition << std::endl;
+      std::cout << "Lift position: " << position << "Level: " << state << "  Pivot position: " << pivotPosition << std::endl;
     }
     count++;
     double target = position;  // raw states get no P power
@@ -35,7 +35,8 @@ void Lift::liftControl() {
         break;
       case MATCHLOADING:
         target = MATCHLOADING_HEIGHT;
-        pivotTarget = FRONT_ANGLE;
+        // The arm holds its last angle until the lift is below MATCHLOADING_PIVOT_HEIGHT, then swings
+        if (position < MATCHLOADING_PIVOT_HEIGHT) pivotTarget = FRONT_ANGLE;
         break;
       case LOADING:
         target = LOADING_HEIGHT;
@@ -160,8 +161,10 @@ void Lift::set(LiftState state) {
   if (state <= LEVEL_5) {
     level = state;
     // LEVEL_1 only exists in front and LEVEL_4-5 only in back.  LEVEL_2-3 keep the current mode.
-    // MATCHLOADING and LOADING swing the arm off the back angle, so the next toggle goes to back.
-    if (state == MATCHLOADING || state == LOADING || state == LEVEL_1) {
+    // MATCHLOADING and LOADING leave it alone - nothing reads it until the next level button sets it,
+    // and writing it here could let the lift task see "front LEVEL_3" for a frame and swing the arm
+    // early when A is pressed at back LEVEL_2-3.
+    if (state == LEVEL_1) {
       isBackMode = false;
     } else if (state >= LEVEL_4) {
       isBackMode = true;
@@ -196,30 +199,37 @@ double Lift::targetHeight() {
 
 void Lift::toggleFrontBack() {
   if (state == HOMING || state == SCORE) return;  // don't cut either one short
-  double target = targetHeight();
-  isBackMode = !isBackMode;
 
-  // Go to whichever level on the new side is closest to the old target.
-  // Back is LEVEL_2-5, front is LEVEL_1-3.  A tie picks the higher level.
-  LiftState first = isBackMode ? LEVEL_2 : LEVEL_1;
-  LiftState last = isBackMode ? LEVEL_5 : LEVEL_3;
-  LiftState closest = first;
-  for (int l = first; l <= last; l++) {
-    LiftState candidate = static_cast<LiftState>(l);
-    if (std::fabs(levelHeight(candidate, isBackMode) - target) <= std::fabs(levelHeight(closest, isBackMode) - target))
-      closest = candidate;
+  // Keeps the same level when the other side has it.  Front is LEVEL_1-3, back is LEVEL_2-5.
+  if (level <= LEVEL_1) {
+    // Zero, MATCHLOADING, LOADING or LEVEL_1 - none of these are on the back, so go to back LEVEL_2
+    isBackMode = true;
+    set(LEVEL_2);
+  } else {
+    isBackMode = !isBackMode;
+    if (!isBackMode && level >= LEVEL_4) {
+      set(LEVEL_3);  // LEVEL_4-5 aren't on the front - go to the highest front level
+    } else {
+      set(level);    // LEVEL_2 or LEVEL_3 - same level, other side
+    }
   }
-  set(closest);
 }
 
 void Lift::levelUp() {
   // MATCHLOADING and LOADING are picked with their own buttons - up from either is LEVEL_1
   LiftState next = level < LEVEL_1 ? LEVEL_1 : static_cast<LiftState>(level + 1);
-  if (next <= LEVEL_5) set(next);
+  if (next > LEVEL_5) return;
+  // Only LEVEL_1 is on the front - every other level the buttons reach is on the back.
+  // The toggle is the only way to the front LEVEL_2-3.
+  if (next >= LEVEL_2) isBackMode = true;
+  set(next);  // set() puts LEVEL_1 on the front
 }
 
 void Lift::levelDown() {
-  if (level > LOADING) set(static_cast<LiftState>(level - 1));
+  if (level <= LOADING) return;
+  LiftState next = static_cast<LiftState>(level - 1);
+  if (next >= LEVEL_2) isBackMode = true;  // same as levelUp - only LEVEL_1 is on the front
+  set(next);                               // set() puts LEVEL_1 and LOADING on the front
 }
 
 void Lift::home() {

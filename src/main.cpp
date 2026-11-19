@@ -297,10 +297,12 @@ void ez_template_extras() {
 /**
  * Driver layout:
  *   R1 / R2       intake in / out
- *   L1 / L2       lift up / down a level
- *   L1 + L2       toggle Front / Back - goes to the level on the other side closest to the current target
+ *   L1 / L2       lift up / down a level - LEVEL_1 is on the front, every other level goes to the back
+ *   L1 + L2       toggle Front / Back - keeps the same level (zero or LEVEL_1 go to back LEVEL_2).
+ *                 The only way to the front LEVEL_2 / LEVEL_3.
+ *                 Press both within chordWindow (100ms) of each other.
  *   UP            lift to LOADING_HEIGHT, arm to LOADING_ANGLE
- *   A             lift to MATCHLOADING_HEIGHT, arm to FRONT_ANGLE
+ *   A             lift to MATCHLOADING_HEIGHT, arm to FRONT_ANGLE once the lift is below MATCHLOADING_PIVOT_HEIGHT
  *   X / B         raw lift up / down (hold)
  *   RIGHT / DOWN  raw pivot arm control (hold to move, release to hold angle)
  *   LEFT          score - drop, open claw, then up to scoreRise above where it was (at zero: only opens the claw)
@@ -308,7 +310,16 @@ void ez_template_extras() {
  */
 void opcontrol() {
   chassis.drive_brake_set(pros::E_MOTOR_BRAKE_COAST);
-  lift.isBackMode = false;
+  // Don't reset lift.isBackMode here - opcontrol restarts after every disable / enable, and the
+  // lift would drive itself from back LEVEL_2-3 to the front.  The level buttons set the side.
+
+  // L1 / L2 tap tracking - see "Lift Levels" below
+  bool l1Last = false;
+  bool l2Last = false;
+  bool toggled = false;         // L1 + L2 already toggled - let go of both before the next toggle or tap
+  int pendingTap = 0;           // 1 = L1 waiting to go up a level, -1 = L2 waiting to go down, 0 = none
+  int tapTime = 0;              // ms the pending tap has waited
+  const int chordWindow = 100;  // ms a tap waits for the other button before it moves a level
 
   while (true) {
     ez_template_extras();
@@ -319,39 +330,67 @@ void opcontrol() {
 
     // Intake
     if (controller.get_digital(DIGITAL_R2)) {
-      intake.set(Intake::INTAKE);
+      // intake.set(Intake::INTAKE);
       toggleMotor.move(0);
     } else if (controller.get_digital(DIGITAL_R1)) {
-      intake.set(Intake::OUTTAKE);
-      toggleMotor.move(127);
+      // intake.set(Intake::OUTTAKE);
+      toggleMotor.move(60);
     } else {
-      intake.set(Intake::STOP);
+      // 'p/intake.set(Intake::STOP);
       toggleMotor.move(0);
     }
 
     // Lift Levels & Front/Back Toggle (L1 + L2)
-    bool l1Press = controller.get_digital_new_press(DIGITAL_L1);
-    bool l2Press = controller.get_digital_new_press(DIGITAL_L2);
-
-    if ((l1Press || l2Press) && controller.get_digital(DIGITAL_L1) && controller.get_digital(DIGITAL_L2)) {
-      lift.toggleFrontBack();
-    } else if (l1Press) {
-      lift.levelUp();
-    } else if (l2Press) {
-      lift.levelDown();
+    // A tap waits until it's let go, or chordWindow ms, before moving a level.  If the other
+    // button comes down in that time it's a toggle instead, so the toggle never moves a level first.
+    bool l1 = controller.get_digital(DIGITAL_L1);
+    bool l2 = controller.get_digital(DIGITAL_L2);
+    if (l1 && l2) {
+      if (!toggled) lift.toggleFrontBack();
+      toggled = true;
+      pendingTap = 0;
+    } else if (!l1 && !l2) {
+      toggled = false;
     }
+    if (!toggled) {
+      if (pendingTap != 0) {
+        tapTime += ez::util::DELAY_TIME;
+        bool held = pendingTap > 0 ? l1 : l2;
+        if (!held || tapTime >= chordWindow) {
+          if (pendingTap > 0) {
+            lift.levelUp();
+          } else {
+            lift.levelDown();
+          }
+          pendingTap = 0;
+        }
+      }
+      if (l1 && !l1Last) {
+        pendingTap = 1;
+        tapTime = 0;
+      } else if (l2 && !l2Last) {
+        pendingTap = -1;
+        tapTime = 0;
+      }
+    }
+    l1Last = l1;
+    l2Last = l2;
 
     if (controller.get_digital_new_press(DIGITAL_UP))
       lift.set(Lift::LOADING);
 
-    if (controller.get_digital_new_press(DIGITAL_A))
+    if (controller.get_digital_new_press(DIGITAL_A)){
+      claw.set(true);
       lift.set(Lift::MATCHLOADING);
+    }
 
     // Raw Lift (X up / B down)
+    // Only set() on the change - set() drops the manual arm hold, so calling it every frame
+    // would make the arm spring back after RIGHT / DOWN while X or B is held
     if (controller.get_digital(DIGITAL_X)) {
-      lift.set(Lift::RAW_UP);
+      if (lift.state != Lift::RAW_UP) lift.set(Lift::RAW_UP);
     } else if (controller.get_digital(DIGITAL_B) && !controller.get_digital(DIGITAL_DOWN)) {
-      lift.set(Lift::RAW_DOWN);
+      if (lift.state != Lift::RAW_DOWN) lift.set(Lift::RAW_DOWN);
     } else if (lift.state == Lift::RAW_UP || lift.state == Lift::RAW_DOWN) {
       lift.set(Lift::RAW_HOLD);
     }
