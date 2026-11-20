@@ -94,10 +94,19 @@ void turn_example() {
   // The second parameter is max speed the robot will drive at
 
   chassis.pid_turn_set(90_deg, TURN_SPEED);
-  chassis.pid_wait();
+  chassis.pid_wait_quick();
 
-  chassis.pid_turn_set(45_deg, TURN_SPEED);
-  chassis.pid_wait();
+  chassis.pid_turn_set(0_deg, TURN_SPEED);
+  chassis.pid_wait_quick();
+
+  chassis.pid_turn_set(90_deg, TURN_SPEED);
+  chassis.pid_wait_quick();
+
+  chassis.pid_turn_set(0_deg, TURN_SPEED);
+  chassis.pid_wait_quick();
+
+  chassis.pid_turn_set(90_deg, TURN_SPEED);
+  chassis.pid_wait_quick();
 
   chassis.pid_turn_set(0_deg, TURN_SPEED);
   chassis.pid_wait();
@@ -489,16 +498,24 @@ void driver_side_three_pin() {
   */
 
 void skillz(){
+  lift.pivotSpeed = 127;
   chassis.odom_pose_set({0,-63,180});
-  chassis.pid_drive_set(-16,120,false);
-  chassis.pid_wait_quick();
-  chassis.pid_turn_set(90,120);
+  toggleMotor.move(127);
+  pros::delay(500);
+  toggleMotor.move(0);
+  chassis.pid_drive_set(-17,120,false);
   chassis.pid_wait_quick();
   lift.set(Lift::MATCHLOADING);
+  chassis.pid_turn_set(90,120);
+  chassis.pid_wait();
   chassis.pid_drive_set(15,120,false);
   chassis.pid_wait_quick();
+  claw.set(true);
   chassis.pid_drive_set(-15,120,false);
-  chassis.pid_wait_quick();
+  chassis.pid_wait_quick_chain();
   chassis.pid_turn_set({24, -24}, fwd,  90);
-  chassis.pid_wait_quick();
+  chassis.pid_wait();
+  chassis.pid_odom_set({{24, -24}, fwd, 90}, false);
+  chassis.pid_wait();
+  std::cout<<chassis.odom_x_get()<<", "<<chassis.odom_y_get()<<", "<<chassis.odom_theta_get()<<std::endl;
 }

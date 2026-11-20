@@ -18,7 +18,7 @@ constexpr int LEFT_F = 7;
 constexpr int LEFT_M = 6;
 constexpr int LEFT_B = -5;
 
-constexpr int IMU = 2;
+constexpr int IMU = 10;
 
 constexpr int INTAKE = -19;
 
@@ -31,6 +31,7 @@ constexpr int PIVOT = -11;           // PLACEHOLDER
 constexpr int PIVOT_ROTATION = 15;  // PLACEHOLDER
 
 constexpr char CLAW = 'H';
+constexpr int CLAW_DISTANCE = 12;
 
 // drivetrain geometry
 constexpr double WHEEL_DIAMETER = 2.75;  // 4" wheels without screw holes are actually 4.125
@@ -46,6 +47,7 @@ pros::Motor pivotMotor(PIVOT);
 pros::Rotation pivotRotation(PIVOT_ROTATION);
 
 pros::Motor toggleMotor(TOGGLE);
+pros::Distance clawDistance(CLAW_DISTANCE);
 
 // claw - true is open.  opcontrol toggles it directly, and the lift opens it while scoring.
 // If it's backwards, make this ez::Piston claw(CLAW, true) - that flips the output.

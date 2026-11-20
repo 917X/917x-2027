@@ -53,3 +53,5 @@ extern pros::Imu imu;
 extern pros::MotorGroup rightMotors;
 extern pros::MotorGroup leftMotors;
 extern pros::Distance distance;
+
+extern pros::Distance clawDistance;

@@ -22,10 +22,11 @@ void Lift::liftControl() {
     pros::delay(10);
     double position = liftRotation.get_position() / 100.0;        // centidegrees -> degrees
     double pivotPosition = pivotRotation.get_position() / 100.0;  // centidegrees -> degrees
-    if (count % 10 == 0) {
-      std::cout << "Lift position: " << position << "Level: " << state << "  Pivot position: " << pivotPosition << std::endl;
-    }
-    count++;
+    // if (count % 10 == 0) {
+    //   std::cout << "Lift position: " << position << "Level: " << state << "  Pivot position: " << pivotPosition << std::endl;
+    // }
+    // count++;
+
     double target = position;  // raw states get no P power
     double levelAngle = isBackMode ? BACK_ANGLE : FRONT_ANGLE;
 
@@ -64,6 +65,9 @@ void Lift::liftControl() {
         break;
       case SCORE:
         target = scorePhase == RAISING ? scoreStart + scoreRise : scoreStart - scoreDrop;
+        break;
+      case CUSTOM_HEIGHT:
+        target = customHeight;  // the arm holds its last angle
         break;
       case RAW_UP:
       case RAW_DOWN:
@@ -174,6 +178,42 @@ void Lift::set(LiftState state) {
   this->state = state;
 }
 
+void Lift::setLevel(LiftState level, bool back) {
+  // Only LEVEL_2-3 have two sides.  set() picks the side for LEVEL_1 and LEVEL_4-5, and the other
+  // states don't use it - leaving it alone there means the lift never aims at the wrong side for a frame.
+  if (level == LEVEL_2 || level == LEVEL_3) isBackMode = back;
+  set(level);
+}
+
+void Lift::setHeight(double height) {
+  // Set the height before the state, so the lift task never sees CUSTOM_HEIGHT with the old height.
+  // Clamped because the lift stops at the ends of travel anyway, and targetHeight() should match where it ends up.
+  customHeight = std::clamp(height, MIN_POSITION, MAX_POSITION);
+  set(CUSTOM_HEIGHT);
+}
+
+bool Lift::waitUntilCompletion(int timeout) {
+  // The lift task works out the arm angle for a new state on its next frame.  Waiting 20ms first means it
+  // has run at least once since the last set(), so the check below never uses the old state's angle.
+  pros::delay(20);
+  for (int waited = 20;; waited += 10) {
+    double position = liftRotation.get_position() / 100.0;
+    double arm = pivotRotation.get_position() / 100.0;
+    // Clamped like the lift task does, so an angle past the arm's limits can't make this wait forever
+    double armTarget = std::clamp(pivotManual ? pivotManualTarget : pivotTarget, PIVOT_MIN_ANGLE, PIVOT_MAX_ANGLE);
+    bool running = state == SCORE || state == HOMING;  // these end on their own - wait for them to finish
+    if (!running && std::abs(position - targetHeight()) <= waitTolerance &&
+        std::abs(arm - armTarget) <= pivotWaitTolerance)
+      return true;
+    if (waited >= timeout) {
+      printf("lift wait timed out - lift %.0f (wants %.0f)  arm %.0f (wants %.0f)  state %d\n",
+             position, targetHeight(), arm, armTarget, state);
+      return false;
+    }
+    pros::delay(10);
+  }
+}
+
 void Lift::setPivot(double angle) {
   pivotManualTarget = angle;
   pivotManual = true;
@@ -194,6 +234,7 @@ double Lift::levelHeight(LiftState level, bool back) {
 
 double Lift::targetHeight() {
   if (state <= LEVEL_5) return levelHeight(state, isBackMode);
+  if (state == CUSTOM_HEIGHT) return customHeight;
   return liftRotation.get_position() / 100.0;  // raw, score and homing - use where it is now
 }
 

@@ -7,7 +7,8 @@
 // holds that height, and swings the pivoting arm to the angle that goes with it.  The LEVELs
 // have two sets of heights - see isBackMode.  RAW_UP /
 // RAW_DOWN move the lift freely and RAW_HOLD holds where they stopped.  The arm holds its
-// last angle through the raw states, HOMING and ZERO.
+// last angle through the raw states, HOMING, ZERO and CUSTOM_HEIGHT.  setHeight() goes to and
+// holds any height you give it.
 class Lift {
  public:
   Lift(pros::Motor& liftMotor, pros::Rotation& liftRotation, pros::Motor& pivotMotor,
@@ -24,13 +25,21 @@ class Lift {
                    RAW_DOWN,
                    RAW_HOLD,
                    HOMING,
-                   SCORE };
+                   SCORE,
+                   CUSTOM_HEIGHT };  // setHeight() - holds customHeight, the arm holds its last angle
   enum ScorePhase { DROPPING,
                     RELEASING,
                     RAISING };
 
   void liftControl();
   void set(LiftState state);
+  void setLevel(LiftState level, bool back);  // set() with the side picked - back only matters for LEVEL_2-3.
+                                              // LEVEL_1 is always front and LEVEL_4-5 always back
+  void setHeight(double height);  // goes to and holds height (rotation sensor degrees, kept between
+                                  // MIN_POSITION and MAX_POSITION).  The arm doesn't move - call setPivot() after it to move the arm
+  bool waitUntilCompletion(int timeout = 2000);  // blocks until the lift is within waitTolerance of its height and the
+                                                 // arm within pivotWaitTolerance of its angle, or timeout ms pass.
+                                                 // Waits for SCORE / HOMING to finish first.  false if it timed out
   void levelUp();    // next level up - LEVEL_1 is on the front, LEVEL_2-5 always go to the back
   void levelDown();  // next level down - same front / back rule as levelUp, LEVEL_1 goes down to LOADING
   void home();   // starts HOMING - the lift task drives down until it stalls, then zeroes
@@ -48,6 +57,7 @@ class Lift {
   ez::Piston& claw;        // true is open.  SCORE opens it - opcontrol toggles it the rest of the time
   LiftState state = ZERO;
   LiftState level = ZERO;  // last ZERO..LEVEL_5 picked, so levelUp/levelDown still work after raw
+  double customHeight = 0;  // where CUSTOM_HEIGHT aims - set by setHeight()
 
   int speed = 127;     // max power moving to a level
   int rawSpeed = 127;  // power for RAW_UP / RAW_DOWN - lower it to make raw slower
@@ -63,6 +73,10 @@ class Lift {
   bool isBackMode = false;
   bool pivotManual = false;      // true after setPivot() or manual raw pivot - the lift state stops picking the arm angle
   double pivotManualTarget = 0;  // the angle setPivot() asked for, or where raw pivot was let go
+
+  // waitUntilCompletion
+  double waitTolerance = 25;      // degrees of lift  (PLACEHOLDER)
+  double pivotWaitTolerance = 5;  // degrees of arm  (PLACEHOLDER)
 
   // Homing
   int homeSpeed = 45;
@@ -108,9 +122,9 @@ class Lift {
 
   // Arm angles in rotation sensor degrees, 0 is where the arm is when the program starts.
   // PLACEHOLDERS - tune on the robot
-  double FRONT_ANGLE = 275;
+  double FRONT_ANGLE = 283;
   double PRESCORING_ANGLE = 137;
-  double BACK_ANGLE = 133;
+  double BACK_ANGLE = 122;
   double LOADING_ANGLE =-5;
 
   // The arm never drives past these
