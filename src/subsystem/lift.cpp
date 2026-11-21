@@ -28,7 +28,7 @@ void Lift::liftControl() {
     count++;
 
     double target = position;  // raw states get no P power
-    double levelAngle = isBackMode ? BACK_ANGLE : MATCHLOAD_LIFT_ANGLE;
+    double levelAngle = isBackMode ? BACK_ANGLE : FRONT_SCORING_ANGLE;
 
     switch (state) {
       case ZERO:
@@ -45,7 +45,7 @@ void Lift::liftControl() {
         break;
       case LEVEL_1:
         target = LEVEL_1_HEIGHT;
-        pivotTarget = MATCHLOAD_LIFT_ANGLE;
+        pivotTarget = FRONT_SCORING_ANGLE;
         break;
       case LEVEL_2:
         target = isBackMode ? BACK_LEVEL_2_HEIGHT : LEVEL_2_HEIGHT;
@@ -76,6 +76,18 @@ void Lift::liftControl() {
         break;
     }
     if (pivotManual) pivotTarget = pivotManualTarget;  // setPivot() or manual hold wins over the state's angle
+
+    // Leaving MATCHLOADING for a level - hold the lift until the arm is at its new angle, or pivotFirstTimeout runs out
+    if (pivotFirst && state >= LEVEL_1 && state <= LEVEL_5) {
+      pivotFirstTime += 10;
+      // Clamped like the arm's limits, so an angle it can't reach doesn't hold the lift for the whole timeout
+      double armTarget = std::clamp(pivotTarget, PIVOT_MIN_ANGLE, PIVOT_MAX_ANGLE);
+      if (std::abs(pivotPosition - armTarget) <= pivotFirstTolerance || pivotFirstTime >= pivotFirstTimeout) {
+        pivotFirst = false;  // arm's there - the lift goes up from here
+      } else {
+        target = pivotFirstHold;
+      }
+    }
 
     int power = std::clamp(static_cast<int>(kP * (target - position)), -speed, speed);
     if (state == RAW_UP) power = rawSpeed;
@@ -162,6 +174,17 @@ void Lift::liftControl() {
 }
 
 void Lift::set(LiftState state) {
+  // Going from MATCHLOADING to a level: the arm swings first, and the lift holds where it is until it's there.
+  // Another level picked while it's still waiting keeps waiting, for that level's angle.
+  bool toLevel = state >= LEVEL_1 && state <= LEVEL_5;
+  if (toLevel && (this->state == MATCHLOADING || pivotFirst)) {
+    if (!pivotFirst) pivotFirstHold = liftRotation.get_position() / 100.0;  // before pivotFirst, so the task never holds an old height
+    pivotFirstTime = 0;
+    pivotFirst = true;
+  } else {
+    pivotFirst = false;
+  }
+
   if (state <= LEVEL_5) {
     level = state;
     // LEVEL_1 only exists in front and LEVEL_4-5 only in back.  LEVEL_2-3 keep the current mode.

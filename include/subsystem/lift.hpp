@@ -8,7 +8,8 @@
 // have two sets of heights - see isBackMode.  RAW_UP /
 // RAW_DOWN move the lift freely and RAW_HOLD holds where they stopped.  The arm holds its
 // last angle through the raw states, HOMING, ZERO and CUSTOM_HEIGHT.  setHeight() goes to and
-// holds any height you give it.
+// holds any height you give it.  Going from MATCHLOADING to a level, the arm swings first and
+// the lift waits for it - see pivotFirst.
 class Lift {
  public:
   Lift(pros::Motor& liftMotor, pros::Rotation& liftRotation, pros::Motor& pivotMotor,
@@ -61,7 +62,7 @@ class Lift {
 
   int speed = 127;     // max power moving to a level
   int rawSpeed = 127;  // power for RAW_UP / RAW_DOWN - lower it to make raw slower
-  double kP = 5.0;     // power per degree of error  (PLACEHOLDER)
+  double kP = 2.0;     // power per degree of error  (PLACEHOLDER)
 
   int pivotSpeed = 127;    // max power moving to an angle
   double pivotKP = 0.4;    // power per degree of error  (PLACEHOLDER)
@@ -78,6 +79,14 @@ class Lift {
   double waitTolerance = 25;      // degrees of lift  (PLACEHOLDER)
   double pivotWaitTolerance = 5;  // degrees of arm  (PLACEHOLDER)
 
+  // Going from MATCHLOADING to a level, the arm swings to the level's angle first and the lift
+  // holds where it is until the arm is within pivotFirstTolerance, so the matchload stays steady
+  double pivotFirstTolerance = 10;  // degrees of arm  (PLACEHOLDER)
+  int pivotFirstTimeout = 750;      // ms - the lift goes anyway if the arm never gets there  (PLACEHOLDER)
+  bool pivotFirst = false;          // the lift is waiting for the arm
+  double pivotFirstHold = 0;        // the height the lift holds while it waits
+  int pivotFirstTime = 0;           // ms it has waited
+
   // Homing
   int homeSpeed = 45;
   int homeLooseCurrent = 130;   // mA
@@ -91,7 +100,7 @@ class Lift {
 
   // Score
   double scoreDrop = 300;       // degrees, same units as the heights below
-  double scoreRise = 700;       // degrees above the starting position it ends at
+  double scoreRise = 300;       // degrees above the starting position it ends at
   int scoreReleaseTime = 200;   // ms  (PLACEHOLDER)
   double scoreTolerance = 30;   // degrees  (PLACEHOLDER)
   int scoreMoveTimeout = 1000;  // ms
@@ -101,14 +110,14 @@ class Lift {
 
   // Heights in rotation sensor degrees.  PLACEHOLDERS - tune on the robot
   double ZERO_HEIGHT = 0;
-  double MATCHLOADING_HEIGHT = 0;
+  double MATCHLOADING_HEIGHT = 250;
   double MATCHLOADING_PIVOT_HEIGHT = 550;  // A doesn't swing the arm until the lift is below this
   double LOADING_HEIGHT = 250;
 
   // Front Heights (Levels 1-3)
-  double LEVEL_1_HEIGHT = 1213;
-  double LEVEL_2_HEIGHT = 2044;
-  double LEVEL_3_HEIGHT = 2945;
+  double LEVEL_1_HEIGHT = 1650;
+  double LEVEL_2_HEIGHT = 2662;
+  double LEVEL_3_HEIGHT = 3538;
 
   // Back Heights (Levels 2-5)
   double BACK_LEVEL_2_HEIGHT = 0;
@@ -122,8 +131,8 @@ class Lift {
 
   // Arm angles in rotation sensor degrees, 0 is where the arm is when the program starts.
   // PLACEHOLDERS - tune on the robot
-  double FRONT_ANGLE = 283;
-  double MATCHLOAD_LIFT_ANGLE = 170;  // just under 1/4 of the way up from FRONT_ANGLE
+  double FRONT_ANGLE = 283;           // MATCHLOADING - picking up from the front
+  double FRONT_SCORING_ANGLE = 250;   // front LEVEL_1-3, and where claw_autoclose raises the arm after it grabs a matchload
   double PRESCORING_ANGLE = 137;
   double BACK_ANGLE = 122;
   double LOADING_ANGLE =-5;

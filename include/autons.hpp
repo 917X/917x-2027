@@ -1,9 +1,11 @@
 #pragma once
 #include "EZ-Template/util.hpp"
+#include "subsystem/lift.hpp"
 
 void default_constants();
 
 void claw_autoclose(int timeout_ms, bool lift_pivot_after = false);
+void claw_autoclose(int timeout_ms, Lift::LiftState lift_state_after, bool close_on_timeout = true);
 void claw_autoclose(ez::pose target, int timeout_ms, double tolerance_in = 1.0);
 
 void drive_example();

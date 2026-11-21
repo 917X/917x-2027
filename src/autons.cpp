@@ -27,12 +27,13 @@ void default_constants() {
   chassis.pid_swing_constants_set(4, 0.0, 35);           // Swing constants
   chassis.pid_odom_angular_constants_set(6.5, 0.0, 60.5);    // Angular control for odom motions
   chassis.pid_odom_boomerang_constants_set(5.8, 0.0, 32.5);  // Angular control for boomerang motions
-  // Exit conditions
-  chassis.pid_turn_exit_condition_set(90_ms, 3_deg, 150_ms, 7_deg, 500_ms, 500_ms);  // 90,3_deg,250_ms,7_deg,500_ms,500_ms
-  chassis.pid_swing_exit_condition_set(90_ms, 3_deg, 250_ms, 7_deg, 500_ms, 500_ms);
-  chassis.pid_drive_exit_condition_set(90_ms, 1_in, 150_ms, 3_in, 500_ms, 500_ms);
-  chassis.pid_odom_turn_exit_condition_set(90_ms, 3_deg, 250_ms, 7_deg, 500_ms, 750_ms);
-  chassis.pid_odom_drive_exit_condition_set(90_ms, 1_in, 250_ms, 5_in, 500_ms, 750_ms);
+  // Exit conditions - (small exit time, small error, big exit time, big error, velocity exit time, mA timeout)
+  // Taken from 2026 (917x-2026 devices.cpp) wherever 2026 was quicker; the rest is kept from this year
+  chassis.pid_turn_exit_condition_set(90_ms, 3_deg, 150_ms, 7_deg, 250_ms, 250_ms);       // was 500, 500
+  chassis.pid_swing_exit_condition_set(90_ms, 3_deg, 250_ms, 7_deg, 500_ms, 500_ms);      // unchanged - 2026 was the same or slower
+  chassis.pid_drive_exit_condition_set(90_ms, 1_in, 150_ms, 3_in, 200_ms, 250_ms);        // was 500, 500
+  chassis.pid_odom_turn_exit_condition_set(90_ms, 3_deg, 250_ms, 7_deg, 250_ms, 250_ms);  // was 500, 750
+  chassis.pid_odom_drive_exit_condition_set(50_ms, 1.5_in, 100_ms, 5_in, 250_ms, 500_ms); // was 90, 1, 250, -, 500, 750
   chassis.pid_turn_chain_constant_set(3_deg);
   chassis.pid_swing_chain_constant_set(5_deg);
   chassis.pid_drive_chain_constant_set(3_in);
@@ -404,14 +405,15 @@ void measure_offsets() {
 ///
 // Auto-close claw
 ///
-// Both versions return right away and wait in a background task, so drive motions,
+// All versions return right away and wait in a background task, so drive motions,
 // the lift and anything else in the auton keep running while the claw waits.
 // The claw closes as soon as clawDistance reads under CLAW_GRAB_MM.  If that never
 // happens, the fallback closes it anyway:
 //   claw_autoclose(800);                   -> after 800 ms
 //   claw_autoclose({24, -24}, 15000);      -> once the robot is within 1 in of (24, -24), or after 15 s
 //   claw_autoclose({24, -24}, 15000, 2);   -> same, but within 2 in
-// Calling either one again cancels whatever close was still waiting.
+//   claw_autoclose(5000, Lift::LEVEL_1);   -> after 5 s, and the lift goes to LEVEL_1 once it's closed
+// Calling any of them again cancels whatever close was still waiting.
 const int CLAW_GRAB_MM = 70;
 static std::atomic<int> claw_close_id{0};  // bumped every call so an older wait gives up
 
@@ -428,7 +430,7 @@ void claw_autoclose(int timeout_ms, bool lift_pivot_after) {
         if (lift_pivot_after) {
           pros::delay(100);  // give the claw a moment to grip before raising the arm
           if (id == claw_close_id && lift.state == Lift::MATCHLOADING) {
-            lift.setPivot(lift.MATCHLOAD_LIFT_ANGLE);
+            lift.setPivot(lift.FRONT_SCORING_ANGLE);  // lift it just out of the loader - L1 then goes straight up from here
           }
         }
         return;
@@ -441,6 +443,32 @@ void claw_autoclose(int timeout_ms, bool lift_pivot_after) {
       std::cout<< "Claw distance: " << clawDistance.get() << std::endl;
     }
   }, "claw close");
+}
+// Same wait, then the lift goes to lift_state_after once the claw has closed:
+//   claw_autoclose(5000, Lift::LEVEL_1);         -> grab, then up to front LEVEL_1
+//   claw_autoclose(5000, Lift::LEVEL_1, false);  -> same, but a timeout leaves the claw open and the lift where it is
+// The lift only moves if it's still in the state it was in when this was called, so put it where it
+// should wait (e.g. MATCHLOADING) first.  A lift.set() or button press while it waits wins - a late
+// timeout can't drag the lift back down in the middle of the auton.
+// From MATCHLOADING the arm swings to the level's angle before the lift goes up (Lift::pivotFirst).
+void claw_autoclose(int timeout_ms, Lift::LiftState lift_state_after, bool close_on_timeout) {
+  int id = ++claw_close_id;
+  Lift::LiftState waiting_state = lift.state;
+  pros::Task([id, timeout_ms, lift_state_after, close_on_timeout, waiting_state]() {
+    uint32_t start = pros::millis();
+    while (id == claw_close_id) {
+      bool timed_out = pros::millis() - start >= (uint32_t)timeout_ms;
+      if (claw_sees_object() || (timed_out && close_on_timeout)) {
+        claw.set(false);   // false is closed
+        pros::delay(100);  // give the claw a moment to grip before lifting
+        if (id == claw_close_id && lift.state == waiting_state) lift.set(lift_state_after);
+        return;
+      }
+      if (timed_out) return;  // close_on_timeout is false - leave the claw open
+      pros::delay(10);
+      std::cout << "Claw distance: " << clawDistance.get() << std::endl;
+    }
+  }, "claw close then lift");
 }
 
 // Fallback is reaching a point on the field (inches), or timeout_ms if the point is never reached
@@ -568,7 +596,7 @@ void skillz(){
   lift.pivotSpeed = 127;
   chassis.odom_pose_set({0,-63,180});
   toggleMotor.move(127);
-  pros::delay(500);
+  pros::delay(700);
   toggleMotor.move(0);
   //lift.setPivot(127);
   chassis.pid_drive_set(-17,120,false);
@@ -576,21 +604,23 @@ void skillz(){
   lift.set(Lift::MATCHLOADING);
   chassis.pid_turn_set(90,120);
   chassis.pid_wait();
-  chassis.pid_drive_set(15,120,false);
+  chassis.pid_drive_set(14.5,120,false);
   chassis.pid_wait_quick();
   claw.set(true);
-  chassis.pid_drive_set(-15,120,false);
-  chassis.pid_wait_quick_chain();
-  chassis.pid_turn_set({24, -24}, fwd,  90);
+  chassis.pid_drive_set(-10,60,false);
+  chassis.pid_wait_quick();
+  chassis.pid_turn_set({17.2, -28.5}, fwd,  90);
   chassis.pid_wait();
-  claw_autoclose(5000);
-  chassis.pid_odom_set({{24, -24}, fwd,50}, false);
+  claw_autoclose(8000,Lift::LEVEL_1);
+  chassis.pid_odom_set({{17.4, -28.4}, fwd,50}, false);  //17.4,-28.5
   chassis.pid_wait();
   //std::cout<<chassis.odom_x_get()<<", "<<chassis.odom_y_get()<<", "<<chassis.odom_theta_get()<<std::endl;
-  lift.setPivot(127);
-  chassis.pid_turn_set(185, 120);
+  pros::delay(1200);
+  chassis.pid_turn_set({23,-60},fwd, 70);
   chassis.pid_wait();
-  chassis.pid_drive_set(14,120,false);
-  chassis.pid_wait();     // wait until lift is actually at that height
-  lift.score();                        // drops 300 deg -> opens claw -> waits 200 ms -> raises 700 deg -> holds
+  // chassis.pid_drive_set(14,120,false);
+  chassis.pid_odom_set({{18.3 ,-40},fwd,70}, true);
+  chassis.pid_wait();
+  lift.waitUntilCompletion(500);
+  lift.score();
 }
