@@ -409,22 +409,13 @@ void measure_offsets() {
 // The claw closes as soon as clawDistance reads under CLAW_GRAB_MM.  If that never
 // happens, the fallback closes it anyway:
 //   claw_autoclose(800);                   -> after 800 ms
-//   claw_autoclose({24, -24}, 15000);      -> once the robot is within 1 in of (24, -24), gives up after 15 s
+//   claw_autoclose({24, -24}, 15000);      -> once the robot is within 1 in of (24, -24), or after 15 s
 //   claw_autoclose({24, -24}, 15000, 2);   -> same, but within 2 in
 // Calling either one again cancels whatever close was still waiting.
-// On a detection the lift also goes to LEVEL_1.  A fallback close leaves the lift where it is.
-const int CLAW_GRAB_MM = 70;
-const int CLAW_GRIP_MS = 100;  // time for the piston to grip before the lift pulls up.  0 lifts right away
+const int CLAW_GRAB_MM = 65;
 static std::atomic<int> claw_close_id{0};  // bumped every call so an older wait gives up
 
 static bool claw_sees_object() { return clawDistance.get() < CLAW_GRAB_MM; }
-
-// Detected: close on it, let it grip, then lift it to LEVEL_1
-static void claw_grab_and_lift() {
-  claw.set(false);  // false is closed
-  pros::delay(CLAW_GRIP_MS);
-  lift.set(Lift::LEVEL_1);
-}
 
 // Fallback is a timeout in milliseconds
 static void claw_autoclose(int timeout_ms) {
@@ -432,12 +423,8 @@ static void claw_autoclose(int timeout_ms) {
   pros::Task([id, timeout_ms]() {
     uint32_t start = pros::millis();
     while (id == claw_close_id) {
-      if (claw_sees_object()) {
-        claw_grab_and_lift();
-        return;
-      }
-      if (pros::millis() - start >= (uint32_t)timeout_ms) {
-        claw.set(false);
+      if (claw_sees_object() || pros::millis() - start >= (uint32_t)timeout_ms) {
+        claw.set(false);  // false is closed
         return;
       }
       pros::delay(10);
@@ -446,19 +433,16 @@ static void claw_autoclose(int timeout_ms) {
   }, "claw close");
 }
 
-// Fallback is reaching a point on the field (inches).  safety_ms stops the task from
-// living on into driver control and snapping the claw shut if the point is never reached.
-static void claw_autoclose(ez::pose target, int safety_ms, double tolerance_in = 1.0) {
+// Fallback is reaching a point on the field (inches), or timeout_ms if the point is never reached
+static void claw_autoclose(ez::pose target, int timeout_ms, double tolerance_in = 1.0) {
   int id = ++claw_close_id;
-  pros::Task([id, target, tolerance_in, safety_ms]() {
+  pros::Task([id, target, tolerance_in, timeout_ms]() {
     uint32_t start = pros::millis();
-    while (id == claw_close_id && pros::millis() - start < (uint32_t)safety_ms) {
-      if (claw_sees_object()) {
-        claw_grab_and_lift();
-        return;
-      }
-      if (util::distance_to_point(target, chassis.odom_pose_get()) <= tolerance_in) {
-        claw.set(false);
+    while (id == claw_close_id) {
+      if (claw_sees_object() ||
+          util::distance_to_point(target, chassis.odom_pose_get()) <= tolerance_in ||
+          pros::millis() - start >= (uint32_t)timeout_ms) {
+        claw.set(false);  // false is closed
         return;
       }
       pros::delay(10);
@@ -565,8 +549,8 @@ void driver_side_three_pin() {
 
 void test_autoclose() {
   claw.set(true);
-  chassis.pid_drive_set(24,90);
-  claw_autoclose({0,22}, 15000, 1);
+  chassis.pid_drive_set(26,50);
+  claw_autoclose(3000);
   chassis.pid_wait();
 }
 
