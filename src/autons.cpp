@@ -412,19 +412,29 @@ void measure_offsets() {
 //   claw_autoclose({24, -24}, 15000);      -> once the robot is within 1 in of (24, -24), or after 15 s
 //   claw_autoclose({24, -24}, 15000, 2);   -> same, but within 2 in
 // Calling either one again cancels whatever close was still waiting.
-const int CLAW_GRAB_MM = 65;
+const int CLAW_GRAB_MM = 70;
 static std::atomic<int> claw_close_id{0};  // bumped every call so an older wait gives up
 
 static bool claw_sees_object() { return clawDistance.get() < CLAW_GRAB_MM; }
 
-// Fallback is a timeout in milliseconds
-static void claw_autoclose(int timeout_ms) {
+// Fallback is a timeout in milliseconds (in driver mode, lift_pivot_after is true and timeout leaves the claw open)
+void claw_autoclose(int timeout_ms, bool lift_pivot_after) {
   int id = ++claw_close_id;
-  pros::Task([id, timeout_ms]() {
+  pros::Task([id, timeout_ms, lift_pivot_after]() {
     uint32_t start = pros::millis();
     while (id == claw_close_id) {
-      if (claw_sees_object() || pros::millis() - start >= (uint32_t)timeout_ms) {
+      if (claw_sees_object()) {
         claw.set(false);  // false is closed
+        if (lift_pivot_after) {
+          pros::delay(100);  // give the claw a moment to grip before raising the arm
+          if (id == claw_close_id && lift.state == Lift::MATCHLOADING) {
+            lift.setPivot(lift.MATCHLOAD_LIFT_ANGLE);
+          }
+        }
+        return;
+      }
+      if (pros::millis() - start >= (uint32_t)timeout_ms) {
+        if (!lift_pivot_after) claw.set(false);  // auton fallback closes; driver mode leaves it open
         return;
       }
       pros::delay(10);
@@ -434,7 +444,7 @@ static void claw_autoclose(int timeout_ms) {
 }
 
 // Fallback is reaching a point on the field (inches), or timeout_ms if the point is never reached
-static void claw_autoclose(ez::pose target, int timeout_ms, double tolerance_in = 1.0) {
+void claw_autoclose(ez::pose target, int timeout_ms, double tolerance_in) {
   int id = ++claw_close_id;
   pros::Task([id, target, tolerance_in, timeout_ms]() {
     uint32_t start = pros::millis();
@@ -560,6 +570,7 @@ void skillz(){
   toggleMotor.move(127);
   pros::delay(500);
   toggleMotor.move(0);
+  //lift.setPivot(127);
   chassis.pid_drive_set(-17,120,false);
   chassis.pid_wait_quick();
   lift.set(Lift::MATCHLOADING);
@@ -572,7 +583,14 @@ void skillz(){
   chassis.pid_wait_quick_chain();
   chassis.pid_turn_set({24, -24}, fwd,  90);
   chassis.pid_wait();
-  chassis.pid_odom_set({{24, -24}, fwd, 90}, false);
+  claw_autoclose(5000);
+  chassis.pid_odom_set({{24, -24}, fwd,50}, false);
   chassis.pid_wait();
-  std::cout<<chassis.odom_x_get()<<", "<<chassis.odom_y_get()<<", "<<chassis.odom_theta_get()<<std::endl;
+  //std::cout<<chassis.odom_x_get()<<", "<<chassis.odom_y_get()<<", "<<chassis.odom_theta_get()<<std::endl;
+  lift.setPivot(127);
+  chassis.pid_turn_set(185, 120);
+  chassis.pid_wait();
+  chassis.pid_drive_set(14,120,false);
+  chassis.pid_wait();     // wait until lift is actually at that height
+  lift.score();                        // drops 300 deg -> opens claw -> waits 200 ms -> raises 700 deg -> holds
 }

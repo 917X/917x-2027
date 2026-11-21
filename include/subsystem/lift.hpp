@@ -61,7 +61,7 @@ class Lift {
 
   int speed = 127;     // max power moving to a level
   int rawSpeed = 127;  // power for RAW_UP / RAW_DOWN - lower it to make raw slower
-  double kP = 1.0;     // power per degree of error  (PLACEHOLDER)
+  double kP = 5.0;     // power per degree of error  (PLACEHOLDER)
 
   int pivotSpeed = 127;    // max power moving to an angle
   double pivotKP = 0.4;    // power per degree of error  (PLACEHOLDER)
@@ -102,19 +102,19 @@ class Lift {
   // Heights in rotation sensor degrees.  PLACEHOLDERS - tune on the robot
   double ZERO_HEIGHT = 0;
   double MATCHLOADING_HEIGHT = 0;
-  double MATCHLOADING_PIVOT_HEIGHT = 800;  // A doesn't swing the arm until the lift is below this
-  double LOADING_HEIGHT = 500;
+  double MATCHLOADING_PIVOT_HEIGHT = 550;  // A doesn't swing the arm until the lift is below this
+  double LOADING_HEIGHT = 250;
 
   // Front Heights (Levels 1-3)
-  double LEVEL_1_HEIGHT = 1463;
-  double LEVEL_2_HEIGHT = 2294;
-  double LEVEL_3_HEIGHT = 3195;
+  double LEVEL_1_HEIGHT = 1213;
+  double LEVEL_2_HEIGHT = 2044;
+  double LEVEL_3_HEIGHT = 2945;
 
   // Back Heights (Levels 2-5)
   double BACK_LEVEL_2_HEIGHT = 0;
-  double BACK_LEVEL_3_HEIGHT = 1117;
-  double BACK_LEVEL_4_HEIGHT = 2082;
-  double BACK_LEVEL_5_HEIGHT = 2995;
+  double BACK_LEVEL_3_HEIGHT = 867;
+  double BACK_LEVEL_4_HEIGHT = 1832;
+  double BACK_LEVEL_5_HEIGHT = 2745;
 
   // The lift never drives past these.  HOMING ignores them - it has to go below the old zero.
   double MIN_POSITION = -10;    // just under ZERO_HEIGHT, so raw down stops before the string re-winds
@@ -123,6 +123,7 @@ class Lift {
   // Arm angles in rotation sensor degrees, 0 is where the arm is when the program starts.
   // PLACEHOLDERS - tune on the robot
   double FRONT_ANGLE = 283;
+  double MATCHLOAD_LIFT_ANGLE = 170;  // just under 1/4 of the way up from FRONT_ANGLE
   double PRESCORING_ANGLE = 137;
   double BACK_ANGLE = 122;
   double LOADING_ANGLE =-5;

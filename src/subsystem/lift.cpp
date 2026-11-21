@@ -22,13 +22,13 @@ void Lift::liftControl() {
     pros::delay(10);
     double position = liftRotation.get_position() / 100.0;        // centidegrees -> degrees
     double pivotPosition = pivotRotation.get_position() / 100.0;  // centidegrees -> degrees
-    // if (count % 10 == 0) {
-    //   std::cout << "Lift position: " << position << "Level: " << state << "  Pivot position: " << pivotPosition << std::endl;
-    // }
-    // count++;
+    if (count % 10 == 0) {
+      std::cout << "Lift position: " << position << "  Level: " << state << "  Pivot position: " << pivotPosition << std::endl;
+    }
+    count++;
 
     double target = position;  // raw states get no P power
-    double levelAngle = isBackMode ? BACK_ANGLE : FRONT_ANGLE;
+    double levelAngle = isBackMode ? BACK_ANGLE : MATCHLOAD_LIFT_ANGLE;
 
     switch (state) {
       case ZERO:
@@ -45,7 +45,7 @@ void Lift::liftControl() {
         break;
       case LEVEL_1:
         target = LEVEL_1_HEIGHT;
-        pivotTarget = FRONT_ANGLE;
+        pivotTarget = MATCHLOAD_LIFT_ANGLE;
         break;
       case LEVEL_2:
         target = isBackMode ? BACK_LEVEL_2_HEIGHT : LEVEL_2_HEIGHT;

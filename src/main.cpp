@@ -383,6 +383,9 @@ void opcontrol() {
 
     if (controller.get_digital_new_press(DIGITAL_A)){
       claw.set(true);
+      if (lift.state == Lift::MATCHLOADING) {
+        claw_autoclose(5000, true);
+      }
       lift.set(Lift::MATCHLOADING);
     }
 
