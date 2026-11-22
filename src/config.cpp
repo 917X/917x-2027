@@ -23,6 +23,7 @@ constexpr int IMU = 10;
 constexpr int INTAKE = -19;
 
 constexpr int LIFT = -18;  // was LIFT_L when the lift had two motors - check this is the one left
+constexpr int LIFT_2 = 2;  // second lift motor, only plugged in sometimes.  If it fights LIFT, make it -2
 constexpr int LIFT_ROTATION = 17;
 
 constexpr int TOGGLE = 3;          // PLACEHOLDER
@@ -41,7 +42,9 @@ constexpr double WHEEL_RPM = 450;        // cartridge * (motor gear / wheel gear
 pros::Motor intakeMotor(INTAKE);
 Intake intake(intakeMotor);
 // lift + pivoting arm
-pros::Motor liftMotor(LIFT);
+// LIFT goes first - it's always plugged in, and get_current_draw() / get_actual_velocity() read the first motor.
+// move() sends to every port and skips one that isn't there, so the lift still runs on LIFT alone.
+pros::MotorGroup liftMotors({LIFT, LIFT_2});
 pros::Rotation liftRotation(LIFT_ROTATION);
 pros::Motor pivotMotor(PIVOT);
 pros::Rotation pivotRotation(PIVOT_ROTATION);
@@ -53,7 +56,7 @@ pros::Distance clawDistance(CLAW_DISTANCE);
 // If it's backwards, make this ez::Piston claw(CLAW, true) - that flips the output.
 ez::Piston claw(CLAW);
 
-Lift lift(liftMotor, liftRotation, pivotMotor, pivotRotation, claw);
+Lift lift(liftMotors, liftRotation, pivotMotor, pivotRotation, claw);
 
 // drivetrain
 //  - the first motor in each side is the one used for sensing
@@ -69,5 +72,5 @@ ez::Drive chassis(
 //  - you should get positive values on the encoders going FORWARD and RIGHT
 // - `2.75` is the wheel diameter
 // - `4.0` is the distance from the center of the wheel to the center of the robot
-ez::tracking_wheel horiz_tracker(21, 2.75, 2.0);  // This tracking wheel is perpendicular to the drive wheels
+ez::tracking_wheel horiz_tracker(21, 2.0, 2.56);  // dist 2
 // ez::tracking_wheel vert_tracker(9, 2.75, 4.0);   // This tracking wheel is parallel to the drive wheels

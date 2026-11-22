@@ -7,13 +7,13 @@
 #include "pros/motors.h"
 #include "pros/rtos.hpp"
 
-Lift::Lift(pros::Motor& liftMotor, pros::Rotation& liftRotation, pros::Motor& pivotMotor,
+Lift::Lift(pros::MotorGroup& liftMotors, pros::Rotation& liftRotation, pros::Motor& pivotMotor,
            pros::Rotation& pivotRotation, ez::Piston& claw)
-    : liftMotor(liftMotor), liftRotation(liftRotation), pivotMotor(pivotMotor),
+    : liftMotors(liftMotors), liftRotation(liftRotation), pivotMotor(pivotMotor),
       pivotRotation(pivotRotation), claw(claw) {}
 
 void Lift::liftControl() {
-  liftMotor.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
+  liftMotors.set_brake_mode_all(pros::E_MOTOR_BRAKE_HOLD);  // _all - plain set_brake_mode() only sets the first motor
   pivotMotor.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
   liftRotation.reset_position();   // the lift starts sitting at ZERO_HEIGHT
   pivotRotation.reset_position();  // the arm's angles are measured from where it starts
@@ -26,6 +26,9 @@ void Lift::liftControl() {
       std::cout << "Lift position: " << position << "  Level: " << state << "  Pivot position: " << pivotPosition << std::endl;
     }
     count++;
+    // A motor that's unplugged when the brake mode is set never gets it, so keep setting it -
+    // the second lift motor holds too if it's plugged in after the program starts
+    if (count % 50 == 0) liftMotors.set_brake_mode_all(pros::E_MOTOR_BRAKE_HOLD);
 
     double target = position;  // raw states get no P power
     double levelAngle = isBackMode ? BACK_ANGLE : FRONT_SCORING_ANGLE;
@@ -145,10 +148,10 @@ void Lift::liftControl() {
       power = -homeSpeed;
       homeTime += 10;
 
-      int current = std::abs(liftMotor.get_current_draw());  // mA
+      int current = std::abs(liftMotors.get_current_draw());  // mA - the first motor (LIFT) only
       if (++homePrintCounter % 5 == 0)  // every 50ms, for tuning
         printf("homing rpm: %.1f  current: %d mA  loose: %d  loadedTime: %d\n",
-               fabs(liftMotor.get_actual_velocity()), current, homeLoose, loadedTime);
+               fabs(liftMotors.get_actual_velocity()), current, homeLoose, loadedTime);
 
       // The current reads 0 before the motor starts and spikes while it speeds up, so
       // don't look at it until that's over
@@ -165,15 +168,15 @@ void Lift::liftControl() {
 
       if (loadedTime >= homeLoadedTime) {
         printf("homed\n");
-        liftMotor.move(0);
-        liftMotor.tare_position();
+        liftMotors.move(0);
+        liftMotors.tare_position_all();
         liftRotation.reset_position();
         set(ZERO);
         continue;
       }
     }
 
-    liftMotor.move(power);
+    liftMotors.move(power);
   }
 }
 

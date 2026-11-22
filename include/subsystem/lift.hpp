@@ -1,5 +1,6 @@
 #pragma once
 #include "EZ-Template/piston.hpp"
+#include "pros/motor_group.hpp"
 #include "pros/motors.hpp"
 #include "pros/rotation.hpp"
 
@@ -12,7 +13,7 @@
 // the lift waits for it - see pivotFirst.
 class Lift {
  public:
-  Lift(pros::Motor& liftMotor, pros::Rotation& liftRotation, pros::Motor& pivotMotor,
+  Lift(pros::MotorGroup& liftMotors, pros::Rotation& liftRotation, pros::Motor& pivotMotor,
        pros::Rotation& pivotRotation, ez::Piston& claw);
   enum LiftState { ZERO,
                    MATCHLOADING,
@@ -52,7 +53,7 @@ class Lift {
   double levelHeight(LiftState level, bool back);  // the height a state aims for, front or back
   double targetHeight();                           // the height the lift is aiming for right now
 
-  pros::Motor& liftMotor;
+  pros::MotorGroup& liftMotors;  // 1 or 2 motors - the second one is only plugged in sometimes
   pros::Rotation& liftRotation;
   pros::Motor& pivotMotor;
   pros::Rotation& pivotRotation;
@@ -63,7 +64,7 @@ class Lift {
 
   int speed = 127;     // max power moving to a level
   int rawSpeed = 127;  // power for RAW_UP / RAW_DOWN - lower it to make raw slower
-  double kP = 2.0;     // power per degree of error  (PLACEHOLDER)
+  double kP = 1.0;     // power per degree of error  (PLACEHOLDER)
 
   int pivotSpeed = 127;    // max power moving to an angle
   double pivotKP = 0.4;    // power per degree of error  (PLACEHOLDER)
