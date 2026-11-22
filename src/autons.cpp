@@ -1,8 +1,9 @@
+#include <atomic>
+
 #include "EZ-Template/util.hpp"
 #include "config.hpp"
 #include "main.h"  // must come first - defines PROS_USE_SIMPLE_NAMES before api.h
 #include "subsystems.hpp"
-#include <atomic>
 
 /////
 // For installation, upgrading, documentations, and tutorials, check out our website!
@@ -22,18 +23,18 @@ void default_constants() {
   // P, I, D, and Start I
   chassis.pid_drive_constants_forward_set(9.4, 0, 27);  // 52
   chassis.pid_drive_constants_backward_set(9.4, 0, 35);
-  chassis.pid_heading_constants_set(5.6, 0, 24);            // Holds the robot straight while going forward without odom. 11 40
-  chassis.pid_turn_constants_set(1.2, 0.1, 3, 15);          // Turn in place constants
-  chassis.pid_swing_constants_set(4, 0.0, 35);           // Swing constants
+  chassis.pid_heading_constants_set(5.6, 0, 24);             // Holds the robot straight while going forward without odom. 11 40
+  chassis.pid_turn_constants_set(1.2, 0.1, 3, 15);           // Turn in place constants
+  chassis.pid_swing_constants_set(4, 0.0, 35);               // Swing constants
   chassis.pid_odom_angular_constants_set(6.5, 0.0, 60.5);    // Angular control for odom motions
   chassis.pid_odom_boomerang_constants_set(5.8, 0.0, 32.5);  // Angular control for boomerang motions
   // Exit conditions - (small exit time, small error, big exit time, big error, velocity exit time, mA timeout)
   // Taken from 2026 (917x-2026 devices.cpp) wherever 2026 was quicker; the rest is kept from this year
-  chassis.pid_turn_exit_condition_set(90_ms, 3_deg, 150_ms, 7_deg, 250_ms, 250_ms);       // was 500, 500
-  chassis.pid_swing_exit_condition_set(90_ms, 3_deg, 250_ms, 7_deg, 500_ms, 500_ms);      // unchanged - 2026 was the same or slower
-  chassis.pid_drive_exit_condition_set(90_ms, 1_in, 150_ms, 3_in, 200_ms, 250_ms);        // was 500, 500
-  chassis.pid_odom_turn_exit_condition_set(90_ms, 3_deg, 250_ms, 7_deg, 250_ms, 250_ms);  // was 500, 750
-  chassis.pid_odom_drive_exit_condition_set(50_ms, 1.5_in, 100_ms, 5_in, 250_ms, 500_ms); // was 90, 1, 250, -, 500, 750
+  chassis.pid_turn_exit_condition_set(90_ms, 3_deg, 150_ms, 7_deg, 250_ms, 250_ms);        // was 500, 500
+  chassis.pid_swing_exit_condition_set(90_ms, 3_deg, 250_ms, 7_deg, 500_ms, 500_ms);       // unchanged - 2026 was the same or slower
+  chassis.pid_drive_exit_condition_set(90_ms, 1_in, 150_ms, 3_in, 200_ms, 250_ms);         // was 500, 500
+  chassis.pid_odom_turn_exit_condition_set(90_ms, 3_deg, 250_ms, 7_deg, 250_ms, 250_ms);   // was 500, 750
+  chassis.pid_odom_drive_exit_condition_set(50_ms, 1.5_in, 100_ms, 5_in, 250_ms, 500_ms);  // was 90, 1, 250, -, 500, 750
   chassis.pid_turn_chain_constant_set(3_deg);
   chassis.pid_swing_chain_constant_set(5_deg);
   chassis.pid_drive_chain_constant_set(3_in);
@@ -59,7 +60,7 @@ void drive_example() {
   // The second parameter is max speed the robot will drive at
   // The third parameter is a boolean (true or false) for enabling/disabling a slew at the start of drive motions
   // for slew, only enable it when the drive distance is greater than the slew distance + a few inches
-  
+
   // chassis.pid_drive_set(24_in, DRIVE_SPEED, false);
   // chassis.pid_wait();
 
@@ -74,7 +75,7 @@ void drive_example() {
   chassis.pid_turn_set(0,100,false);
   chassis.pid_wait();
   */
-// Swings the left side of the drivetrain until the robot hits 90 degrees
+  // Swings the left side of the drivetrain until the robot hits 90 degrees
   // chassis.pid_swing_set(ez::LEFT_SWING, 90_deg, 110);
   // chassis.pid_wait();
   chassis.pid_drive_set(24_in, DRIVE_SPEED, false);
@@ -85,7 +86,6 @@ void drive_example() {
   chassis.pid_wait_quick();
   chassis.pid_drive_set(-24_in, DRIVE_SPEED, false);
   chassis.pid_wait_quick();
-
 }
 
 ///
@@ -440,9 +440,10 @@ void claw_autoclose(int timeout_ms, bool lift_pivot_after) {
         return;
       }
       pros::delay(10);
-      std::cout<< "Claw distance: " << clawDistance.get() << std::endl;
+      std::cout << "Claw distance: " << clawDistance.get() << std::endl;
     }
-  }, "claw close");
+  },
+             "claw close");
 }
 // Same wait, then the lift goes to lift_state_after once the claw has closed:
 //   claw_autoclose(5000, Lift::LEVEL_1);         -> grab, then up to front LEVEL_1
@@ -468,7 +469,8 @@ void claw_autoclose(int timeout_ms, Lift::LiftState lift_state_after, bool close
       pros::delay(10);
       std::cout << "Claw distance: " << clawDistance.get() << std::endl;
     }
-  }, "claw close then lift");
+  },
+             "claw close then lift");
 }
 
 // Fallback is reaching a point on the field (inches), or timeout_ms if the point is never reached
@@ -485,7 +487,8 @@ void claw_autoclose(ez::pose target, int timeout_ms, double tolerance_in) {
       }
       pros::delay(10);
     }
-  }, "claw close at point");
+  },
+             "claw close at point");
 }
 
 /*
@@ -587,53 +590,60 @@ void driver_side_three_pin() {
 
 void test_autoclose() {
   claw.set(true);
-  chassis.pid_drive_set(26,50);
+  chassis.pid_drive_set(26, 50);
   claw_autoclose(3000);
   chassis.pid_wait();
 }
 
-void skillz(){
+void skillz() {
   lift.pivotSpeed = 127;
-  chassis.odom_pose_set({0,-63,180});
+  chassis.odom_pose_set({0, -63, 180});
   toggleMotor.move(127);
-  pros::delay(700);
+  pros::delay(600);
   toggleMotor.move(0);
-  //lift.setPivot(127);
-  chassis.pid_drive_set(-17,90,false);
+  // lift.setPivot(127);
+  chassis.pid_drive_set(-17, 90, false);
   chassis.pid_wait_quick();
-  chassis.pid_turn_set(90,120);
+  chassis.pid_turn_set(90, 120);
   lift.pivotSpeed = 40;
   lift.set(Lift::FLOORPIN);
   chassis.pid_wait();
-  chassis.pid_odom_set({{13.5,-48.5},fwd,90},false);
+  chassis.pid_odom_set({{13.5, -48.2}, fwd, 90}, false);
   chassis.pid_wait_quick();
-  chassis.pid_turn_set({28,-48},fwd,90);
+  chassis.pid_turn_set({28, -48.2}, fwd, 90);
   chassis.pid_wait();
   lift.waitUntilCompletion(750);
+  pros::delay(100);
   claw.set(true);
+  pros::delay(50);
   lift.pivotSpeed = 127;
-  chassis.pid_drive_set(-10,60,false);
+  chassis.pid_drive_set(-10, 60, false);
   chassis.pid_wait_quick();
-  chassis.pid_turn_set({16.8, -27.3}, fwd,  60);
+  chassis.pid_turn_set({16.8, -27.3}, fwd, 60);
   chassis.pid_wait();
-  claw_autoclose(8000,Lift::LEVEL_1);
-  chassis.pid_odom_set({{17.5, -26.5}, fwd,50}, false);  //17.4,-28.5
+  claw_autoclose(8000, Lift::LEVEL_1);
+  chassis.pid_odom_set({{18, -27}, fwd, 35}, false);  // 17.4,-28.5
   chassis.pid_wait();
-  //std::cout<<chassis.odom_x_get()<<", "<<chassis.odom_y_get()<<", "<<chassis.odom_theta_get()<<std::endl;
+  // std::cout<<chassis.odom_x_get()<<", "<<chassis.odom_y_get()<<", "<<chassis.odom_theta_get()<<std::endl;
   pros::delay(1200);
-  chassis.pid_turn_set({18.5,-42},fwd, 60);
+  chassis.pid_turn_set({19, -40.5}, fwd, 60);
   chassis.pid_wait();
   // chassis.pid_drive_set(14,120,false);
-  chassis.pid_odom_set({{20 ,-42.9},fwd,60}, true);
+  chassis.pid_odom_set({{19, -40.5}, fwd, 60}, true);
   chassis.pid_wait();
   lift.waitUntilCompletion(500);
   lift.score();
   lift.waitUntilCompletion(600);
-  chassis.pid_drive_set(-7,90,false);
+  chassis.pid_drive_set(-7, 90, false);
   chassis.pid_wait();
   lift.set(Lift::FLOORPIN);
-  chassis.pid_turn_set({38,-41}, fwd, 90);
+  chassis.pid_turn_set({42, -46}, fwd, 90);
   chassis.pid_wait();
-  chassis.pid_odom_set({{37,-41}, fwd, 40}, false);
+  claw_autoclose(8000, Lift::LEVEL_2);
+  chassis.pid_odom_set({{42, -46}, fwd, 40}, false);
+  chassis.pid_wait();
+  chassis.pid_turn_set({28, -46}, fwd, 90);
+  chassis.pid_wait();
+  chassis.pid_odom_set({{28, -46}, fwd, 60}, true);
   chassis.pid_wait();
 }

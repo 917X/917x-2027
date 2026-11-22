@@ -36,20 +36,20 @@ class Lift {
 
   void liftControl();
   void set(LiftState state);
-  void setLevel(LiftState level, bool back);  // set() with the side picked - back only matters for LEVEL_2-3.
-                                              // LEVEL_1 is always front and LEVEL_4-5 always back
-  void setHeight(double height);  // goes to and holds height (rotation sensor degrees, kept between
-                                  // MIN_POSITION and MAX_POSITION).  The arm doesn't move - call setPivot() after it to move the arm
-  bool waitUntilCompletion(int timeout = 2000);  // blocks until the lift is within waitTolerance of its height and the
-                                                 // arm within pivotWaitTolerance of its angle, or timeout ms pass.
-                                                 // Waits for SCORE / HOMING to finish first.  false if it timed out
-  void levelUp();    // next level up - LEVEL_1 is on the front, LEVEL_2-5 always go to the back
-  void levelDown();  // next level down - same front / back rule as levelUp, LEVEL_1 goes down to LOADING
-  void home();   // starts HOMING - the lift task drives down until it stalls, then zeroes
-  void score();  // starts SCORE - drop scoreDrop, open the claw if it's closed, then go up to scoreRise above where it was.
-                 // At zero it only opens the claw.
-  void setPivot(double angle);  // swings the arm to angle and keeps it there until the next set() - the lift doesn't move
-  void toggleFrontBack();       // flips isBackMode and keeps the same level - zero or LEVEL_1 go to back LEVEL_2
+  void setLevel(LiftState level, bool back);       // set() with the side picked - back only matters for LEVEL_2-3.
+                                                   // LEVEL_1 is always front and LEVEL_4-5 always back
+  void setHeight(double height);                   // goes to and holds height (rotation sensor degrees, kept between
+                                                   // MIN_POSITION and MAX_POSITION).  The arm doesn't move - call setPivot() after it to move the arm
+  bool waitUntilCompletion(int timeout = 2000);    // blocks until the lift is within waitTolerance of its height and the
+                                                   // arm within pivotWaitTolerance of its angle, or timeout ms pass.
+                                                   // Waits for SCORE / HOMING to finish first.  false if it timed out
+  void levelUp();                                  // next level up - LEVEL_1 is on the front, LEVEL_2-5 always go to the back
+  void levelDown();                                // next level down - same front / back rule as levelUp, LEVEL_1 goes down to LOADING
+  void home();                                     // starts HOMING - the lift task drives down until it stalls, then zeroes
+  void score();                                    // starts SCORE - drop scoreDrop, open the claw if it's closed, then go up to scoreRise above where it was.
+                                                   // At zero it only opens the claw.
+  void setPivot(double angle);                     // swings the arm to angle and keeps it there until the next set() - the lift doesn't move
+  void toggleFrontBack();                          // flips isBackMode and keeps the same level - zero or LEVEL_1 go to back LEVEL_2
   double levelHeight(LiftState level, bool back);  // the height a state aims for, front or back
   double targetHeight();                           // the height the lift is aiming for right now
 
@@ -57,9 +57,9 @@ class Lift {
   pros::Rotation& liftRotation;
   pros::Motor& pivotMotor;
   pros::Rotation& pivotRotation;
-  ez::Piston& claw;        // true is open.  SCORE opens it - opcontrol toggles it the rest of the time
+  ez::Piston& claw;  // true is open.  SCORE opens it - opcontrol toggles it the rest of the time
   LiftState state = ZERO;
-  LiftState level = ZERO;  // last ZERO..LEVEL_5 picked, so levelUp/levelDown still work after raw
+  LiftState level = ZERO;   // last ZERO..LEVEL_5 picked, so levelUp/levelDown still work after raw
   double customHeight = 0;  // where CUSTOM_HEIGHT aims - set by setHeight()
 
   int speed = 127;     // max power moving to a level
@@ -118,7 +118,7 @@ class Lift {
   double FLOORPIN_HEIGHT = 655;
 
   // Front Heights (Levels 1-3)
-  double LEVEL_1_HEIGHT = 1750;
+  double LEVEL_1_HEIGHT = 1820;
   double LEVEL_2_HEIGHT = 2662;
   double LEVEL_3_HEIGHT = 3538;
 
@@ -134,12 +134,12 @@ class Lift {
 
   // Arm angles in rotation sensor degrees, 0 is where the arm is when the program starts.
   // PLACEHOLDERS - tune on the robot
-  double FRONT_ANGLE = 283;           // MATCHLOADING - picking up from the front
-  double FLOORPIN_ANGLE = 283;        // FLOORPIN
-  double FRONT_SCORING_ANGLE = 250;   // front LEVEL_1-3, and where claw_autoclose raises the arm after it grabs a matchload
+  double FRONT_ANGLE = 283;          // MATCHLOADING - picking up from the front
+  double FLOORPIN_ANGLE = 283;       // FLOORPIN
+  double FRONT_SCORING_ANGLE = 250;  // front LEVEL_1-3, and where claw_autoclose raises the arm after it grabs a matchload
   double PRESCORING_ANGLE = 137;
   double BACK_ANGLE = 122;
-  double LOADING_ANGLE =-5;
+  double LOADING_ANGLE = -5;
 
   // The arm never drives past these
   double PIVOT_MIN_ANGLE = -10;  // must be the smaller number - if MIN > MAX every PID move gets zeroed
