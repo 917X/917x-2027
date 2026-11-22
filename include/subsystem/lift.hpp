@@ -16,6 +16,7 @@ class Lift {
        pros::Rotation& pivotRotation, ez::Piston& claw);
   enum LiftState { ZERO,
                    MATCHLOADING,
+                   FLOORPIN,  // picking a pin up off the floor - FLOORPIN_HEIGHT, arm at FLOORPIN_ANGLE
                    LOADING,
                    LEVEL_1,
                    LEVEL_2,
@@ -113,9 +114,10 @@ class Lift {
   double MATCHLOADING_HEIGHT = 250;
   double MATCHLOADING_PIVOT_HEIGHT = 550;  // A doesn't swing the arm until the lift is below this
   double LOADING_HEIGHT = 250;
+  double FLOORPIN_HEIGHT = 655;
 
   // Front Heights (Levels 1-3)
-  double LEVEL_1_HEIGHT = 1650;
+  double LEVEL_1_HEIGHT = 1750;
   double LEVEL_2_HEIGHT = 2662;
   double LEVEL_3_HEIGHT = 3538;
 
@@ -132,6 +134,7 @@ class Lift {
   // Arm angles in rotation sensor degrees, 0 is where the arm is when the program starts.
   // PLACEHOLDERS - tune on the robot
   double FRONT_ANGLE = 283;           // MATCHLOADING - picking up from the front
+  double FLOORPIN_ANGLE = 283;        // FLOORPIN
   double FRONT_SCORING_ANGLE = 250;   // front LEVEL_1-3, and where claw_autoclose raises the arm after it grabs a matchload
   double PRESCORING_ANGLE = 137;
   double BACK_ANGLE = 122;

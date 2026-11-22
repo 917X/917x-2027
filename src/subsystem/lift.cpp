@@ -39,6 +39,10 @@ void Lift::liftControl() {
         // The arm holds its last angle until the lift is below MATCHLOADING_PIVOT_HEIGHT, then swings
         if (position < MATCHLOADING_PIVOT_HEIGHT) pivotTarget = FRONT_ANGLE;
         break;
+      case FLOORPIN:
+        target = FLOORPIN_HEIGHT;
+        pivotTarget = FLOORPIN_ANGLE;
+        break;
       case LOADING:
         target = LOADING_HEIGHT;
         pivotTarget = LOADING_ANGLE;
@@ -188,7 +192,7 @@ void Lift::set(LiftState state) {
   if (state <= LEVEL_5) {
     level = state;
     // LEVEL_1 only exists in front and LEVEL_4-5 only in back.  LEVEL_2-3 keep the current mode.
-    // MATCHLOADING and LOADING leave it alone - nothing reads it until the next level button sets it,
+    // MATCHLOADING, FLOORPIN and LOADING leave it alone - nothing reads it until the next level button sets it,
     // and writing it here could let the lift task see "front LEVEL_3" for a frame and swing the arm
     // early when A is pressed at back LEVEL_2-3.
     if (state == LEVEL_1) {
@@ -250,6 +254,7 @@ double Lift::levelHeight(LiftState level, bool back) {
     case LEVEL_4: return BACK_LEVEL_4_HEIGHT;
     case LEVEL_5: return BACK_LEVEL_5_HEIGHT;
     case MATCHLOADING: return MATCHLOADING_HEIGHT;
+    case FLOORPIN: return FLOORPIN_HEIGHT;
     case LOADING: return LOADING_HEIGHT;
     default: return ZERO_HEIGHT;
   }
@@ -266,7 +271,7 @@ void Lift::toggleFrontBack() {
 
   // Keeps the same level when the other side has it.  Front is LEVEL_1-3, back is LEVEL_2-5.
   if (level <= LEVEL_1) {
-    // Zero, MATCHLOADING, LOADING or LEVEL_1 - none of these are on the back, so go to back LEVEL_2
+    // Zero, MATCHLOADING, FLOORPIN, LOADING or LEVEL_1 - none of these are on the back, so go to back LEVEL_2
     isBackMode = true;
     set(LEVEL_2);
   } else {
@@ -280,7 +285,7 @@ void Lift::toggleFrontBack() {
 }
 
 void Lift::levelUp() {
-  // MATCHLOADING and LOADING are picked with their own buttons - up from either is LEVEL_1
+  // MATCHLOADING, FLOORPIN and LOADING are picked on their own - up from any of them is LEVEL_1
   LiftState next = level < LEVEL_1 ? LEVEL_1 : static_cast<LiftState>(level + 1);
   if (next > LEVEL_5) return;
   // Only LEVEL_1 is on the front - every other level the buttons reach is on the back.
