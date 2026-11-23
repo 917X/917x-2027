@@ -42,7 +42,7 @@ extern ez::Piston claw;
 extern Lift lift;
 extern ez::tracking_wheel horiz_tracker;
 extern pros::Distance leftDist;
-extern pros::Distance rightDist;
+extern pros::Distance backDist;
 extern pros::Distance frontDist;
 extern DistReset distReset;
 

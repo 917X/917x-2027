@@ -605,10 +605,10 @@ void skillz() {
   chassis.pid_drive_set(-13.5, 70, false);
   chassis.pid_wait_quick();
   chassis.pid_turn_set(90, 70);
-  lift.pivotSpeed = 40;
+  lift.pivotSpeed = 50;
   lift.set(Lift::FLOORPIN);
   chassis.pid_wait();
-  chassis.pid_odom_set({{13.0, -50.5}, fwd, 90}, false);
+  chassis.pid_odom_set({{12.9, -50.3}, fwd, 90}, false);
   chassis.pid_wait_quick();
   chassis.pid_turn_set({28, -49}, fwd, 90);
   chassis.pid_wait();
@@ -623,6 +623,7 @@ void skillz() {
   chassis.pid_wait();
   claw_autoclose(8000, Lift::LEVEL_1);
 
+  // SECOND GROUND PIN
   chassis.pid_odom_set({{18.3, -27.3}, fwd, 35}, false);  // 17.4,-28.5
   chassis.pid_wait();
   // std::cout<<chassis.odom_x_get()<<", "<<chassis.odom_y_get()<<", "<<chassis.odom_theta_get()<<std::endl;
@@ -630,7 +631,7 @@ void skillz() {
   chassis.pid_turn_set({19, -40.5}, fwd, 60);
   chassis.pid_wait();
   // chassis.pid_drive_set(14,120,false);
-  chassis.pid_odom_set({{18.8, -40.8}, fwd, 60}, true);
+  chassis.pid_odom_set({{18.8, -41.2}, fwd, 60}, true);
   chassis.pid_wait();
   lift.waitUntilCompletion(500);
   lift.score();
@@ -639,17 +640,27 @@ void skillz() {
   chassis.pid_wait();
   lift.set(Lift::FLOORPIN);
 
-
+  //THIRD GROUND PIN
   chassis.pid_turn_set({43, -46}, fwd, 90);
   chassis.pid_wait();
   claw_autoclose(8000, Lift::LEVEL_2);
   chassis.pid_odom_set({{39.5, -46}, fwd, 40}, false);
   chassis.pid_wait();
-  chassis.pid_turn_set({29, -48.3}, fwd, 90);
+  chassis.pid_turn_set({29, -48.3}, fwd, 80);
   chassis.pid_wait();
   lift.waitUntilCompletion(1000);
   chassis.pid_odom_set({{28.7, -48.1}, fwd, 60}, true);
   chassis.pid_wait();
   lift.waitUntilCompletion(1000);
   lift.score();
+  lift.waitUntilCompletion(1000);
+
+  //MATCHLOAD START
+  chassis.odom_y_set(-distReset.left(-chassis.odom_y_get()));
+  chassis.odom_x_set(distReset.back(chassis.odom_x_get()));
+  std::cout<<chassis.odom_x_get()<<", "<<chassis.odom_y_get()<<", "<<chassis.odom_theta_get()<<std::endl;
+  chassis.pid_odom_set({{55,-35}, rev, 90},false);
+  lift.set(Lift::MATCHLOADING);
+  chassis.pid_wait();
+
 }
