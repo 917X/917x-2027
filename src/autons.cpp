@@ -633,6 +633,10 @@ void skillz() {
   // chassis.pid_drive_set(14,120,false);
   chassis.pid_odom_set({{18.8, -41.2}, fwd, 60}, true);
   chassis.pid_wait();
+
+  chassis.odom_y_set(-distReset.left(-chassis.odom_y_get()));
+  chassis.odom_x_set(distReset.right(chassis.odom_x_get()));
+
   lift.waitUntilCompletion(500);
   lift.score();
   lift.waitUntilCompletion(600);
