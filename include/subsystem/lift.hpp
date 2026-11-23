@@ -113,14 +113,14 @@ class Lift {
   // Heights in rotation sensor degrees.  PLACEHOLDERS - tune on the robot
   double ZERO_HEIGHT = 0;
   double MATCHLOADING_HEIGHT = 250;
-  double MATCHLOADING_PIVOT_HEIGHT = 550;  // A doesn't swing the arm until the lift is below this
+  double MATCHLOADING_PIVOT_HEIGHT = 700;  // A doesn't swing the arm until the lift is below this
   double LOADING_HEIGHT = 250;
   double FLOORPIN_HEIGHT = 655;
 
   // Front Heights (Levels 1-3)
-  double LEVEL_1_HEIGHT = 1820;
-  double LEVEL_2_HEIGHT = 2662;
-  double LEVEL_3_HEIGHT = 3538;
+  double LEVEL_1_HEIGHT = 1920;
+  double LEVEL_2_HEIGHT = 2862;
+  double LEVEL_3_HEIGHT = 3738;
 
   // Back Heights (Levels 2-5)
   double BACK_LEVEL_2_HEIGHT = 0;
@@ -136,7 +136,7 @@ class Lift {
   // PLACEHOLDERS - tune on the robot
   double FRONT_ANGLE = 283;          // MATCHLOADING - picking up from the front
   double FLOORPIN_ANGLE = 283;       // FLOORPIN
-  double FRONT_SCORING_ANGLE = 250;  // front LEVEL_1-3, and where claw_autoclose raises the arm after it grabs a matchload
+  double FRONT_SCORING_ANGLE = 240;  // front LEVEL_1-3, and where claw_autoclose raises the arm after it grabs a matchload
   double PRESCORING_ANGLE = 137;
   double BACK_ANGLE = 122;
   double LOADING_ANGLE = -5;
