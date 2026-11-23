@@ -608,7 +608,7 @@ void skillz() {
   lift.pivotSpeed = 50;
   lift.set(Lift::FLOORPIN);
   chassis.pid_wait();
-  chassis.pid_odom_set({{12.9, -50.3}, fwd, 90}, false);
+  chassis.pid_odom_set({{14, -50}, fwd, 90}, false);
   chassis.pid_wait_quick();
   chassis.pid_turn_set({28, -49}, fwd, 90);
   chassis.pid_wait();
@@ -626,45 +626,58 @@ void skillz() {
   // SECOND GROUND PIN
   chassis.pid_odom_set({{18.3, -27.3}, fwd, 35}, false);  // 17.4,-28.5
   chassis.pid_wait();
-  // std::cout<<chassis.odom_x_get()<<", "<<chassis.odom_y_get()<<", "<<chassis.odom_theta_get()<<std::endl;
   pros::delay(1200);
-  chassis.pid_turn_set({19, -40.5}, fwd, 60);
+  chassis.pid_turn_set({20, -40}, fwd, 60);
   chassis.pid_wait();
   // chassis.pid_drive_set(14,120,false);
-  chassis.pid_odom_set({{18.8, -41.2}, fwd, 60}, true);
+  chassis.pid_odom_set({{20, -40}, fwd, 60}, true);
   chassis.pid_wait();
-
-  chassis.odom_y_set(-distReset.left(-chassis.odom_y_get()));
-  chassis.odom_x_set(distReset.right(chassis.odom_x_get()));
 
   lift.waitUntilCompletion(500);
   lift.score();
   lift.waitUntilCompletion(600);
+
+  // chassis.odom_y_set(-distReset.left(-chassis.odom_y_get()));
+  // chassis.odom_x_set(distReset.right(chassis.odom_x_get()));
+
   chassis.pid_drive_set(-7, 90, false);
   chassis.pid_wait();
   lift.set(Lift::FLOORPIN);
 
-  //THIRD GROUND PIN
-  chassis.pid_turn_set({43, -46}, fwd, 90);
+  // THIRD GROUND PIN
+  chassis.pid_turn_set({43, -47}, fwd, 90);
   chassis.pid_wait();
-  claw_autoclose(8000, Lift::LEVEL_2);
-  chassis.pid_odom_set({{39.5, -46}, fwd, 40}, false);
+  claw_autoclose(7000);
+  chassis.pid_odom_set({{43, -47}, fwd, 40}, false);
   chassis.pid_wait();
-  chassis.pid_turn_set({29, -48.3}, fwd, 80);
+  lift.set(Lift::LEVEL_2);
+  chassis.pid_turn_set({32, -48.3}, fwd, 80);
   chassis.pid_wait();
   lift.waitUntilCompletion(1000);
-  chassis.pid_odom_set({{28.7, -48.1}, fwd, 60}, true);
+  chassis.pid_odom_set({{32, -48.1}, fwd, 60}, true);
   chassis.pid_wait();
   lift.waitUntilCompletion(1000);
   lift.score();
   lift.waitUntilCompletion(1000);
 
-  //MATCHLOAD START
+  // MATCHLOAD START
   chassis.odom_y_set(-distReset.left(-chassis.odom_y_get()));
   chassis.odom_x_set(distReset.back(chassis.odom_x_get()));
-  std::cout<<chassis.odom_x_get()<<", "<<chassis.odom_y_get()<<", "<<chassis.odom_theta_get()<<std::endl;
-  chassis.pid_odom_set({{55,-35}, rev, 90},false);
+  std::cout << chassis.odom_x_get() << ", " << chassis.odom_y_get() << ", " << chassis.odom_theta_get() << std::endl;
+  chassis.pid_odom_set({{64, -48}, rev, 90}, false);
   lift.set(Lift::MATCHLOADING);
+  claw.set(true);
   chassis.pid_wait();
-
+  chassis.pid_turn_set({71, -70}, fwd, 80);
+  chassis.pid_wait();
+  chassis.pid_odom_set({{71, -70}, fwd, 30}, false);
+  claw_autoclose(7000);
+  chassis.pid_odom_set({{64, -48}, rev, 90}, false);
+  chassis.pid_wait();
+  lift.set(Lift::LEVEL_3);
+  chassis.pid_turn_set({32, -48.3}, fwd, 80);
+  chassis.pid_wait();
+  lift.waitUntilCompletion(4000);
+  chassis.pid_odom_set({{32, -48.1}, fwd, 60}, true);
+  chassis.pid_wait();
 }

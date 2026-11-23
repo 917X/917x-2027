@@ -125,7 +125,7 @@ class Lift {
 
   // Front Heights (Levels 1-3)
   double LEVEL_1_HEIGHT = 1920;
-  double LEVEL_2_HEIGHT = 2862;
+  double LEVEL_2_HEIGHT = 2762;
   double LEVEL_3_HEIGHT = 3738;
 
   // Back Heights (Levels 2-5)
