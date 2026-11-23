@@ -8,6 +8,7 @@
 #include "pros/motors.hpp"
 #include "pros/imu.hpp"
 #include "pros/rotation.hpp"
+#include "subsystem/dist_reset.hpp"
 #include "subsystem/intake.hpp"
 #include "subsystem/lift.hpp"
 
@@ -40,6 +41,10 @@ extern pros::Motor toggleMotor;
 extern ez::Piston claw;
 extern Lift lift;
 extern ez::tracking_wheel horiz_tracker;
+extern pros::Distance leftDist;
+extern pros::Distance rightDist;
+extern pros::Distance frontDist;
+extern DistReset distReset;
 
 // ---------------------------------------------------------------------------
 // Last season (Push Back) - reference only, not wired up

@@ -34,6 +34,16 @@ constexpr int PIVOT_ROTATION = 15;  // PLACEHOLDER
 constexpr char CLAW = 'H';
 constexpr int CLAW_DISTANCE = 12;
 
+// distance sensors for DistReset - no back sensor yet
+constexpr int LEFT_DIST = 13;
+constexpr int RIGHT_DIST = 14;
+constexpr int FRONT_DIST = 4;
+
+// inches from the center of rotation to each distance sensor
+constexpr double LEFT_DIST_OFFSET = 5.5;
+constexpr double RIGHT_DIST_OFFSET = 5.125;
+constexpr double FRONT_DIST_OFFSET = 4.75;
+
 // drivetrain geometry
 constexpr double WHEEL_DIAMETER = 2.75;  // 4" wheels without screw holes are actually 4.125
 constexpr double WHEEL_RPM = 450;        // cartridge * (motor gear / wheel gear)
@@ -73,4 +83,15 @@ ez::Drive chassis(
 // - `2.75` is the wheel diameter
 // - `4.0` is the distance from the center of the wheel to the center of the robot
 ez::tracking_wheel horiz_tracker(21, 2.0, 2.56);  // dist 2
+
+// distance sensor position reset - back is nullptr until it has a sensor, so back() always gives its fallback.
+// When it gets one: add a pros::Distance backDist(port) and swap nullptr, 0.0 for &backDist, its offset
+pros::Distance leftDist(LEFT_DIST);
+pros::Distance rightDist(RIGHT_DIST);
+pros::Distance frontDist(FRONT_DIST);
+DistReset distReset(chassis,
+                    &leftDist, LEFT_DIST_OFFSET,
+                    &rightDist, RIGHT_DIST_OFFSET,
+                    &frontDist, FRONT_DIST_OFFSET,
+                    nullptr, 0.0);
 // ez::tracking_wheel vert_tracker(9, 2.75, 4.0);   // This tracking wheel is parallel to the drive wheels
