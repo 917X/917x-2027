@@ -10,7 +10,8 @@
 // RAW_DOWN move the lift freely and RAW_HOLD holds where they stopped.  The arm holds its
 // last angle through the raw states, HOMING, ZERO and CUSTOM_HEIGHT.  setHeight() goes to and
 // holds any height you give it.  Going from MATCHLOADING to a level, the arm swings first and
-// the lift waits for it - see pivotFirst.
+// the lift waits for it - see pivotFirst.  For a front level the arm waits at FRONT_SCORING_ANGLE
+// until the lift gets there, then goes to FRONT_LEVEL_ANGLE - see scoringAngleHold.
 class Lift {
  public:
   Lift(pros::MotorGroup& liftMotors, pros::Rotation& liftRotation, pros::Motor& pivotMotor,
@@ -89,6 +90,11 @@ class Lift {
   double pivotFirstHold = 0;        // the height the lift holds while it waits
   int pivotFirstTime = 0;           // ms it has waited
 
+  // Going from MATCHLOADING to a front level, the arm stays at FRONT_SCORING_ANGLE while the lift goes up,
+  // and goes to FRONT_LEVEL_ANGLE once the lift is within levelAngleTolerance of the level's height
+  double levelAngleTolerance = 25;  // degrees of lift  (PLACEHOLDER)
+  bool scoringAngleHold = false;    // the arm is waiting at FRONT_SCORING_ANGLE for the lift
+
   // Homing
   int homeSpeed = 45;
   int homeLooseCurrent = 130;   // mA
@@ -136,7 +142,9 @@ class Lift {
   // PLACEHOLDERS - tune on the robot
   double FRONT_ANGLE = 283;          // MATCHLOADING - picking up from the front
   double FLOORPIN_ANGLE = 283;       // FLOORPIN
-  double FRONT_SCORING_ANGLE = 240;  // front LEVEL_1-3, and where claw_autoclose raises the arm after it grabs a matchload
+  double FRONT_SCORING_ANGLE = 240;  // leaving MATCHLOADING for a front level, the arm goes here first and stays until the lift
+                                     // is at the level.  claw_autoclose also raises the arm here after it grabs a matchload
+  double FRONT_LEVEL_ANGLE = 260;    // front LEVEL_1-3 - the arm holds this once the lift is at the level
   double PRESCORING_ANGLE = 137;
   double BACK_ANGLE = 122;
   double LOADING_ANGLE = -5;

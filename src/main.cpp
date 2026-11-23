@@ -289,7 +289,7 @@ void ez_template_extras() {
  * Driver layout:
  *   R1 / R2       intake in / out
  *   L1 / L2       lift up / down a level - LEVEL_1 is on the front, every other level goes to the back.
- *                 From MATCHLOADING the arm swings to FRONT_SCORING_ANGLE first, then the lift goes up
+ *                 From MATCHLOADING: arm to FRONT_SCORING_ANGLE, lift up, then arm to FRONT_LEVEL_ANGLE
  *   L1 + L2       toggle Front / Back - keeps the same level (zero or LEVEL_1 go to back LEVEL_2).
  *                 The only way to the front LEVEL_2 / LEVEL_3.
  *                 Press both within chordWindow (100ms) of each other.

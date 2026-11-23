@@ -31,7 +31,7 @@ void Lift::liftControl() {
     if (count % 50 == 0) liftMotors.set_brake_mode_all(pros::E_MOTOR_BRAKE_HOLD);
 
     double target = position;  // raw states get no P power
-    double levelAngle = isBackMode ? BACK_ANGLE : FRONT_SCORING_ANGLE;
+    double levelAngle = isBackMode ? BACK_ANGLE : FRONT_LEVEL_ANGLE;
 
     switch (state) {
       case ZERO:
@@ -52,7 +52,7 @@ void Lift::liftControl() {
         break;
       case LEVEL_1:
         target = LEVEL_1_HEIGHT;
-        pivotTarget = FRONT_SCORING_ANGLE;
+        pivotTarget = FRONT_LEVEL_ANGLE;
         break;
       case LEVEL_2:
         target = isBackMode ? BACK_LEVEL_2_HEIGHT : LEVEL_2_HEIGHT;
@@ -81,6 +81,16 @@ void Lift::liftControl() {
       case RAW_HOLD:
       case HOMING:
         break;
+    }
+    // Front level from MATCHLOADING - the arm stays at FRONT_SCORING_ANGLE until the lift is at the level.
+    // Only checked at a level, so a set() that hasn't changed the state yet doesn't clear it.
+    if (scoringAngleHold && state >= LEVEL_1 && state <= LEVEL_5) {
+      bool frontLevel = state == LEVEL_1 || ((state == LEVEL_2 || state == LEVEL_3) && !isBackMode);
+      if (frontLevel && std::abs(position - target) > levelAngleTolerance) {
+        pivotTarget = FRONT_SCORING_ANGLE;
+      } else {
+        scoringAngleHold = false;  // the lift's there (or it's a back level) - the arm goes to the level's angle
+      }
     }
     if (pivotManual) pivotTarget = pivotManualTarget;  // setPivot() or manual hold wins over the state's angle
 
@@ -184,6 +194,8 @@ void Lift::set(LiftState state) {
   // Going from MATCHLOADING to a level: the arm swings first, and the lift holds where it is until it's there.
   // Another level picked while it's still waiting keeps waiting, for that level's angle.
   bool toLevel = state >= LEVEL_1 && state <= LEVEL_5;
+  // A front level from MATCHLOADING also keeps the arm at FRONT_SCORING_ANGLE until the lift gets there
+  scoringAngleHold = toLevel && (this->state == MATCHLOADING || pivotFirst || scoringAngleHold);
   if (toLevel && (this->state == MATCHLOADING || pivotFirst)) {
     if (!pivotFirst) pivotFirstHold = liftRotation.get_position() / 100.0;  // before pivotFirst, so the task never holds an old height
     pivotFirstTime = 0;
@@ -229,9 +241,11 @@ bool Lift::waitUntilCompletion(int timeout) {
   for (int waited = 20;; waited += 10) {
     double position = liftRotation.get_position() / 100.0;
     double arm = pivotRotation.get_position() / 100.0;
+    // These end on their own - wait for them to finish.  scoringAngleHold means the arm hasn't gone to the level's
+    // angle yet.  Read before pivotTarget, so once it's false pivotTarget is already the level's angle.
+    bool running = state == SCORE || state == HOMING || scoringAngleHold;
     // Clamped like the lift task does, so an angle past the arm's limits can't make this wait forever
     double armTarget = std::clamp(pivotManual ? pivotManualTarget : pivotTarget, PIVOT_MIN_ANGLE, PIVOT_MAX_ANGLE);
-    bool running = state == SCORE || state == HOMING;  // these end on their own - wait for them to finish
     if (!running && std::abs(position - targetHeight()) <= waitTolerance &&
         std::abs(arm - armTarget) <= pivotWaitTolerance)
       return true;
