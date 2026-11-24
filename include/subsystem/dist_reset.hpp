@@ -27,12 +27,49 @@ class DistReset {
             pros::Distance* leftSensor, double leftOffset,
             pros::Distance* rightSensor, double rightOffset,
             pros::Distance* frontSensor, double frontOffset,
-            pros::Distance* backSensor, double backOffset);
+            pros::Distance* backSensor, double backOffset,
+            double backEdgeOffset);
 
   double left(double fallback);
   double right(double fallback);
   double front(double fallback);
   double back(double fallback);
+
+  // Which axes reset() actually changed.
+  struct Result {
+    bool x = false;
+    bool y = false;
+  };
+
+  // Resets odom x and y on its own, from wherever the robot is.
+  //
+  // The quadrant the robot is in (the sign of odom x and y) tells it which two walls
+  // are close: x > 0 means the +x wall, y < 0 means the -y wall, and so on.  Then, using
+  // odom theta, it works out which way each sensor is pointing on the field
+  // (0 = +y, 90 = +x, 180 = -y, 270 = -x) and only uses the ones pointed at one of those
+  // two close walls.  A sensor on the +x wall gives  x = 72 - toWall,  on the -x wall
+  // x = -72 + toWall, same for y.
+  //
+  // Sensors pointed at the far walls are skipped - too far away and too much in the way.
+  // If no sensor points at a close wall, that axis is left alone.
+  //
+  // maxCorrection: if a reading would move odom more than this many inches, it's thrown
+  // out (the sensor probably saw a game element or robot, not the wall).  0 turns it off.
+  //
+  //     distReset.reset();        // that's it, no picking sensors or signs
+  Result reset(double maxCorrection = 12.0);
+
+  // Backs into the wall behind the robot at `power` for `timeMs`, then:
+  //   - heading: snaps odom theta to the closest 0 / 90 / 180 / 270 (the robot is
+  //     square on the wall, so that's exactly where it's facing)
+  //   - the axis into the wall: 72 - backEdgeOffset from the center, signed for that wall
+  //   - the other axis: reset() with the distance sensors, if one points at a close wall
+  //
+  // Call it already roughly facing away from the wall (within ~45) so it snaps the
+  // right way.  Leaves the drive stopped - the next pid_*_set takes over again.
+  //
+  //     distReset.wallReset(600);
+  Result wallReset(int timeMs, int power = 60, double maxCorrection = 12.0);
 
   ez::Drive& chassis;  // odom theta is the robot angle used for the tilt
 
@@ -45,7 +82,10 @@ class DistReset {
   double rightOffset;
   double frontOffset;
   double backOffset;
+  double backEdgeOffset;  // inches from the center of rotation to the back of the robot
 
  private:
   double read(pros::Distance* sensor, double offset, double fallback);
+  // Center of the robot to the wall the sensor sees, in inches.  false if there's no good reading.
+  bool toWall(pros::Distance* sensor, double offset, double& out);
 };

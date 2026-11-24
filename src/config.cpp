@@ -43,6 +43,8 @@ constexpr int FRONT_DIST = 4;
 constexpr double LEFT_DIST_OFFSET = 5.5;
 constexpr double BACK_DIST_OFFSET = 4.25;
 constexpr double FRONT_DIST_OFFSET = 4.75;
+// inches from the center of rotation to the back edge of the robot (what touches the wall in wallReset)
+constexpr double BACK_EDGE_OFFSET = 7.0;  // PLACEHOLDER - measure this
 
 // drivetrain geometry
 constexpr double WHEEL_DIAMETER = 2.75;  // 4" wheels without screw holes are actually 4.125
@@ -93,6 +95,6 @@ DistReset distReset(chassis,
                     &leftDist, LEFT_DIST_OFFSET,
                     nullptr, 0.0,
                     &frontDist, FRONT_DIST_OFFSET,
-                    
-                    &backDist, BACK_DIST_OFFSET);
+                    &backDist, BACK_DIST_OFFSET,
+                    BACK_EDGE_OFFSET);
 // ez::tracking_wheel vert_tracker(9, 2.75, 4.0);   // This tracking wheel is parallel to the drive wheels
