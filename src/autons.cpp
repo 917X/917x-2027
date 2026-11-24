@@ -30,8 +30,8 @@ void default_constants() {
   chassis.pid_odom_boomerang_constants_set(5.8, 0.0, 32.5);  // Angular control for boomerang motions
   // Exit conditions - (small exit time, small error, big exit time, big error, velocity exit time, mA timeout)
   // Taken from 2026 (917x-2026 devices.cpp) wherever 2026 was quicker; the rest is kept from this year
-  chassis.pid_turn_exit_condition_set(90_ms, 3_deg, 150_ms, 7_deg, 250_ms, 250_ms);        // was 500, 500
-  chassis.pid_swing_exit_condition_set(90_ms, 3_deg, 250_ms, 7_deg, 500_ms, 500_ms);       // unchanged - 2026 was the same or slower
+  chassis.pid_turn_exit_condition_set(90_ms, 1.75_deg, 150_ms, 5_deg, 250_ms, 250_ms);        // was 500, 500
+  chassis.pid_swing_exit_condition_set(90_ms, 2_deg, 250_ms, 7_deg, 500_ms, 500_ms);       // unchanged - 2026 was the same or slower
   chassis.pid_drive_exit_condition_set(90_ms, 1_in, 150_ms, 3_in, 200_ms, 250_ms);         // was 500, 500
   chassis.pid_odom_turn_exit_condition_set(90_ms, 3_deg, 250_ms, 7_deg, 250_ms, 250_ms);   // was 500, 750
   chassis.pid_odom_drive_exit_condition_set(50_ms, 1.5_in, 100_ms, 5_in, 250_ms, 500_ms);  // was 90, 1, 250, -, 500, 750
@@ -414,7 +414,7 @@ void measure_offsets() {
 //   claw_autoclose({24, -24}, 15000, 2);   -> same, but within 2 in
 //   claw_autoclose(5000, Lift::LEVEL_1);   -> after 5 s, and the lift goes to LEVEL_1 once it's closed
 // Calling any of them again cancels whatever close was still waiting.
-const int CLAW_GRAB_MM = 65;
+const int CLAW_GRAB_MM = 60;
 static std::atomic<int> claw_close_id{0};  // bumped every call so an older wait gives up
 
 static bool claw_sees_object() { return clawDistance.get() < CLAW_GRAB_MM; }
@@ -597,21 +597,21 @@ void test_autoclose() {
 
 void skillz() {
   lift.pivotSpeed = 127;
-  chassis.odom_pose_set({0, -63, 180});
+  chassis.odom_pose_set({-0.5, -62.5, 180});
   toggleMotor.move(127);
   pros::delay(600);
   toggleMotor.move(0);
   // lift.setPivot(127);
-  chassis.pid_drive_set(-13.5, 70, false);
+  chassis.pid_drive_set(-15, 70, false);
   chassis.pid_wait_quick();
   chassis.pid_turn_set(90, 70);
   lift.pivotSpeed = 50;
   lift.set(Lift::FLOORPIN);
   chassis.pid_wait();
-  chassis.pid_odom_set({{13.4, -49.8}, fwd, 90}, false);
+  chassis.pid_odom_set({{14.9 , -48.5}, fwd, 90}, false);
   chassis.pid_wait_quick();
-  chassis.pid_turn_set({28, -49}, fwd, 90);
-  chassis.pid_wait();
+  // chassis.pid_turn_set({28, -48.5}, fwd, 90);
+  // chassis.pid_wait();
   
 
   lift.waitUntilCompletion(750);
@@ -619,44 +619,48 @@ void skillz() {
   claw.set(true);
   pros::delay(50);
   lift.pivotSpeed = 127;
-  chassis.pid_drive_set(-10, 60, false);
+  pros::delay(500);
+  chassis.pid_odom_set({{3.3 , -48.5}, rev, 90}, false);
   chassis.pid_wait_quick();
-  chassis.pid_turn_set({16.8, -27.3}, fwd, 60);
+  chassis.pid_turn_set({16.8, -27.}, fwd, 60);
   chassis.pid_wait();
-  claw_autoclose(8000, Lift::LEVEL_1);
+  claw_autoclose(8000,Lift::LEVEL_1);
 
   // FIRST GROUND PIN
-  chassis.pid_odom_set({{18.3, -27.3}, fwd, 35}, false);  // 17.4,-28.5
+  chassis.pid_odom_set({{19.1, -27.5}, fwd, 35}, false);  // 17.4,-28.5
   chassis.pid_wait();
-  pros::delay(1200);
-  chassis.pid_turn_set({20, -40}, fwd, 60);
+  chassis.pid_odom_set({{20, -25}, fwd, 35}, false);
+  chassis.pid_wait();
+  lift.set(Lift::LEVEL_1);
+  chassis.pid_turn_set({21, -41}, fwd, 60);
   chassis.pid_wait();
   // chassis.pid_drive_set(14,120,false);
-  chassis.pid_odom_set({{20, -40}, fwd, 60}, true);
+  chassis.pid_odom_set({{21.3, -42}, fwd, 60}, true);
   chassis.pid_wait();
-
   lift.waitUntilCompletion(500);
   lift.score();
   lift.waitUntilCompletion(600);
 
   chassis.odom_y_set(-distReset.front(-chassis.odom_y_get()));
   chassis.odom_x_set(distReset.left(chassis.odom_x_get()));
+  distReset.reset();
 
   chassis.pid_drive_set(-7, 90, false);
   chassis.pid_wait();
   lift.set(Lift::FLOORPIN);
 
   // SECOND GROUND PIN
-  chassis.pid_turn_set({43, -47}, fwd, 90);
+  chassis.pid_turn_set({46.5, -47}, fwd, 90);
   chassis.pid_wait();
-  claw_autoclose(7000);
-  chassis.pid_odom_set({{45.6, -47}, fwd, 40}, false);
+  claw_autoclose(7000, Lift::LEVEL_2);
+  chassis.pid_odom_set({{45.8, -47}, fwd, 40}, false);
   chassis.pid_wait();
+  pros::delay(500);
   lift.set(Lift::LEVEL_2);
-  chassis.pid_turn_set({32, -48.3}, fwd, 80);
+  chassis.pid_turn_set({28, -48}, fwd, 80);
   chassis.pid_wait();
   lift.waitUntilCompletion(1000);
-  chassis.pid_odom_set({{32, -48.1}, fwd, 60}, true);
+  chassis.pid_odom_set({{28, -48}, fwd, 60}, true);
   chassis.pid_wait();
   lift.waitUntilCompletion(1000);
   lift.score();

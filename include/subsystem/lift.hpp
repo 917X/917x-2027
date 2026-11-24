@@ -121,7 +121,7 @@ class Lift {
   double MATCHLOADING_HEIGHT = 250;
   double MATCHLOADING_PIVOT_HEIGHT = 700;  // A doesn't swing the arm until the lift is below this
   double LOADING_HEIGHT = 250;
-  double FLOORPIN_HEIGHT = 665;
+  double FLOORPIN_HEIGHT = 655;
 
   // Front Heights (Levels 1-3)
   double LEVEL_1_HEIGHT = 1920;
@@ -144,7 +144,7 @@ class Lift {
   double FLOORPIN_ANGLE = 280;       // FLOORPIN
   double FRONT_SCORING_ANGLE = 240;  // leaving MATCHLOADING for a front level, the arm goes here first and stays until the lift
                                      // is at the level.  claw_autoclose also raises the arm here after it grabs a matchload
-  double FRONT_LEVEL_ANGLE = 260;    // front LEVEL_1-3 - the arm holds this once the lift is at the level
+  double FRONT_LEVEL_ANGLE = 272;    // front LEVEL_1-3 - the arm holds this once the lift is at the level
   double PRESCORING_ANGLE = 137;
   double BACK_ANGLE = 122;
   double LOADING_ANGLE = -5;
