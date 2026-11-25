@@ -697,6 +697,8 @@ void sawpKinda() {
   toggleMotor.move(127);
   pros::delay(600);
   toggleMotor.move(0);
+  
+  chassis.pid_swing_exit_condition_set(90_ms, 2_deg, 150_ms, 7_deg, 150_ms, 150_ms);
   chassis.pid_swing_set(ez::LEFT_SWING, 80, 110);
   chassis.pid_wait();
   // chassis.pid_odom_set({{-0.5, -48.5}, rev, 90}, false);
@@ -705,22 +707,66 @@ void sawpKinda() {
   // chassis.pid_wait();
   lift.pivotSpeed = 60;
   // lift.set(Lift::FLOORPIN);
-  lift.setHeight(183);
-  lift.setPivot(283);
+  lift.setHeight(200);
+  lift.setPivot(290);
   // chassis.pid_odom_set({{14.9, -48.5}, fwd, 90}, false);
   // chassis.pid_wait_quick();
-  chassis.pid_odom_set({{12.5, -57}, fwd, 90}, false);
-  chassis.pid_wait_quick_chain();
+  chassis.pid_odom_set({{10.8, -50.8}, fwd, 90}, false);
+  chassis.pid_wait();
   lift.waitUntilCompletion(750);
   pros::delay(100);
-  claw.set(true);
-  pros::delay(50);
+  lift.score();
+  pros::delay(200);
   lift.pivotSpeed = 127;
-  pros::delay(500);
-  chassis.pid_odom_set({{8, -60}, rev, 90}, false);
+  chassis.pid_drive_set(-12,90,false);
+  chassis.pid_wait();
+  lift.set(Lift::FLOORPIN);
+  chassis.pid_turn_set({12, -58}, fwd , 100, false);
+  chassis.pid_wait();
+
+  chassis.pid_odom_set({{12,-58},fwd,90},false);
+  chassis.pid_wait();
+
+  chassis.pid_swing_set(ez::LEFT_SWING,160,90,false);
+  chassis.pid_wait();
+  chassis.pid_swing_exit_condition_set(90_ms, 2_deg, 250_ms, 7_deg, 500_ms, 500_ms);
+  claw.set(false);
+
+  lift.set(Lift::LEVEL_1);
+  
+  chassis.pid_odom_set({{4, -48}, rev, 90}, false);
   chassis.pid_wait_quick_chain();
-  chassis.pid_turn_set({14, -80}, fwd , 90, false);
-  chassis.pid_wait_quick_chain();
+
+  lift.waitUntilCompletion(700);
+  // chassis.pid_turn_set({16,-47}, fwd, 90);
+  chassis.pid_turn_set(90,90);
+  chassis.pid_wait();
+  // chassis.pid_odom_set({{16, -47}, fwd, 90}, false);
+  chassis.pid_drive_set(13,90,false);
+  chassis.pid_wait();
+  lift.waitUntilCompletion(750);
+  pros::delay(100);
+  lift.score();
+  pros::delay(400);
+
+  chassis.pid_drive_set(-8,90,false);
+  lift.set(Lift::FLOORPIN);
+  claw.set(true);
+  chassis.pid_wait();
+
+  chassis.pid_turn_set({18,-36}, fwd, 90);
+  chassis.pid_wait();
+  claw_autoclose(7000,Lift::LEVEL_2);
+  chassis.pid_odom_set({{16, -36}, fwd, 90}, false);
+  chassis.pid_wait();
+  
+  chassis.pid_turn_set({22,-46}, fwd, 90);
+  chassis.pid_wait();
+
+  chassis.pid_odom_set({{22, -46}, fwd, 90}, false);
+  chassis.pid_wait();
+  lift.score();
+
   // chassis.pid_odom_set({{3.3, -48.5}, rev, 90}, false);
   // chassis.pid_wait_quick();
 }

@@ -84,7 +84,7 @@ ez::Drive chassis(
 //  - you should get positive values on the encoders going FORWARD and RIGHT
 // - `2.75` is the wheel diameter
 // - `4.0` is the distance from the center of the wheel to the center of the robot
-ez::tracking_wheel horiz_tracker(21, 2.0, 2.56);  // dist 2
+ez::tracking_wheel horiz_tracker(-21, 2.0, 2.0);  // dist 2
 
 // distance sensor position reset - back is nullptr until it has a sensor, so back() always gives its fallback.
 // When it gets one: add a pros::Distance backDist(port) and swap nullptr, 0.0 for &backDist, its offset
