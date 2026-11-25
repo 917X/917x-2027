@@ -208,9 +208,10 @@ void autonomous() {
   // ez::as::auton_selector.selected_auton_call();  // Calls selected auton from autonomous selector
   // driver_side_three_pin();
   // drive_example();
-   skillz();
+   //skillz();
   // turn_example();
   //test_autoclose();
+  sawpKinda();
 }
 
 /**

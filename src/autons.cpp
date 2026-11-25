@@ -690,3 +690,37 @@ void skillz() {
   chassis.pid_odom_set({{32, -48.1}, fwd, 60}, true);
   chassis.pid_wait();
 }
+
+void sawpKinda() {
+  lift.pivotSpeed = 127;
+  chassis.odom_pose_set({-0.5, -62.5, 180});
+  toggleMotor.move(127);
+  pros::delay(600);
+  toggleMotor.move(0);
+  chassis.pid_swing_set(ez::LEFT_SWING, 80, 110);
+  chassis.pid_wait();
+  // chassis.pid_odom_set({{-0.5, -48.5}, rev, 90}, false);
+  // chassis.pid_wait_quick();
+  // chassis.pid_turn_set(90, 127);
+  // chassis.pid_wait();
+  lift.pivotSpeed = 60;
+  // lift.set(Lift::FLOORPIN);
+  lift.setHeight(183);
+  lift.setPivot(283);
+  // chassis.pid_odom_set({{14.9, -48.5}, fwd, 90}, false);
+  // chassis.pid_wait_quick();
+  chassis.pid_odom_set({{12.5, -57}, fwd, 90}, false);
+  chassis.pid_wait_quick_chain();
+  lift.waitUntilCompletion(750);
+  pros::delay(100);
+  claw.set(true);
+  pros::delay(50);
+  lift.pivotSpeed = 127;
+  pros::delay(500);
+  chassis.pid_odom_set({{8, -60}, rev, 90}, false);
+  chassis.pid_wait_quick_chain();
+  chassis.pid_turn_set({14, -80}, fwd , 90, false);
+  chassis.pid_wait_quick_chain();
+  // chassis.pid_odom_set({{3.3, -48.5}, rev, 90}, false);
+  // chassis.pid_wait_quick();
+}

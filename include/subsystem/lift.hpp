@@ -118,21 +118,21 @@ class Lift {
 
   // Heights in rotation sensor degrees.  PLACEHOLDERS - tune on the robot
   double ZERO_HEIGHT = 0;
-  double MATCHLOADING_HEIGHT = 250;
-  double MATCHLOADING_PIVOT_HEIGHT = 700;  // A doesn't swing the arm until the lift is below this
-  double LOADING_HEIGHT = 250;
-  double FLOORPIN_HEIGHT = 655;
+  double MATCHLOADING_HEIGHT = 0;
+  double MATCHLOADING_PIVOT_HEIGHT = 192.8;  // A doesn't swing the arm until the lift is below this
+  double LOADING_HEIGHT = 0;
+  double FLOORPIN_HEIGHT = 137.8;
 
   // Front Heights (Levels 1-3)
-  double LEVEL_1_HEIGHT = 1920;
-  double LEVEL_2_HEIGHT = 2802;
-  double LEVEL_3_HEIGHT = 3738;
+  double LEVEL_1_HEIGHT = 1412.8;
+  double LEVEL_2_HEIGHT = 2294.8;
+  double LEVEL_3_HEIGHT = 3230.8;
 
   // Back Heights (Levels 2-5)
   double BACK_LEVEL_2_HEIGHT = 0;
-  double BACK_LEVEL_3_HEIGHT = 867;
-  double BACK_LEVEL_4_HEIGHT = 1832;
-  double BACK_LEVEL_5_HEIGHT = 2745;
+  double BACK_LEVEL_3_HEIGHT = 359.8;
+  double BACK_LEVEL_4_HEIGHT = 1324.8;
+  double BACK_LEVEL_5_HEIGHT = 2237.8;
 
   // The lift never drives past these.  HOMING ignores them - it has to go below the old zero.
   double MIN_POSITION = -10;    // just under ZERO_HEIGHT, so raw down stops before the string re-winds
