@@ -121,7 +121,7 @@ class Lift {
   double MATCHLOADING_HEIGHT = 0;
   double MATCHLOADING_PIVOT_HEIGHT = 192.8;  // A doesn't swing the arm until the lift is below this
   double LOADING_HEIGHT = 0;
-  double FLOORPIN_HEIGHT = 147.8;
+  double FLOORPIN_HEIGHT = 137.8;
 
   // Front Heights (Levels 1-3)
   double LEVEL_1_HEIGHT = 1412.8;
