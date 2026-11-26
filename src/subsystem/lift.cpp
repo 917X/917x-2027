@@ -114,7 +114,11 @@ void Lift::liftControl() {
     if (position >= MAX_POSITION && power > 0) power = 0;
     if (position <= MIN_POSITION && power < 0) power = 0;
 
-    int pivotPower = std::clamp(static_cast<int>(pivotKP * (pivotTarget - pivotPosition)), -pivotSpeed, pivotSpeed);
+    // Back scoring (back LEVEL_2-5) uses pivotLoadedKP - the arm's carrying the pin over to the back.  Checks level,
+    // not state, so it stays on through SCORE, the raw states and manual pivot there.  Everything else uses pivotKP
+    bool backScoring = level == LEVEL_4 || level == LEVEL_5 || ((level == LEVEL_2 || level == LEVEL_3) && isBackMode);
+    double armKP = backScoring ? pivotLoadedKP : pivotKP;
+    int pivotPower = std::clamp(static_cast<int>(armKP * (pivotTarget - pivotPosition)), -pivotSpeed, pivotSpeed);
     if (pivotPosition >= PIVOT_MAX_ANGLE && pivotPower > 0) pivotPower = 0;
     if (pivotPosition <= PIVOT_MIN_ANGLE && pivotPower < 0) pivotPower = 0;
 

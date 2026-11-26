@@ -67,8 +67,9 @@ class Lift {
   int rawSpeed = 127;  // power for RAW_UP / RAW_DOWN - lower it to make raw slower
   double kP = 1.0;     // power per degree of error  (PLACEHOLDER)
 
-  int pivotSpeed = 127;    // max power moving to an angle
-  double pivotKP = 0.4;    // power per degree of error  (PLACEHOLDER)
+  int pivotSpeed = 127;        // max power moving to an angle - both kPs below share it
+  double pivotKP = 0.4;        // everything except back scoring - power per degree of error  (PLACEHOLDER)
+  double pivotLoadedKP = 1.5;  // back scoring (back LEVEL_2-5), since the arm carries the pin over to the back  (PLACEHOLDER)
   double pivotTarget = 0;  // starts at 0 so the arm stays put until a state gives it an angle
   int pivotRawPower = 0;   // raw manual override power from controller
 
