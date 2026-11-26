@@ -9,8 +9,7 @@
 
 Lift::Lift(pros::MotorGroup& liftMotors, pros::Rotation& liftRotation, pros::Motor& pivotMotor,
            pros::Rotation& pivotRotation, ez::Piston& claw)
-    : liftMotors(liftMotors), liftRotation(liftRotation), pivotMotor(pivotMotor),
-      pivotRotation(pivotRotation), claw(claw) {}
+    : liftMotors(liftMotors), liftRotation(liftRotation), pivotMotor(pivotMotor), pivotRotation(pivotRotation), claw(claw) {}
 
 void Lift::liftControl() {
   liftMotors.set_brake_mode_all(pros::E_MOTOR_BRAKE_HOLD);  // _all - plain set_brake_mode() only sets the first motor
@@ -159,7 +158,7 @@ void Lift::liftControl() {
       homeTime += 10;
 
       int current = std::abs(liftMotors.get_current_draw());  // mA - the first motor (LIFT) only
-      if (++homePrintCounter % 5 == 0)  // every 50ms, for tuning
+      if (++homePrintCounter % 5 == 0)                        // every 50ms, for tuning
         printf("homing rpm: %.1f  current: %d mA  loose: %d  loadedTime: %d\n",
                fabs(liftMotors.get_actual_velocity()), current, homeLoose, loadedTime);
 
@@ -265,15 +264,24 @@ void Lift::setPivot(double angle) {
 
 double Lift::levelHeight(LiftState level, bool back) {
   switch (level) {
-    case LEVEL_1: return LEVEL_1_HEIGHT;
-    case LEVEL_2: return back ? BACK_LEVEL_2_HEIGHT : LEVEL_2_HEIGHT;
-    case LEVEL_3: return back ? BACK_LEVEL_3_HEIGHT : LEVEL_3_HEIGHT;
-    case LEVEL_4: return BACK_LEVEL_4_HEIGHT;
-    case LEVEL_5: return BACK_LEVEL_5_HEIGHT;
-    case MATCHLOADING: return MATCHLOADING_HEIGHT;
-    case FLOORPIN: return FLOORPIN_HEIGHT;
-    case LOADING: return LOADING_HEIGHT;
-    default: return ZERO_HEIGHT;
+    case LEVEL_1:
+      return LEVEL_1_HEIGHT;
+    case LEVEL_2:
+      return back ? BACK_LEVEL_2_HEIGHT : LEVEL_2_HEIGHT;
+    case LEVEL_3:
+      return back ? BACK_LEVEL_3_HEIGHT : LEVEL_3_HEIGHT;
+    case LEVEL_4:
+      return BACK_LEVEL_4_HEIGHT;
+    case LEVEL_5:
+      return BACK_LEVEL_5_HEIGHT;
+    case MATCHLOADING:
+      return MATCHLOADING_HEIGHT;
+    case FLOORPIN:
+      return FLOORPIN_HEIGHT;
+    case LOADING:
+      return LOADING_HEIGHT;
+    default:
+      return ZERO_HEIGHT;
   }
 }
 
@@ -296,7 +304,7 @@ void Lift::toggleFrontBack() {
     if (!isBackMode && level >= LEVEL_4) {
       set(LEVEL_3);  // LEVEL_4-5 aren't on the front - go to the highest front level
     } else {
-      set(level);    // LEVEL_2 or LEVEL_3 - same level, other side
+      set(level);  // LEVEL_2 or LEVEL_3 - same level, other side
     }
   }
 }

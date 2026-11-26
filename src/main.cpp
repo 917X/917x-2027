@@ -208,10 +208,10 @@ void autonomous() {
   // ez::as::auton_selector.selected_auton_call();  // Calls selected auton from autonomous selector
   // driver_side_three_pin();
   // drive_example();
-   //skillz();
+  skillz();
   // turn_example();
-  //test_autoclose();
-  sawpKinda();
+  // test_autoclose();
+  // sawpKinda();
 }
 
 /**
@@ -237,10 +237,10 @@ void ez_screen_task() {
     // Only run this when not connected to a competition switch
     if (!pros::competition::is_connected()) {
       ez::screen_print("x: " + util::to_string_with_precision(chassis.odom_x_get()) +
-                               "\ny: " + util::to_string_with_precision(chassis.odom_y_get()) +
-                               "\na: " + util::to_string_with_precision(chassis.odom_theta_get()),
-                           1);
-      
+                           "\ny: " + util::to_string_with_precision(chassis.odom_y_get()) +
+                           "\na: " + util::to_string_with_precision(chassis.odom_theta_get()),
+                       1);
+
     }
 
     // Remove all blank pages when connected to a comp switch
@@ -250,7 +250,6 @@ void ez_screen_task() {
     }
 
     pros::delay(ez::util::DELAY_TIME);
-    
   }
 }
 
@@ -372,7 +371,7 @@ void opcontrol() {
     if (controller.get_digital_new_press(DIGITAL_UP))
       lift.set(Lift::LOADING);
 
-    if (controller.get_digital_new_press(DIGITAL_A)){
+    if (controller.get_digital_new_press(DIGITAL_A)) {
       claw.set(true);
       if (lift.state == Lift::MATCHLOADING) {
         claw_autoclose(5000, true);
