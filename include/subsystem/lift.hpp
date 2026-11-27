@@ -119,21 +119,21 @@ class Lift {
 
   // Heights in rotation sensor degrees.  PLACEHOLDERS - tune on the robot
   double ZERO_HEIGHT = 0;
-  double MATCHLOADING_HEIGHT = 0;
+  double MATCHLOADING_HEIGHT = -10;
   double MATCHLOADING_PIVOT_HEIGHT = 192.8;  // A doesn't swing the arm until the lift is below this
   double LOADING_HEIGHT = 0;
-  double FLOORPIN_HEIGHT = 137.8;
+  double FLOORPIN_HEIGHT = 136.9;
 
   // Front Heights (Levels 1-3)
-  double LEVEL_1_HEIGHT = 1562.8;
-  double LEVEL_2_HEIGHT = 2494.8;
-  double LEVEL_3_HEIGHT = 3230.8;
+  double LEVEL_1_HEIGHT = 1842.8;
+  double LEVEL_2_HEIGHT = 3088.8;
+  double LEVEL_3_HEIGHT = 3830.8;
 
   // Back Heights (Levels 2-5)
   double BACK_LEVEL_2_HEIGHT = 0;
-  double BACK_LEVEL_3_HEIGHT = 904.8;
-  double BACK_LEVEL_4_HEIGHT = 2128.8;
-  double BACK_LEVEL_5_HEIGHT = 3104.8;
+  double BACK_LEVEL_3_HEIGHT = 990.8;
+  double BACK_LEVEL_4_HEIGHT = 2133.8;
+  double BACK_LEVEL_5_HEIGHT = 3242.8;
 
   // The lift never drives past these.  HOMING ignores them - it has to go below the old zero.
   double MIN_POSITION = -10;    // just under ZERO_HEIGHT, so raw down stops before the string re-winds
@@ -141,7 +141,7 @@ class Lift {
 
   // Arm angles in rotation sensor degrees, 0 is where the arm is when the program starts.
   // PLACEHOLDERS - tune on the robot
-  double FRONT_ANGLE = 287;          // MATCHLOADING - picking up from the front
+  double FRONT_ANGLE = 300;          // MATCHLOADING - picking up from the front
   double FLOORPIN_ANGLE = 280;       // FLOORPIN
   double FRONT_SCORING_ANGLE = 240;  // leaving MATCHLOADING for a front level, the arm goes here first and stays until the lift
                                      // is at the level.  claw_autoclose also raises the arm here after it grabs a matchload

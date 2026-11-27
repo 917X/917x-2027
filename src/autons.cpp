@@ -659,13 +659,13 @@ void skillz() {
   // chassis.pid_wait();
   lift.pivotSpeed = 60;
   // lift.set(Lift::FLOORPIN);
-  lift.setHeight(220);
+  lift.setHeight(210);
   lift.setPivot(295);
   // chassis.pid_odom_ptp_set({{14.9, -48.5}, fwd, 90}, false);
   // chassis.pid_wait_quick();
-  chassis.pid_odom_ptp_set({{0, -52.2}, fwd, 110, 70}, false);
+  chassis.pid_odom_ptp_set({{0, -52}, fwd, 110, 70}, false);
   chassis.pid_wait_quick_chain(5);
-  chassis.pid_drive_set(11.5, 127, false, true, 90);
+  chassis.pid_drive_set(12.5, 127, false, true, 90);
   chassis.pid_wait();
   lift.waitUntilCompletion(750);
   pros::delay(100);
@@ -675,48 +675,53 @@ void skillz() {
 
   chassis.pid_drive_set(-8, 90, false);
   lift.set(Lift::FLOORPIN);
-  claw.set(true);
   chassis.pid_wait();
 
-  chassis.pid_turn_set({17.4, -36}, fwd, 127);
+  chassis.pid_turn_set({18.25, -35.5}, fwd, 127);
   chassis.pid_wait();
   claw_autoclose(7000, Lift::LEVEL_1);
-  chassis.pid_odom_ptp_set({{18., -35.5}, fwd, 60}, false);
+  chassis.pid_odom_ptp_set({{18.25, -35.5}, fwd, 40}, false);
   chassis.pid_wait();
   pros::delay(750);
   lift.set(Lift::LEVEL_1);
   chassis.pid_turn_set({24, -48}, fwd, 127);
   chassis.pid_wait();
 
-  chassis.pid_drive_set(12.5, 90, false);
+  chassis.pid_drive_set(13.5, 90, false);
   chassis.pid_wait();
   lift.score();
+  // claw.set(true);
   pros::delay(500);
 
   chassis.pid_drive_set(-8, 90, false);
   chassis.pid_wait();
   lift.set(Lift::FLOORPIN);
 
-  chassis.pid_turn_set({40, -44}, fwd, 127);
+  chassis.pid_turn_set({45.5, -49}, fwd, 127);
   chassis.pid_wait();
   claw_autoclose(7000, Lift::LEVEL_2);
-  chassis.pid_odom_ptp_set({{40, -44}, fwd, 70}, false);
+  chassis.pid_odom_ptp_set({{45.5, -49}, fwd, 40}, false);
   chassis.pid_wait();
   pros::delay(450);
   lift.set(Lift::LEVEL_2);
 
-  chassis.pid_turn_set({31, -46}, fwd, 127);
+  chassis.pid_turn_set({31, -51}, fwd, 127);
   chassis.pid_wait();
-  chassis.pid_odom_ptp_set({{31, -46}, fwd, 70}, false);
+  // chassis.pid_odom_ptp_set({{31, -49}, fwd, 70}, false);
+  // chassis.pid_wait();
+  chassis.pid_drive_set(12.5, 90, false);
   chassis.pid_wait();
   lift.waitUntilCompletion(1000);
   lift.score();
+  // claw.set(true);
   lift.waitUntilCompletion(1000);
 
   // MATCHLOAD START
   chassis.odom_y_set(-distReset.left(-chassis.odom_y_get()));
   chassis.odom_x_set(distReset.back(chassis.odom_x_get()));
   std::cout << chassis.odom_x_get() << ", " << chassis.odom_y_get() << ", " << chassis.odom_theta_get() << std::endl;
+
+  pros::delay(67676767);
 
   for (int i = 0; i < 2; i++) {
     matchload_skills();
