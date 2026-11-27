@@ -600,20 +600,21 @@ void matchload_skills() {
   lift.set(Lift::MATCHLOADING);
   claw.set(true);
   chassis.pid_wait();
-  chassis.pid_turn_set({60, -70}, fwd, 80);
+  chassis.pid_turn_set({59, -56}, fwd, 80);
   chassis.pid_wait();
-
-  chassis.pid_odom_ptp_set({{60, -70}, fwd, 30}, false);
+  chassis.odom_x_set(distReset.left(chassis.odom_x_get()));
   claw_autoclose(7000);
+  chassis.pid_odom_ptp_set({{59, -56}, fwd, 30}, false);
   chassis.pid_wait();
-  chassis.pid_odom_ptp_set({{64, -48}, rev, 90}, false);
+  pros::delay(500);
+  chassis.pid_odom_ptp_set({{59, -38}, rev, 60}, false);
   chassis.pid_wait();
   lift.isBackMode = true;
   lift.set(Lift::LEVEL_3);
-  chassis.pid_turn_set({32, -48.3}, rev, 80);
+  chassis.pid_turn_set({32, -38}, rev, 80);
   chassis.pid_wait();
   lift.waitUntilCompletion(4000);
-  chassis.pid_odom_ptp_set({{32, -48.1}, rev, 60}, true);
+  chassis.pid_drive_set(-28, 100);
   chassis.pid_wait();
   lift.score();
   lift.waitUntilCompletion(1000);
@@ -657,7 +658,7 @@ void skillz() {
   // chassis.pid_wait_quick();
   // chassis.pid_turn_set(90, 127);
   // chassis.pid_wait();
-  lift.pivotSpeed = 60;
+  lift.pivotSpeed = 40;
   // lift.set(Lift::FLOORPIN);
   lift.setHeight(210);
   lift.setPivot(295);
@@ -669,7 +670,8 @@ void skillz() {
   chassis.pid_wait();
   lift.waitUntilCompletion(750);
   pros::delay(100);
-  lift.score();
+  // lift.score();
+  claw.set(true);
   pros::delay(200);
   lift.pivotSpeed = 127;
 
@@ -677,7 +679,7 @@ void skillz() {
   lift.set(Lift::FLOORPIN);
   chassis.pid_wait();
 
-  chassis.pid_turn_set({18.25, -35.5}, fwd, 127);
+  chassis.pid_turn_set({17.75, -35.5}, fwd, 127);
   chassis.pid_wait();
   claw_autoclose(7000, Lift::LEVEL_1);
   chassis.pid_odom_ptp_set({{18.25, -35.5}, fwd, 40}, false);
@@ -687,7 +689,7 @@ void skillz() {
   chassis.pid_turn_set({24, -48}, fwd, 127);
   chassis.pid_wait();
 
-  chassis.pid_drive_set(13.5, 90, false);
+  chassis.pid_drive_set(12, 70, false);
   chassis.pid_wait();
   lift.score();
   // claw.set(true);
@@ -697,19 +699,19 @@ void skillz() {
   chassis.pid_wait();
   lift.set(Lift::FLOORPIN);
 
-  chassis.pid_turn_set({45.5, -49}, fwd, 127);
+  chassis.pid_turn_set({46.3, -48}, fwd, 127);
   chassis.pid_wait();
-  claw_autoclose(7000, Lift::LEVEL_2);
-  chassis.pid_odom_ptp_set({{45.5, -49}, fwd, 40}, false);
+  claw_autoclose(10000, Lift::LEVEL_2);
+  chassis.pid_odom_ptp_set({{46.3, -48}, fwd, 40}, false);
   chassis.pid_wait();
   pros::delay(450);
   lift.set(Lift::LEVEL_2);
 
-  chassis.pid_turn_set({31, -51}, fwd, 127);
+  chassis.pid_turn_set({31, -51.5}, fwd, 127);
   chassis.pid_wait();
   // chassis.pid_odom_ptp_set({{31, -49}, fwd, 70}, false);
   // chassis.pid_wait();
-  chassis.pid_drive_set(12.5, 90, false);
+  chassis.pid_drive_set(17.5, 90, false);
   chassis.pid_wait();
   lift.waitUntilCompletion(1000);
   lift.score();
@@ -720,8 +722,6 @@ void skillz() {
   chassis.odom_y_set(-distReset.left(-chassis.odom_y_get()));
   chassis.odom_x_set(distReset.back(chassis.odom_x_get()));
   std::cout << chassis.odom_x_get() << ", " << chassis.odom_y_get() << ", " << chassis.odom_theta_get() << std::endl;
-
-  pros::delay(67676767);
 
   for (int i = 0; i < 2; i++) {
     matchload_skills();

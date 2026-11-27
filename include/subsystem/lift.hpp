@@ -63,15 +63,16 @@ class Lift {
   LiftState level = ZERO;   // last ZERO..LEVEL_5 picked, so levelUp/levelDown still work after raw
   double customHeight = 0;  // where CUSTOM_HEIGHT aims - set by setHeight()
 
-  int speed = 127;     // max power moving to a level
+  int speed = 127;  // max power moving to a level
+  int lowerSpeed = 80;
   int rawSpeed = 127;  // power for RAW_UP / RAW_DOWN - lower it to make raw slower
   double kP = 1.0;     // power per degree of error  (PLACEHOLDER)
 
   int pivotSpeed = 127;        // max power moving to an angle - both kPs below share it
   double pivotKP = 0.4;        // everything except back scoring - power per degree of error  (PLACEHOLDER)
   double pivotLoadedKP = 1.5;  // back scoring (back LEVEL_2-5), since the arm carries the pin over to the back  (PLACEHOLDER)
-  double pivotTarget = 0;  // starts at 0 so the arm stays put until a state gives it an angle
-  int pivotRawPower = 0;   // raw manual override power from controller
+  double pivotTarget = 0;      // starts at 0 so the arm stays put until a state gives it an angle
+  int pivotRawPower = 0;       // raw manual override power from controller
 
   // false (front) is LEVEL_x_HEIGHT with the arm at FRONT_ANGLE,
   // true (back) is BACK_LEVEL_x_HEIGHT with the arm at BACK_ANGLE.
@@ -108,8 +109,8 @@ class Lift {
   int homePrintCounter = 0;
 
   // Score
-  double scoreDrop = 300;       // degrees, same units as the heights below
-  double scoreRise = 300;       // degrees above the starting position it ends at
+  double scoreDrop = 400;       // degrees, same units as the heights below
+  double scoreRise = 100;       // degrees above the starting position it ends at
   int scoreReleaseTime = 200;   // ms  (PLACEHOLDER)
   double scoreTolerance = 30;   // degrees  (PLACEHOLDER)
   int scoreMoveTimeout = 1000;  // ms
@@ -143,7 +144,7 @@ class Lift {
   // PLACEHOLDERS - tune on the robot
   double FRONT_ANGLE = 300;          // MATCHLOADING - picking up from the front
   double FLOORPIN_ANGLE = 280;       // FLOORPIN
-  double FRONT_SCORING_ANGLE = 240;  // leaving MATCHLOADING for a front level, the arm goes here first and stays until the lift
+  double FRONT_SCORING_ANGLE = 260;  // leaving MATCHLOADING for a front level, the arm goes here first and stays until the lift
                                      // is at the level.  claw_autoclose also raises the arm here after it grabs a matchload
   double FRONT_LEVEL_ANGLE = 272;    // front LEVEL_1-3 - the arm holds this once the lift is at the level
   double PRESCORING_ANGLE = 135;

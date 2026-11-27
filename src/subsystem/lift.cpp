@@ -104,8 +104,12 @@ void Lift::liftControl() {
         target = pivotFirstHold;
       }
     }
-
-    int power = std::clamp(static_cast<int>(kP * (target - position)), -speed, speed);
+    int power;
+    if (target - position > 0) {
+      power = std::clamp(static_cast<int>(kP * (target - position)), -speed, speed);
+    } else {
+      power = std::clamp(static_cast<int>(kP * (target - position)), -lowerSpeed, lowerSpeed);
+    }
     if (state == RAW_UP) power = rawSpeed;
     if (state == RAW_DOWN) power = -rawSpeed;
     if (state == RAW_HOLD) power = 0;  // let go - the HOLD brake keeps it where it stopped
