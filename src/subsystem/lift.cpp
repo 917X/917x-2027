@@ -31,6 +31,7 @@ void Lift::liftControl() {
 
     double target = position;  // raw states get no P power
     double levelAngle = isBackMode ? BACK_ANGLE : FRONT_LEVEL_ANGLE;
+    bool matchloadPush = false;  // MATCHLOADING has swung the arm - see matchloadPushPower
 
     switch (state) {
       case ZERO:
@@ -39,7 +40,10 @@ void Lift::liftControl() {
       case MATCHLOADING:
         target = MATCHLOADING_HEIGHT;
         // The arm holds its last angle until the lift is below MATCHLOADING_PIVOT_HEIGHT, then swings
-        if (position < MATCHLOADING_PIVOT_HEIGHT) pivotTarget = FRONT_ANGLE;
+        if (position < MATCHLOADING_PIVOT_HEIGHT) {
+          pivotTarget = FRONT_ANGLE;
+          matchloadPush = true;
+        }
         break;
       case FLOORPIN:
         target = FLOORPIN_HEIGHT;
@@ -125,6 +129,26 @@ void Lift::liftControl() {
     int pivotPower = std::clamp(static_cast<int>(armKP * (pivotTarget - pivotPosition)), -pivotSpeed, pivotSpeed);
     if (pivotPosition >= PIVOT_MAX_ANGLE && pivotPower > 0) pivotPower = 0;
     if (pivotPosition <= PIVOT_MIN_ANGLE && pivotPower < 0) pivotPower = 0;
+
+    // At MATCHLOADING the arm swings to FRONT_ANGLE on raw matchloadPushPower - P is too weak near the end to get it
+    // there.  Once it lands it keeps pushing into the hardstop for matchloadPushTime ms, then P holds FRONT_ANGLE.
+    // Knocked more than matchloadPushTolerance short, it goes back to pushing.  After the limit check so
+    // PIVOT_MAX_ANGLE can't cut it off.  Off once setPivot() or manual pivot takes the arm, e.g. claw_autoclose
+    // raising it after a grab
+    if (matchloadPush && !pivotManual) {
+      bool landed = pivotPosition > FRONT_ANGLE - matchloadPushTolerance;  // past it counts too - that's the hardstop
+      if (!landed) {
+        matchloadHolding = false;  // not there yet, or knocked off - push it in
+        matchloadPushLeft = matchloadPushTime;
+      } else if (!matchloadHolding) {
+        matchloadPushLeft -= 10;
+        if (matchloadPushLeft <= 0) matchloadHolding = true;
+      }
+      if (!matchloadHolding) pivotPower = matchloadPushPower;
+    } else {
+      matchloadHolding = false;  // next time A swings the arm, it pushes from the start
+      matchloadPushLeft = matchloadPushTime;
+    }
 
     if (pivotRawPower != 0) {
       pivotPower = pivotRawPower;
@@ -223,7 +247,9 @@ void Lift::set(LiftState state) {
       isBackMode = true;
     }
   }
-  pivotManual = false;  // a new lift state picks the arm angle again
+  pivotManual = false;        // a new lift state picks the arm angle again
+  matchloadHolding = false;   // pressing A again pushes the arm in again, even if it's already there
+  matchloadPushLeft = matchloadPushTime;
   this->state = state;
 }
 

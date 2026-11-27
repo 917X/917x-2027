@@ -71,6 +71,11 @@ class Lift {
   int pivotSpeed = 127;        // max power moving to an angle - both kPs below share it
   double pivotKP = 0.4;        // everything except back scoring - power per degree of error  (PLACEHOLDER)
   double pivotLoadedKP = 1.5;  // back scoring (back LEVEL_2-5), since the arm carries the pin over to the back  (PLACEHOLDER)
+  int matchloadPushPower = 40;        // MATCHLOADING - raw power swinging the arm to FRONT_ANGLE and pushing it into the hardstop  (PLACEHOLDER)
+  double matchloadPushTolerance = 4;  // degrees - within this of FRONT_ANGLE (or past it) counts as landed  (PLACEHOLDER)
+  int matchloadPushTime = 300;        // ms it keeps pushing after it lands - then plain P holds FRONT_ANGLE  (PLACEHOLDER)
+  int matchloadPushLeft = 0;          // ms of pushing left since it landed
+  bool matchloadHolding = false;      // done pushing, P is holding FRONT_ANGLE - set() clears it
   double pivotTarget = 0;      // starts at 0 so the arm stays put until a state gives it an angle
   int pivotRawPower = 0;       // raw manual override power from controller
 
@@ -142,7 +147,7 @@ class Lift {
 
   // Arm angles in rotation sensor degrees, 0 is where the arm is when the program starts.
   // PLACEHOLDERS - tune on the robot
-  double FRONT_ANGLE = 300;          // MATCHLOADING - picking up from the front
+  double FRONT_ANGLE = 297.5;          // MATCHLOADING - picking up from the front, against the hardstop
   double FLOORPIN_ANGLE = 280;       // FLOORPIN
   double FRONT_SCORING_ANGLE = 260;  // leaving MATCHLOADING for a front level, the arm goes here first and stays until the lift
                                      // is at the level.  claw_autoclose also raises the arm here after it grabs a matchload
@@ -153,5 +158,5 @@ class Lift {
 
   // The arm never drives past these
   double PIVOT_MIN_ANGLE = -10;  // must be the smaller number - if MIN > MAX every PID move gets zeroed
-  double PIVOT_MAX_ANGLE = 281;
+  double PIVOT_MAX_ANGLE = 300;  // just past FRONT_ANGLE - below it the arm can't reach matchloading
 };
