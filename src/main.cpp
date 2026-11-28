@@ -288,9 +288,10 @@ void ez_template_extras() {
 /**
  * Driver layout:
  *   R1            toggle motor (hold)
- *   R2 / LEFT     score - drop, open claw, then up to scoreRise above where it was (at zero: only opens the claw)
+ *   LEFT          driver score - drop driverScoreDrop, open claw, then all the way down to zero (at zero: only opens the claw)
+ *   R2            score - drop, open claw, then up to scoreRise above where it was (at zero: only opens the claw)
  *   L1 / L2       lift up / down a level - LEVEL_1 is on the front, every other level goes to the back.
- *                 From MATCHLOADING: arm to FRONT_SCORING_ANGLE, lift up, then arm to FRONT_LEVEL_ANGLE
+ *                 From MATCHLOADING: lift up with the arm at FRONT_SCORING_ANGLE, then arm to FRONT_LEVEL_ANGLE
  *   L1 + L2       toggle Front / Back - keeps the same level (zero or LEVEL_1 go to back LEVEL_2).
  *                 The only way to the front LEVEL_2 / LEVEL_3.
  *                 Press both within chordWindow (100ms) of each other.
@@ -317,7 +318,9 @@ void opcontrol() {
     ez_template_extras();
     chassis.opcontrol_arcade_standard(ez::SPLIT);
 
-    if (controller.get_digital_new_press(DIGITAL_LEFT) || controller.get_digital_new_press(DIGITAL_R2))
+    if (controller.get_digital_new_press(DIGITAL_LEFT))
+      lift.driverScore();  // down driverScoreDrop, open the claw, then all the way down
+    if (controller.get_digital_new_press(DIGITAL_R2))
       lift.score();
 
     // Toggle motor

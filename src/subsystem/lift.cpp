@@ -31,6 +31,8 @@ void Lift::liftControl() {
 
     double target = position;  // raw states get no P power
     double levelAngle = isBackMode ? BACK_ANGLE : FRONT_LEVEL_ANGLE;
+    // Where SCORE drops to before opening the claw.  driverScore() stops at ZERO_HEIGHT - it ends up there anyway
+    double scoreLow = scoreToZero ? std::max(scoreStart - driverScoreDrop, ZERO_HEIGHT) : scoreStart - scoreDrop;
     bool matchloadPush = false;  // MATCHLOADING has swung the arm - see matchloadPushPower
 
     switch (state) {
@@ -74,7 +76,7 @@ void Lift::liftControl() {
         pivotTarget = BACK_ANGLE;
         break;
       case SCORE:
-        target = scorePhase == RAISING ? scoreStart + scoreRise : scoreStart - scoreDrop;
+        target = scorePhase == RAISING ? scoreStart + scoreRise : scoreLow;
         break;
       case CUSTOM_HEIGHT:
         target = customHeight;  // the arm holds its last angle
@@ -97,17 +99,6 @@ void Lift::liftControl() {
     }
     if (pivotManual) pivotTarget = pivotManualTarget;  // setPivot() or manual hold wins over the state's angle
 
-    // Leaving MATCHLOADING for a level - hold the lift until the arm is at its new angle, or pivotFirstTimeout runs out
-    if (pivotFirst && state >= LEVEL_1 && state <= LEVEL_5) {
-      pivotFirstTime += 10;
-      // Clamped like the arm's limits, so an angle it can't reach doesn't hold the lift for the whole timeout
-      double armTarget = std::clamp(pivotTarget, PIVOT_MIN_ANGLE, PIVOT_MAX_ANGLE);
-      if (std::abs(pivotPosition - armTarget) <= pivotFirstTolerance || pivotFirstTime >= pivotFirstTimeout) {
-        pivotFirst = false;  // arm's there - the lift goes up from here
-      } else {
-        target = pivotFirstHold;
-      }
-    }
     int power;
     if (target - position > 0) {
       power = std::clamp(static_cast<int>(kP * (target - position)), -speed, speed);
@@ -162,7 +153,7 @@ void Lift::liftControl() {
       scoreTime += 10;
 
       if (scorePhase == DROPPING) {
-        if (position <= scoreStart - scoreDrop + scoreTolerance || scoreTime >= scoreMoveTimeout) {
+        if (position <= scoreLow + scoreTolerance || scoreTime >= scoreMoveTimeout) {
           if (claw.get()) {
             scorePhase = RAISING;  // already open - nothing to wait for
           } else {
@@ -183,6 +174,9 @@ void Lift::liftControl() {
         if (position >= scoreStart + scoreRise - scoreTolerance || scoreTime >= scoreMoveTimeout)
           set(RAW_HOLD);
       }
+      // driverScore() - it's let go, so go all the way down instead.  ZERO aims there.  Handing over on the
+      // same frame it reaches RAISING means it never drives up
+      if (scoreToZero && scorePhase == RAISING) set(ZERO);
     }
 
     if (state == HOMING) {
@@ -222,18 +216,10 @@ void Lift::liftControl() {
 }
 
 void Lift::set(LiftState state) {
-  // Going from MATCHLOADING to a level: the arm swings first, and the lift holds where it is until it's there.
-  // Another level picked while it's still waiting keeps waiting, for that level's angle.
+  // A front level from MATCHLOADING keeps the arm at FRONT_SCORING_ANGLE until the lift gets there.  The lift
+  // goes up right away.  Another level picked while the arm's still waiting keeps it waiting, for that level.
   bool toLevel = state >= LEVEL_1 && state <= LEVEL_5;
-  // A front level from MATCHLOADING also keeps the arm at FRONT_SCORING_ANGLE until the lift gets there
-  scoringAngleHold = toLevel && (this->state == MATCHLOADING || pivotFirst || scoringAngleHold);
-  if (toLevel && (this->state == MATCHLOADING || pivotFirst)) {
-    if (!pivotFirst) pivotFirstHold = liftRotation.get_position() / 100.0;  // before pivotFirst, so the task never holds an old height
-    pivotFirstTime = 0;
-    pivotFirst = true;
-  } else {
-    pivotFirst = false;
-  }
+  scoringAngleHold = toLevel && (this->state == MATCHLOADING || scoringAngleHold);
 
   if (state <= LEVEL_5) {
     level = state;
@@ -267,7 +253,7 @@ void Lift::setHeight(double height) {
   set(CUSTOM_HEIGHT);
 }
 
-bool Lift::waitUntilCompletion(int timeout) {
+bool Lift::waitUntilCompletion(int timeout, bool waitForArm) {
   // The lift task works out the arm angle for a new state on its next frame.  Waiting 20ms first means it
   // has run at least once since the last set(), so the check below never uses the old state's angle.
   pros::delay(20);
@@ -275,12 +261,13 @@ bool Lift::waitUntilCompletion(int timeout) {
     double position = liftRotation.get_position() / 100.0;
     double arm = pivotRotation.get_position() / 100.0;
     // These end on their own - wait for them to finish.  scoringAngleHold means the arm hasn't gone to the level's
-    // angle yet.  Read before pivotTarget, so once it's false pivotTarget is already the level's angle.
-    bool running = state == SCORE || state == HOMING || scoringAngleHold;
+    // angle yet - only matters when waiting for the arm.  Read before pivotTarget, so once it's false pivotTarget
+    // is already the level's angle.
+    bool running = state == SCORE || state == HOMING || (waitForArm && scoringAngleHold);
     // Clamped like the lift task does, so an angle past the arm's limits can't make this wait forever
     double armTarget = std::clamp(pivotManual ? pivotManualTarget : pivotTarget, PIVOT_MIN_ANGLE, PIVOT_MAX_ANGLE);
-    if (!running && std::abs(position - targetHeight()) <= waitTolerance &&
-        std::abs(arm - armTarget) <= pivotWaitTolerance)
+    bool armThere = !waitForArm || std::abs(arm - armTarget) <= pivotWaitTolerance;
+    if (!running && std::abs(position - targetHeight()) <= waitTolerance && armThere)
       return true;
     if (waited >= timeout) {
       printf("lift wait timed out - lift %.0f (wants %.0f)  arm %.0f (wants %.0f)  state %d\n",
@@ -369,7 +356,11 @@ void Lift::home() {
   set(HOMING);
 }
 
-void Lift::score() {
+void Lift::score() { startScore(false); }
+
+void Lift::driverScore() { startScore(true); }
+
+void Lift::startScore(bool toZero) {
   if (state == SCORE || state == HOMING) return;  // don't stack drops or cut homing short
   // At zero there's no room to drop, so just open the claw and leave the lift where it is
   if (targetHeight() <= ZERO_HEIGHT + scoreTolerance) {
@@ -379,5 +370,6 @@ void Lift::score() {
   scoreStart = liftRotation.get_position() / 100.0;  // centidegrees -> degrees
   scorePhase = DROPPING;
   scoreTime = 0;
+  scoreToZero = toZero;
   set(SCORE);
 }

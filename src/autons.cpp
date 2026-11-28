@@ -451,7 +451,7 @@ void claw_autoclose(int timeout_ms, bool lift_pivot_after) {
 // The lift only moves if it's still in the state it was in when this was called, so put it where it
 // should wait (e.g. MATCHLOADING) first.  A lift.set() or button press while it waits wins - a late
 // timeout can't drag the lift back down in the middle of the auton.
-// From MATCHLOADING the arm swings to the level's angle before the lift goes up (Lift::pivotFirst).
+// From MATCHLOADING the lift goes up right away - it doesn't wait for the arm to swing.
 void claw_autoclose(int timeout_ms, Lift::LiftState lift_state_after, bool close_on_timeout) {
   int id = ++claw_close_id;
   Lift::LiftState waiting_state = lift.state;
@@ -489,6 +489,33 @@ void claw_autoclose(ez::pose target, int timeout_ms, double tolerance_in) {
     }
   },
              "claw close at point");
+}
+
+void claw_autoclose_matchloading(int timeout_ms, bool lift_pivot_after) {
+  const int CLAW_GRAB_MM = 120;
+  int id = ++claw_close_id;
+  pros::Task([id, timeout_ms, lift_pivot_after]() {
+    uint32_t start = pros::millis();
+    while (id == claw_close_id) {
+      if (claw_sees_object()) {
+        claw.set(false);  // false is closed
+        if (lift_pivot_after) {
+          pros::delay(100);  // give the claw a moment to grip before raising the arm
+          if (id == claw_close_id && lift.state == Lift::MATCHLOADING) {
+            lift.setPivot(lift.FRONT_SCORING_ANGLE);  // lift it just out of the loader - L1 then goes straight up from here
+          }
+        }
+        return;
+      }
+      if (pros::millis() - start >= (uint32_t)timeout_ms) {
+        if (!lift_pivot_after) claw.set(false);  // auton fallback closes; driver mode leaves it open
+        return;
+      }
+      pros::delay(10);
+      std::cout << "Claw distance: " << clawDistance.get() << std::endl;
+    }
+  },
+             "claw close");
 }
 
 /*
@@ -645,6 +672,7 @@ void matchload_skills_2() {
 }
 
 void skillz() {
+  lift.matchloadPushTolerance=1;
   lift.pivotSpeed = 127;
   chassis.odom_pose_set({-0.5, -62.5, 180});
   toggleMotor.move(127);
@@ -658,13 +686,13 @@ void skillz() {
   // chassis.pid_wait_quick();
   // chassis.pid_turn_set(90, 127);
   // chassis.pid_wait();
-  lift.pivotSpeed = 70;
+  lift.pivotSpeed = 60;
   // lift.set(Lift::FLOORPIN);
-  lift.setHeight(210);
+  lift.setHeight(290);
   lift.setPivot(295);
   // chassis.pid_odom_ptp_set({{14.9, -48.5}, fwd, 90}, false);
   // chassis.pid_wait_quick();
-  chassis.pid_odom_ptp_set({{0, -51}, fwd, 100, 70}, false);
+  chassis.pid_odom_ptp_set({{0, -50.4}, fwd, 100, 70}, false);
   chassis.pid_wait_quick_chain(5);
   chassis.pid_drive_set(12.5, 127, false, true, 90);
   chassis.pid_wait();
@@ -676,13 +704,13 @@ void skillz() {
   lift.pivotSpeed = 127;
 
   chassis.pid_drive_set(-8, 90, false);
-  lift.set(Lift::FLOORPIN);
+  lift.set(Lift::MATCHLOADING);
   chassis.pid_wait();
 
-  chassis.pid_turn_set({18.5, -35.5}, fwd, 127);
+  chassis.pid_turn_set({19., -33}, fwd, 127); //18.5
   chassis.pid_wait();
   claw_autoclose(7000, Lift::LEVEL_1);
-  chassis.pid_odom_ptp_set({{18, -35.5}, fwd, 40}, false);
+  chassis.pid_odom_ptp_set({{19., -33}, fwd, 40}, false);
   chassis.pid_wait();
   pros::delay(750);
   lift.set(Lift::LEVEL_1);
@@ -697,22 +725,23 @@ void skillz() {
 
   chassis.pid_drive_set(-8, 90, false);
   chassis.pid_wait();
-  lift.set(Lift::FLOORPIN);
+  lift.set(Lift::MATCHLOADING);
+  claw.set(true); 
 
-  chassis.pid_turn_set({46.3, -48}, fwd, 127);
+  chassis.pid_turn_set({46.3, -47.2}, fwd, 127);
   chassis.pid_wait();
   claw_autoclose(7000, Lift::LEVEL_2);
-  chassis.pid_odom_ptp_set({{46.3, -48}, fwd, 40}, false);
+  chassis.pid_odom_ptp_set({{46.3, -46.5}, fwd, 40}, false);
   chassis.pid_wait();
   claw.set(false);
-  pros::delay(450);
+  pros::delay(200);
   lift.set(Lift::LEVEL_2);
 
-  chassis.pid_turn_set({31, -51.5}, fwd, 127);
+  chassis.pid_turn_set({31, -50}, fwd, 100);
   chassis.pid_wait();
   // chassis.pid_odom_ptp_set({{31, -49}, fwd, 70}, false);
   // chassis.pid_wait();
-  chassis.pid_drive_set(20, 90, false);
+  chassis.pid_drive_set(20, 60, false);
   chassis.pid_wait();
   lift.waitUntilCompletion(1000);
   lift.score();
@@ -737,12 +766,12 @@ void skillz() {
   chassis.pid_odom_ptp_set({{60, -61}, fwd, 40}, false);
   chassis.pid_wait();
   pros::delay(500);
-  chassis.pid_odom_ptp_set({{60, -41}, rev, 60}, false);
+  chassis.pid_odom_ptp_set({{58, -41}, rev, 60}, false);  //60
   chassis.pid_wait();
 
   lift.isBackMode = true;
   lift.set(Lift::LEVEL_3);
-  chassis.pid_turn_set({32, -41}, rev, 80);
+  chassis.pid_turn_set({32, -39}, rev, 80);
   chassis.pid_wait();
   lift.waitUntilCompletion(4000);
   chassis.pid_drive_set(-28, 100);

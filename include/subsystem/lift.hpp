@@ -9,9 +9,9 @@
 // have two sets of heights - see isBackMode.  RAW_UP /
 // RAW_DOWN move the lift freely and RAW_HOLD holds where they stopped.  The arm holds its
 // last angle through the raw states, HOMING, ZERO and CUSTOM_HEIGHT.  setHeight() goes to and
-// holds any height you give it.  Going from MATCHLOADING to a level, the arm swings first and
-// the lift waits for it - see pivotFirst.  For a front level the arm waits at FRONT_SCORING_ANGLE
-// until the lift gets there, then goes to FRONT_LEVEL_ANGLE - see scoringAngleHold.
+// holds any height you give it.  Going from MATCHLOADING to a front level, the lift goes up right
+// away while the arm waits at FRONT_SCORING_ANGLE until the lift gets there, then goes to
+// FRONT_LEVEL_ANGLE - see scoringAngleHold.
 class Lift {
  public:
   Lift(pros::MotorGroup& liftMotors, pros::Rotation& liftRotation, pros::Motor& pivotMotor,
@@ -41,14 +41,18 @@ class Lift {
                                                    // LEVEL_1 is always front and LEVEL_4-5 always back
   void setHeight(double height);                   // goes to and holds height (rotation sensor degrees, kept between
                                                    // MIN_POSITION and MAX_POSITION).  The arm doesn't move - call setPivot() after it to move the arm
-  bool waitUntilCompletion(int timeout = 2000);    // blocks until the lift is within waitTolerance of its height and the
-                                                   // arm within pivotWaitTolerance of its angle, or timeout ms pass.
-                                                   // Waits for SCORE / HOMING to finish first.  false if it timed out
+  bool waitUntilCompletion(int timeout = 2000, bool waitForArm = false);
+                                                   // blocks until the lift is within waitTolerance of its height, or timeout
+                                                   // ms pass.  waitForArm also waits for the arm to be within pivotWaitTolerance
+                                                   // of its angle.  Waits for SCORE / HOMING to finish first.  false if it timed out
   void levelUp();                                  // next level up - LEVEL_1 is on the front, LEVEL_2-5 always go to the back
   void levelDown();                                // next level down - same front / back rule as levelUp, LEVEL_1 goes down to LOADING
   void home();                                     // starts HOMING - the lift task drives down until it stalls, then zeroes
   void score();                                    // starts SCORE - drop scoreDrop, open the claw if it's closed, then go up to scoreRise above where it was.
                                                    // At zero it only opens the claw.
+  void driverScore();                              // LEFT's score - same as score() up to the release (but drops driverScoreDrop, never below
+                                                   // ZERO_HEIGHT), then goes all the way down to ZERO.  At zero it only opens the claw.
+  void startScore(bool toZero);                    // what score() and driverScore() both call
   void setPivot(double angle);                     // swings the arm to angle and keeps it there until the next set() - the lift doesn't move
   void toggleFrontBack();                          // flips isBackMode and keeps the same level - zero or LEVEL_1 go to back LEVEL_2
   double levelHeight(LiftState level, bool back);  // the height a state aims for, front or back
@@ -89,14 +93,6 @@ class Lift {
   double waitTolerance = 25;      // degrees of lift  (PLACEHOLDER)
   double pivotWaitTolerance = 5;  // degrees of arm  (PLACEHOLDER)
 
-  // Going from MATCHLOADING to a level, the arm swings to the level's angle first and the lift
-  // holds where it is until the arm is within pivotFirstTolerance, so the matchload stays steady
-  double pivotFirstTolerance = 10;  // degrees of arm  (PLACEHOLDER)
-  int pivotFirstTimeout = 750;      // ms - the lift goes anyway if the arm never gets there  (PLACEHOLDER)
-  bool pivotFirst = false;          // the lift is waiting for the arm
-  double pivotFirstHold = 0;        // the height the lift holds while it waits
-  int pivotFirstTime = 0;           // ms it has waited
-
   // Going from MATCHLOADING to a front level, the arm stays at FRONT_SCORING_ANGLE while the lift goes up,
   // and goes to FRONT_LEVEL_ANGLE once the lift is within levelAngleTolerance of the level's height
   double levelAngleTolerance = 25;  // degrees of lift  (PLACEHOLDER)
@@ -115,13 +111,15 @@ class Lift {
 
   // Score
   double scoreDrop = 400;       // degrees, same units as the heights below
-  double scoreRise = 100;       // degrees above the starting position it ends at
+  double scoreRise = 0;       // degrees above the starting position it ends at
   int scoreReleaseTime = 200;   // ms  (PLACEHOLDER)
   double scoreTolerance = 30;   // degrees  (PLACEHOLDER)
   int scoreMoveTimeout = 1000;  // ms
   ScorePhase scorePhase = DROPPING;
   double scoreStart = 0;  // where it was when score() was called
   int scoreTime = 0;      // ms in the current phase
+  double driverScoreDrop = 300;  // degrees driverScore() drops before it opens the claw
+  bool scoreToZero = false;      // this SCORE is driverScore() - after the release it goes down to ZERO instead of up
 
   // Heights in rotation sensor degrees.  PLACEHOLDERS - tune on the robot
   double ZERO_HEIGHT = 0;
