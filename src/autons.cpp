@@ -622,53 +622,81 @@ void test_autoclose() {
   chassis.pid_wait();
 }
 
-void matchload_skills() {
-  chassis.pid_odom_ptp_set({{64, -48}, rev, 90}, false);
+// Repeatable matchloading + scoring routine for skills.
+//   back: true = score on back, false = score on front
+//   goal: 1 = 1st goal (back only; front defaults to back), 2 = 2nd goal (front or back)
+void matchload_skillz(bool back, int goal) {
+  // Print which scenario was called to the PROS terminal
+  if (goal == 1 && back) {
+    printf("[matchload_skillz] Case: 1st goal - BACK\n");
+  } else if (goal == 1 && !back) {
+    printf("[matchload_skillz] Case: 1st goal - FRONT does not exist, defaulting to 1st goal - BACK\n");
+    back = true;
+  } else if (goal == 2 && back) {
+    printf("[matchload_skillz] Case: 2nd goal - BACK\n");
+  } else if (goal == 2 && !back) {
+    printf("[matchload_skillz] Case: 2nd goal - FRONT\n");
+  } else {
+    printf("[matchload_skillz] Case: Unknown goal (%d), defaulting to 1st goal - BACK\n", goal);
+    goal = 1;
+    back = true;
+  }
+  fflush(stdout);
+
+  // Pick fwd or rev to {60, -48} based on which way the robot is currently facing so this can be repeated
+  double theta_rad = util::to_rad(chassis.odom_theta_get());
+  double dx = 60.0 - chassis.odom_x_get();
+  double dy = -48.0 - chassis.odom_y_get();
+  ez::drive_directions approach_dir = (dx * sin(theta_rad) + dy * cos(theta_rad)) >= 0 ? fwd : rev;
+
+  chassis.pid_odom_ptp_set({{60, -48}, approach_dir, 90}, false);
   lift.set(Lift::MATCHLOADING);
   claw.set(true);
   chassis.pid_wait();
-  chassis.pid_turn_set({59, -56}, fwd, 80);
+
+  chassis.pid_turn_set(180, 70);
   chassis.pid_wait();
   chassis.odom_x_set(distReset.left(chassis.odom_x_get()));
+  std::cout << chassis.odom_x_get() << ", " << chassis.odom_y_get() << ", " << chassis.odom_theta_get() << std::endl;
+
   claw_autoclose(7000);
-  chassis.pid_odom_ptp_set({{59, -56}, fwd, 30}, false);
+  chassis.pid_odom_ptp_set({{60, -61}, fwd, 40}, false);
   chassis.pid_wait();
   pros::delay(500);
-  chassis.pid_odom_ptp_set({{59, -38}, rev, 60}, false);
-  chassis.pid_wait();
-  lift.isBackMode = true;
-  lift.set(Lift::LEVEL_3);
-  chassis.pid_turn_set({32, -38}, rev, 80);
-  chassis.pid_wait();
-  lift.waitUntilCompletion(4000);
-  chassis.pid_drive_set(-28, 100);
-  chassis.pid_wait();
-  lift.score();
-  lift.waitUntilCompletion(1000);
-}
-
-void matchload_skills_2() {
-  chassis.pid_odom_ptp_set({{64, -48}, fwd, 90}, false);
-  lift.set(Lift::MATCHLOADING);
-  claw.set(true);
-  chassis.pid_wait();
-  chassis.pid_turn_set({60, -70}, fwd, 80);
+  chassis.pid_odom_ptp_set({{58, -41}, rev, 60}, false);  // 60
   chassis.pid_wait();
 
-  chassis.pid_odom_ptp_set({{60, -70}, fwd, 30}, false);
-  claw_autoclose(7000);
-  chassis.pid_wait();
-  chassis.pid_odom_ptp_set({{64, -48}, rev, 90}, false);
-  chassis.pid_wait();
-  lift.isBackMode = true;
-  lift.set(Lift::LEVEL_3);
-  chassis.pid_turn_set({48, -32}, rev, 80);
-  chassis.pid_wait();
-  lift.waitUntilCompletion(4000);
-  chassis.pid_odom_ptp_set({{48, -32}, rev, 60}, true);
-  chassis.pid_wait();
-  lift.score();
-  lift.waitUntilCompletion(1000);
+  if (goal == 1) {
+    // 1st goal - BACK (front defaults here)
+    lift.setLevel(Lift::LEVEL_3, true);
+    chassis.pid_turn_set({32, -39}, rev, 80);
+    chassis.pid_wait();
+    lift.waitUntilCompletion(4000);
+    chassis.pid_drive_set(-28, 100);
+    chassis.pid_wait();
+    lift.score();
+    lift.waitUntilCompletion(1000);
+  } else if (back) {
+    // 2nd goal - BACK
+    lift.setLevel(Lift::LEVEL_3, true);
+    chassis.pid_turn_set({48, -32}, rev, 80);
+    chassis.pid_wait();
+    lift.waitUntilCompletion(4000);
+    chassis.pid_odom_ptp_set({{48, -32}, rev, 60}, true);
+    chassis.pid_wait();
+    lift.score();
+    lift.waitUntilCompletion(1000);
+  } else {
+    // 2nd goal - FRONT
+    lift.setLevel(Lift::LEVEL_3, false);
+    chassis.pid_turn_set({48, -32}, fwd, 80);
+    chassis.pid_wait();
+    lift.waitUntilCompletion(4000);
+    chassis.pid_odom_ptp_set({{48, -32}, fwd, 60}, true);
+    chassis.pid_wait();
+    lift.score();
+    lift.waitUntilCompletion(1000);
+  }
 }
 
 void skillz() {
@@ -753,31 +781,7 @@ void skillz() {
   chassis.odom_y_set(-distReset.left(-chassis.odom_y_get()));
   chassis.odom_x_set(distReset.back(chassis.odom_x_get()));
   std::cout << chassis.odom_x_get() << ", " << chassis.odom_y_get() << ", " << chassis.odom_theta_get() << std::endl;
-  chassis.pid_odom_ptp_set({{60, -48}, rev, 90}, false);
-  lift.set(Lift::MATCHLOADING);
-  claw.set(true);
-  chassis.pid_wait();
-  // chassis.pid_turn_set({59, -56}, fwd, 80);
-  chassis.pid_turn_set(180, 70);
-  chassis.pid_wait();
-  chassis.odom_x_set(distReset.left(chassis.odom_x_get()));
-  std::cout << chassis.odom_x_get() << ", " << chassis.odom_y_get() << ", " << chassis.odom_theta_get() << std::endl;
-  claw_autoclose(7000);
-  chassis.pid_odom_ptp_set({{60, -61}, fwd, 40}, false);
-  chassis.pid_wait();
-  pros::delay(500);
-  chassis.pid_odom_ptp_set({{58, -41}, rev, 60}, false);  //60
-  chassis.pid_wait();
-
-  lift.isBackMode = true;
-  lift.set(Lift::LEVEL_3);
-  chassis.pid_turn_set({32, -39}, rev, 80);
-  chassis.pid_wait();
-  lift.waitUntilCompletion(4000);
-  chassis.pid_drive_set(-28, 100);
-  chassis.pid_wait();
-  lift.score();
-  lift.waitUntilCompletion(1000);
+  matchload_skillz(true, 1);
 }
 
 void sawpKinda() {
