@@ -623,23 +623,28 @@ void test_autoclose() {
 }
 
 // Repeatable matchloading + scoring routine for skills.
-//   back: true = score on back, false = score on front
-//   goal: 1 = 1st goal (back only; front defaults to back), 2 = 2nd goal (front or back)
-void matchload_skillz(bool back, int goal) {
+//   back:  true = score on back, false = score on front
+//   goal:  1 = 1st goal (back only; front defaults to back), 2 = 2nd goal (front or back)
+//   level: 0 = front initial-pin / matchload placement (height 290, pivot 295, open claw)
+//          1-5 = Lift::LEVEL_1..LEVEL_5 (uses `back` for LEVEL_2-3)
+void matchload_skillz(bool back, int goal, int level) {
   // Print which scenario was called to the PROS terminal
   if (goal == 1 && back) {
-    printf("[matchload_skillz] Case: 1st goal - BACK\n");
+    printf("[matchload_skillz] Case: 1st goal - BACK | Level: %d\n", level);
   } else if (goal == 1 && !back) {
-    printf("[matchload_skillz] Case: 1st goal - FRONT does not exist, defaulting to 1st goal - BACK\n");
+    printf("[matchload_skillz] Case: 1st goal - FRONT does not exist, defaulting to 1st goal - BACK | Level: %d\n", level);
     back = true;
   } else if (goal == 2 && back) {
-    printf("[matchload_skillz] Case: 2nd goal - BACK\n");
+    printf("[matchload_skillz] Case: 2nd goal - BACK | Level: %d\n", level);
   } else if (goal == 2 && !back) {
-    printf("[matchload_skillz] Case: 2nd goal - FRONT\n");
+    printf("[matchload_skillz] Case: 2nd goal - FRONT | Level: %d\n", level);
   } else {
-    printf("[matchload_skillz] Case: Unknown goal (%d), defaulting to 1st goal - BACK\n", goal);
+    printf("[matchload_skillz] Case: Unknown goal (%d), defaulting to 1st goal - BACK | Level: %d\n", goal, level);
     goal = 1;
     back = true;
+  }
+  if (level == 0) {
+    printf("[matchload_skillz] Level 0: front initial-pin / matchload height\n");
   }
   fflush(stdout);
 
@@ -666,36 +671,67 @@ void matchload_skillz(bool back, int goal) {
   chassis.pid_odom_ptp_set({{58, -41}, rev, 60}, false);  // 60
   chassis.pid_wait();
 
+  // Move lift to requested level
+  auto set_target_level = [&](bool use_back) {
+    switch (level) {
+      case 0:
+        lift.pivotSpeed = 60;
+        lift.setHeight(290);
+        lift.setPivot(295);
+        break;
+      case 1: lift.setLevel(Lift::LEVEL_1, use_back); break;
+      case 2: lift.setLevel(Lift::LEVEL_2, use_back); break;
+      case 3: lift.setLevel(Lift::LEVEL_3, use_back); break;
+      case 4: lift.setLevel(Lift::LEVEL_4, use_back); break;
+      case 5: lift.setLevel(Lift::LEVEL_5, use_back); break;
+      default:
+        printf("[matchload_skillz] Unknown level (%d), defaulting to LEVEL_3\n", level);
+        fflush(stdout);
+        lift.setLevel(Lift::LEVEL_3, use_back);
+        break;
+    }
+  };
+
+  auto release_pin = [&]() {
+    if (level == 0) {
+      lift.waitUntilCompletion(750);
+      pros::delay(200);
+      claw.set(true);
+      pros::delay(200);
+      lift.pivotSpeed = 127;
+    } else {
+      lift.score();
+      lift.waitUntilCompletion(1000);
+    }
+  };
+
   if (goal == 1) {
     // 1st goal - BACK (front defaults here)
-    lift.setLevel(Lift::LEVEL_3, true);
+    set_target_level(true);
     chassis.pid_turn_set({32, -39}, rev, 80);
     chassis.pid_wait();
-    lift.waitUntilCompletion(4000);
+    if (level != 0) lift.waitUntilCompletion(4000);
     chassis.pid_drive_set(-28, 100);
     chassis.pid_wait();
-    lift.score();
-    lift.waitUntilCompletion(1000);
+    release_pin();
   } else if (back) {
     // 2nd goal - BACK
-    lift.setLevel(Lift::LEVEL_3, true);
+    set_target_level(true);
     chassis.pid_turn_set({48, -32}, rev, 80);
     chassis.pid_wait();
-    lift.waitUntilCompletion(4000);
+    if (level != 0) lift.waitUntilCompletion(4000);
     chassis.pid_odom_ptp_set({{48, -32}, rev, 60}, true);
     chassis.pid_wait();
-    lift.score();
-    lift.waitUntilCompletion(1000);
+    release_pin();
   } else {
     // 2nd goal - FRONT
-    lift.setLevel(Lift::LEVEL_3, false);
+    set_target_level(false);
     chassis.pid_turn_set({48, -32}, fwd, 80);
     chassis.pid_wait();
-    lift.waitUntilCompletion(4000);
+    if (level != 0) lift.waitUntilCompletion(4000);
     chassis.pid_odom_ptp_set({{48, -32}, fwd, 60}, true);
     chassis.pid_wait();
-    lift.score();
-    lift.waitUntilCompletion(1000);
+    release_pin();
   }
 }
 
@@ -781,7 +817,7 @@ void skillz() {
   chassis.odom_y_set(-distReset.left(-chassis.odom_y_get()));
   chassis.odom_x_set(distReset.back(chassis.odom_x_get()));
   std::cout << chassis.odom_x_get() << ", " << chassis.odom_y_get() << ", " << chassis.odom_theta_get() << std::endl;
-  matchload_skillz(true, 1);
+  matchload_skillz(true, 1, 3);
 }
 
 void sawpKinda() {

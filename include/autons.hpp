@@ -23,7 +23,7 @@ void odom_boomerang_example();
 void odom_boomerang_injected_pure_pursuit_example();
 void measure_offsets();
 void test_autoclose();
-void matchload_skillz(bool back = true, int goal = 1);
+void matchload_skillz(bool back = true, int goal = 1, int level = 3);
 void skillz();
 void sawpKinda();
 // void driver_side_three_pin();
