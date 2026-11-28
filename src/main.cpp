@@ -287,7 +287,8 @@ void ez_template_extras() {
 
 /**
  * Driver layout:
- *   R1 / R2       intake in / out
+ *   R1            toggle motor (hold)
+ *   R2 / LEFT     score - drop, open claw, then up to scoreRise above where it was (at zero: only opens the claw)
  *   L1 / L2       lift up / down a level - LEVEL_1 is on the front, every other level goes to the back.
  *                 From MATCHLOADING: arm to FRONT_SCORING_ANGLE, lift up, then arm to FRONT_LEVEL_ANGLE
  *   L1 + L2       toggle Front / Back - keeps the same level (zero or LEVEL_1 go to back LEVEL_2).
@@ -297,7 +298,6 @@ void ez_template_extras() {
  *   A             lift to MATCHLOADING_HEIGHT, arm to FRONT_ANGLE once the lift is below MATCHLOADING_PIVOT_HEIGHT
  *   X / B         raw lift up / down (hold)
  *   RIGHT / DOWN  raw pivot arm control (hold to move, release to hold angle)
- *   LEFT          score - drop, open claw, then up to scoreRise above where it was (at zero: only opens the claw)
  *   Y             open / close claw
  */
 void opcontrol() {
@@ -317,18 +317,15 @@ void opcontrol() {
     ez_template_extras();
     chassis.opcontrol_arcade_standard(ez::SPLIT);
 
-    if (controller.get_digital_new_press(DIGITAL_LEFT))
+    if (controller.get_digital_new_press(DIGITAL_LEFT) || controller.get_digital_new_press(DIGITAL_R2))
       lift.score();
 
-    // Intake
-    if (controller.get_digital(DIGITAL_R2)) {
-      // intake.set(Intake::INTAKE);
-      toggleMotor.move(0);
-    } else if (controller.get_digital(DIGITAL_R1)) {
+    // Toggle motor
+    if (controller.get_digital(DIGITAL_R1)) {
       // intake.set(Intake::OUTTAKE);
       toggleMotor.move(60);
     } else {
-      // 'p/intake.set(Intake::STOP);
+      // intake.set(Intake::STOP);
       toggleMotor.move(0);
     }
 

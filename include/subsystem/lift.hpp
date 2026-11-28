@@ -72,7 +72,7 @@ class Lift {
   double pivotKP = 0.4;        // everything except back scoring - power per degree of error  (PLACEHOLDER)
   double pivotLoadedKP = 1.5;  // back scoring (back LEVEL_2-5), since the arm carries the pin over to the back  (PLACEHOLDER)
   int matchloadPushPower = 40;        // MATCHLOADING - raw power swinging the arm to FRONT_ANGLE and pushing it into the hardstop  (PLACEHOLDER)
-  double matchloadPushTolerance = 4;  // degrees - within this of FRONT_ANGLE (or past it) counts as landed  (PLACEHOLDER)
+  double matchloadPushTolerance = 2;  // degrees - within this of FRONT_ANGLE (or past it) counts as landed  (PLACEHOLDER)
   int matchloadPushTime = 300;        // ms it keeps pushing after it lands - then plain P holds FRONT_ANGLE  (PLACEHOLDER)
   int matchloadPushLeft = 0;          // ms of pushing left since it landed
   bool matchloadHolding = false;      // done pushing, P is holding FRONT_ANGLE - set() clears it
