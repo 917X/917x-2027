@@ -628,7 +628,7 @@ void test_autoclose() {
 //   level: 0 = front initial-pin / matchload placement (height 290, pivot 295, open claw)
 //          1-5 = Lift::LEVEL_1..LEVEL_5 (uses `back` for LEVEL_2-3)
 void matchload_skillz(bool back, int goal, int level) {
-  // Print which scenario was called to the PROS terminal
+  // For dA DEBUG
   if (goal == 1 && back) {
     printf("[matchload_skillz] Case: 1st goal - BACK | Level: %d\n", level);
   } else if (goal == 1 && !back) {
@@ -654,11 +654,13 @@ void matchload_skillz(bool back, int goal, int level) {
   double dy = -48.0 - chassis.odom_y_get();
   ez::drive_directions approach_dir = (dx * sin(theta_rad) + dy * cos(theta_rad)) >= 0 ? fwd : rev;
 
+  
   chassis.pid_odom_ptp_set({{60, -48}, approach_dir, 90}, false);
-  lift.set(Lift::MATCHLOADING);
+  lift.setHeight(-10);
   claw.set(true);
   chassis.pid_wait();
 
+  lift.set(Lift::MATCHLOADING);
   chassis.pid_turn_set(180, 70);
   chassis.pid_wait();
   chassis.odom_x_set(distReset.left(chassis.odom_x_get()));
@@ -668,7 +670,7 @@ void matchload_skillz(bool back, int goal, int level) {
   chassis.pid_odom_ptp_set({{60, -61}, fwd, 40}, false);
   chassis.pid_wait();
   pros::delay(500);
-  chassis.pid_odom_ptp_set({{58, -41}, rev, 60}, false);  // 60
+  chassis.pid_odom_ptp_set({{58, -41}, rev, 40}, false);  // 60
   chassis.pid_wait();
 
   // Move lift to requested level
@@ -708,28 +710,32 @@ void matchload_skillz(bool back, int goal, int level) {
   if (goal == 1) {
     // 1st goal - BACK (front defaults here)
     set_target_level(true);
-    chassis.pid_turn_set({32, -39}, rev, 80);
+    chassis.pid_turn_set({32, -39}, rev, 60);
     chassis.pid_wait();
     if (level != 0) lift.waitUntilCompletion(4000);
     chassis.pid_drive_set(-28, 100);
     chassis.pid_wait();
-    release_pin();
+    release_pin();  
+    lift.setHeight(-10);
+    pros::delay(500);
   } else if (back) {
     // 2nd goal - BACK
     set_target_level(true);
-    chassis.pid_turn_set({48, -32}, rev, 80);
+    chassis.pid_turn_set({48, -32}, rev, 60);
     chassis.pid_wait();
     if (level != 0) lift.waitUntilCompletion(4000);
-    chassis.pid_odom_ptp_set({{48, -32}, rev, 60}, true);
+    chassis.pid_odom_ptp_set({{48, -32}, rev, 40}, true);
     chassis.pid_wait();
     release_pin();
+    lift.setHeight(-10);
+    pros::delay(500);
   } else {
     // 2nd goal - FRONT
     set_target_level(false);
-    chassis.pid_turn_set({48, -32}, fwd, 80);
+    chassis.pid_turn_set({48, -32}, fwd, 60);
     chassis.pid_wait();
     if (level != 0) lift.waitUntilCompletion(4000);
-    chassis.pid_odom_ptp_set({{48, -32}, fwd, 60}, true);
+    chassis.pid_odom_ptp_set({{48, -32}, fwd, 40}, true);
     chassis.pid_wait();
     release_pin();
   }
@@ -771,10 +777,10 @@ void skillz() {
   lift.set(Lift::MATCHLOADING);
   chassis.pid_wait();
 
-  chassis.pid_turn_set({19., -33}, fwd, 127); //18.5
+  chassis.pid_turn_set({18.5, -32.5}, fwd, 127); //18.5
   chassis.pid_wait();
   claw_autoclose(7000, Lift::LEVEL_1);
-  chassis.pid_odom_ptp_set({{19., -33}, fwd, 40}, false);
+  chassis.pid_odom_ptp_set({{18.8, -32.5}, fwd, 40}, false);
   chassis.pid_wait();
   pros::delay(750);
   lift.set(Lift::LEVEL_1);
@@ -811,6 +817,7 @@ void skillz() {
   lift.score();
   // claw.set(true);
   lift.waitUntilCompletion(1000);
+  
 
   
   // MATCHLOAD START
@@ -818,6 +825,7 @@ void skillz() {
   chassis.odom_x_set(distReset.back(chassis.odom_x_get()));
   std::cout << chassis.odom_x_get() << ", " << chassis.odom_y_get() << ", " << chassis.odom_theta_get() << std::endl;
   matchload_skillz(true, 1, 3);
+  matchload_skillz(true,1,4);
 }
 
 void sawpKinda() {

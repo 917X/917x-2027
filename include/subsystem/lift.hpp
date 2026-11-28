@@ -74,7 +74,7 @@ class Lift {
 
   int pivotSpeed = 127;        // max power moving to an angle - both kPs below share it
   double pivotKP = 0.4;        // everything except back scoring - power per degree of error  (PLACEHOLDER)
-  double pivotLoadedKP = 1.5;  // back scoring (back LEVEL_2-5), since the arm carries the pin over to the back  (PLACEHOLDER)
+  double pivotLoadedKP = 1.4;  // back scoring (back LEVEL_2-5), since the arm carries the pin over to the back  (PLACEHOLDER)
   int matchloadPushPower = 40;        // MATCHLOADING - raw power swinging the arm to FRONT_ANGLE and pushing it into the hardstop  (PLACEHOLDER)
   double matchloadPushTolerance = 2;  // degrees - within this of FRONT_ANGLE (or past it) counts as landed  (PLACEHOLDER)
   int matchloadPushTime = 300;        // ms it keeps pushing after it lands - then plain P holds FRONT_ANGLE  (PLACEHOLDER)
@@ -110,7 +110,7 @@ class Lift {
   int homePrintCounter = 0;
 
   // Score
-  double scoreDrop = 400;       // degrees, same units as the heights below
+  double scoreDrop = 600;       // degrees, same units as the heights below
   int scoreDropSpeed = 60;      // max power going down during SCORE - lowerSpeed is 80  (PLACEHOLDER)
   double scoreRise = 0;         // degrees it goes back up after letting go - 0 holds where it let go
   int scoreReleaseTime = 200;   // ms  (PLACEHOLDER)
@@ -138,8 +138,8 @@ class Lift {
   // Back Heights (Levels 2-5)
   double BACK_LEVEL_2_HEIGHT = 0;
   double BACK_LEVEL_3_HEIGHT = 990.8;
-  double BACK_LEVEL_4_HEIGHT = 2133.8;
-  double BACK_LEVEL_5_HEIGHT = 3242.8;
+  double BACK_LEVEL_4_HEIGHT = 2333.8;
+  double BACK_LEVEL_5_HEIGHT = 3262.8;
 
   // The lift never drives past these.  HOMING ignores them - it has to go below the old zero.
   double MIN_POSITION = -10;    // just under ZERO_HEIGHT, so raw down stops before the string re-winds
