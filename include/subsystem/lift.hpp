@@ -48,7 +48,7 @@ class Lift {
   void levelUp();                                  // next level up - LEVEL_1 is on the front, LEVEL_2-5 always go to the back
   void levelDown();                                // next level down - same front / back rule as levelUp, LEVEL_1 goes down to LOADING
   void home();                                     // starts HOMING - the lift task drives down until it stalls, then zeroes
-  void score();                                    // starts SCORE - drop scoreDrop, open the claw if it's closed, then go up to scoreRise above where it was.
+  void score();                                    // starts SCORE - drop scoreDrop, open the claw if it's closed, then go up scoreRise from where it let go.
                                                    // At zero it only opens the claw.
   void driverScore();                              // LEFT's score - same as score() up to the release (but drops driverScoreDrop, never below
                                                    // ZERO_HEIGHT), then goes all the way down to ZERO.  At zero it only opens the claw.
@@ -111,12 +111,14 @@ class Lift {
 
   // Score
   double scoreDrop = 400;       // degrees, same units as the heights below
-  double scoreRise = 0;       // degrees above the starting position it ends at
+  int scoreDropSpeed = 60;      // max power going down during SCORE - lowerSpeed is 80  (PLACEHOLDER)
+  double scoreRise = 0;         // degrees it goes back up after letting go - 0 holds where it let go
   int scoreReleaseTime = 200;   // ms  (PLACEHOLDER)
   double scoreTolerance = 30;   // degrees  (PLACEHOLDER)
   int scoreMoveTimeout = 1000;  // ms
   ScorePhase scorePhase = DROPPING;
   double scoreStart = 0;  // where it was when score() was called
+  double scoreBottom = 0;  // where it let go - RAISING goes up scoreRise from here
   int scoreTime = 0;      // ms in the current phase
   double driverScoreDrop = 300;  // degrees driverScore() drops before it opens the claw
   bool scoreToZero = false;      // this SCORE is driverScore() - after the release it goes down to ZERO instead of up

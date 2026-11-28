@@ -801,7 +801,7 @@ void skillz() {
   pros::delay(200);
   lift.set(Lift::LEVEL_2);
 
-  chassis.pid_turn_set({31, -50}, fwd, 100);
+  chassis.pid_turn_set({31, -49}, fwd, 100);
   chassis.pid_wait();
   // chassis.pid_odom_ptp_set({{31, -49}, fwd, 70}, false);
   // chassis.pid_wait();

@@ -76,7 +76,7 @@ void Lift::liftControl() {
         pivotTarget = BACK_ANGLE;
         break;
       case SCORE:
-        target = scorePhase == RAISING ? scoreStart + scoreRise : scoreLow;
+        target = scorePhase == RAISING ? scoreBottom + scoreRise : scoreLow;
         break;
       case CUSTOM_HEIGHT:
         target = customHeight;  // the arm holds its last angle
@@ -105,6 +105,7 @@ void Lift::liftControl() {
     } else {
       power = std::clamp(static_cast<int>(kP * (target - position)), -lowerSpeed, lowerSpeed);
     }
+    if (state == SCORE) power = std::max(power, -scoreDropSpeed);  // drops slower than lowerSpeed
     if (state == RAW_UP) power = rawSpeed;
     if (state == RAW_DOWN) power = -rawSpeed;
     if (state == RAW_HOLD) power = 0;  // let go - the HOLD brake keeps it where it stopped
@@ -156,6 +157,7 @@ void Lift::liftControl() {
         if (position <= scoreLow + scoreTolerance || scoreTime >= scoreMoveTimeout) {
           if (claw.get()) {
             scorePhase = RAISING;  // already open - nothing to wait for
+            scoreBottom = position;
           } else {
             claw.set(true);
             scorePhase = RELEASING;
@@ -166,12 +168,13 @@ void Lift::liftControl() {
         // Give the claw time to let go before pulling away
         if (scoreTime >= scoreReleaseTime) {
           scorePhase = RAISING;
+          scoreBottom = position;  // the rise starts from where it let go, not from scoreStart
           scoreTime = 0;
         }
       } else {
-        // Done once it's up - hold right there, since going back to a level would just drop
-        // it back down to that height
-        if (position >= scoreStart + scoreRise - scoreTolerance || scoreTime >= scoreMoveTimeout)
+        // Done once it's up scoreRise from where it let go - hold right there, since going back to a level would
+        // just drop it back down to that height.  scoreRise 0 holds where it let go
+        if (position >= scoreBottom + scoreRise - scoreTolerance || scoreTime >= scoreMoveTimeout)
           set(RAW_HOLD);
       }
       // driverScore() - it's let go, so go all the way down instead.  ZERO aims there.  Handing over on the

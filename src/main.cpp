@@ -289,7 +289,7 @@ void ez_template_extras() {
  * Driver layout:
  *   R1            toggle motor (hold)
  *   LEFT          driver score - drop driverScoreDrop, open claw, then all the way down to zero (at zero: only opens the claw)
- *   R2            score - drop, open claw, then up to scoreRise above where it was (at zero: only opens the claw)
+ *   R2            score - drop, open claw, then up scoreRise from where it let go (at zero: only opens the claw)
  *   L1 / L2       lift up / down a level - LEVEL_1 is on the front, every other level goes to the back.
  *                 From MATCHLOADING: lift up with the arm at FRONT_SCORING_ANGLE, then arm to FRONT_LEVEL_ANGLE
  *   L1 + L2       toggle Front / Back - keeps the same level (zero or LEVEL_1 go to back LEVEL_2).
